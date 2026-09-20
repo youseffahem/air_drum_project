@@ -21,6 +21,7 @@ Provides the mechanistic evidence behind the contribution and the honest stateme
 - Phase 18 frozen configuration (model family, `N`, `H`, operating rules, FP budget, `W`, `Δ_proc`), CV folds (ablations use CV folds; the test set is used only for a final table of the ablations that changed conclusions — Open Question, default: CV only).
 - Phase 08 feature groups; Phase 10/11 training code; Phase 09 harness.
 - Phase 02/16 evidence on native 60 FPS availability.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-306.
 
 ## Expected Outputs
 

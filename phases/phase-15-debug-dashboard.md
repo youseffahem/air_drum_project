@@ -21,6 +21,7 @@ Scientific validation requires seeing *why* a strike was or was not committed â€
 ## Inputs
 
 - All record types (Phase 01); Phase 13 application with arms; Phase 04 rendering; timing records; capture/audio stats.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-058, REQ-310; contributes to REQ-020.
 
 ## Expected Outputs
 

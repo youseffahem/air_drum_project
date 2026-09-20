@@ -21,6 +21,7 @@ Q34–35 and Q60 make safety under tracking loss non-negotiable; Q28–29 requir
 ## Inputs
 
 - Optimised integrated system (Phase 16); all prior test suites; failure catalogues (Phases 03/05/10); dataset sessions with occlusion/tracking-loss/lighting segments (Phase 06 segment types 10–13).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-012, REQ-027, REQ-028, REQ-029, REQ-034, REQ-035, REQ-305; contributes to REQ-060b.
 
 ## Expected Outputs
 

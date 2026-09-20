@@ -25,6 +25,7 @@ Every metric in README §10 is computed against ground-truth impacts. If labels 
 - Phase 04 geometry (impact surfaces, entry test, sub-frame interpolation).
 - Phase 03 tracker (re-run offline; plus an offline non-causal smoother for labels only).
 - Phase 06 segment types and exclusion log.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-014 (ground-truth proxy), REQ-038 (labels), REQ-048 (QC), REQ-049 (splits, rules); contributes to REQ-015.
 
 ## Expected Outputs
 

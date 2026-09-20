@@ -24,6 +24,7 @@ The research question compares learned anticipation with reactive detection and 
 - Phase 04 geometry (`intersect`), audio scheduler, MVP layout.
 - Phase 01 contracts: `Anticipator`, `CommitPolicy`, `StrikeCandidate`, `CommittedStrike`, `TimingRecord`, per-hand state ownership and reset matrix.
 - README §8 state machine, §9 baseline naming.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-004, REQ-006, REQ-012, REQ-013, REQ-043, REQ-050a, REQ-112, REQ-113, REQ-114; contributes to REQ-001, REQ-007, REQ-011, REQ-035.
 
 ## Expected Outputs
 

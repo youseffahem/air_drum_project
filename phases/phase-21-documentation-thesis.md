@@ -19,6 +19,7 @@ Communicates the contribution with its evidence and its limits; prevents overcla
 ## Inputs
 
 - RC (Phase 20); reports from Phases 02–19; ADRs; RTM; dataset card; failure catalogue; pre-registrations; result manifests; export tools (Phase 15).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-050c, REQ-060c, REQ-060d, REQ-301, REQ-308, REQ-309; contributes to REQ-211.
 
 ## Expected Outputs
 

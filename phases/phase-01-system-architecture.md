@@ -23,6 +23,7 @@ The pipeline (README §1) has eleven stages and three distinct sources of strike
 
 - Phase 00 artefacts (RTM, repo layout, reproducibility policy, ADRs).
 - README §5–§10 canonical definitions.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-001, REQ-021, REQ-033, REQ-051, REQ-052, REQ-055, REQ-060b, REQ-207, REQ-302; contributes to REQ-004.
 
 ## Expected Outputs
 

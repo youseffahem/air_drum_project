@@ -21,6 +21,7 @@ Until now, zone layout, ROI, and `L_prior` are candidate constants tuned on the 
 ## Inputs
 
 - Phase 13 application; Phase 04 zone layouts; Phase 03 `L_prior` mechanism; Phase 02 ROI helper and camera profile.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-057, REQ-019, REQ-016, REQ-018, REQ-056; contributes to REQ-004.
 
 ## Expected Outputs
 

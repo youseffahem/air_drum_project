@@ -19,6 +19,7 @@ Preserves the evidence and the artefacts; enables future research on the dataset
 ## Inputs
 
 - Accepted RC (Phase 20); thesis material (Phase 21); demo assets (Phase 22); consent records; institutional rules on data release; licences of dependencies and samples.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-049 (dataset release), REQ-052 (offline bundle), REQ-201 to REQ-210 (coverage audit).
 
 ## Expected Outputs
 

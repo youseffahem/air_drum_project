@@ -19,6 +19,7 @@ Preserves the evaluated system unchanged; ensures the demo and thesis refer to t
 ## Inputs
 
 - All Exit Gates 14–19; ship ADRs; Phase 18/19 reports and manifests; Phase 17 failure catalogue.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-001, REQ-004, REQ-006, REQ-050a, REQ-056.
 
 ## Expected Outputs
 

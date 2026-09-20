@@ -25,6 +25,7 @@ The temporal model and every experimental comparison depend on a dataset that (a
 - Phase 00 consent/information templates; ethics decision.
 - Phase 02 lighting checklist; camera profile.
 - Phase 01 `SessionMetadata` reservation; `FrameSample` and record schemas.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-003, REQ-046, REQ-047, REQ-048; contributes to REQ-012, REQ-024, REQ-027, REQ-028, REQ-032, REQ-049.
 
 ## Expected Outputs
 

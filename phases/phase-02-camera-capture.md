@@ -21,6 +21,7 @@ The research contribution is measured in milliseconds of lead time. Frame period
 - Phase 01 contracts: `FrameSample`, clock model, config schema (`camera_profile`, `roi`).
 - Phase 00 hardware inventory (advertised camera modes).
 - Laptop webcam (initial); tripod/fixed mount if available.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-019, REQ-022, REQ-023, REQ-024, REQ-025, REQ-026, REQ-027, REQ-101, REQ-102; contributes to REQ-004.
 
 ## Expected Outputs
 

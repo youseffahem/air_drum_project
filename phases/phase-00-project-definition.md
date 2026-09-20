@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+IMPLEMENTED (document-only phase) — awaiting Exit Gate review. Gate record: [`../docs/gates/phase-00-gate.md`](../docs/gates/phase-00-gate.md). No research quantity was measured; environment smoke check passed on HW-01 (2026-09-20).
 
 ## Purpose
 
@@ -21,6 +21,7 @@ The contribution — Causal Temporal Strike Anticipation — depends on being ab
 - `project-discovery.md` (all 60 answers, confirmed architecture, scope rules, philosophy).
 - Owner decisions recorded in this session: Python-first stack; optional practice-pad + microphone ground-truth condition; MVP zones = Snare, Hi-Hat, Tom 1, Crash/Ride.
 - Available hardware (laptop, webcam) — to be inventoried, not assumed.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-008, REQ-049 (consent scope), REQ-054, REQ-060a, REQ-060d, REQ-201 to REQ-210, REQ-301, REQ-308.
 
 ## Expected Outputs
 
@@ -208,6 +209,8 @@ Not applicable.
 ## Exit Gate
 
 Reviewer confirms all acceptance criteria; gate record PASS. Phase 01 may start.
+
+Gate record: [`../docs/gates/phase-00-gate.md`](../docs/gates/phase-00-gate.md) — submitted 2026-09-20, verdict **pending owner review**.
 
 ## What Must NOT Be Done Yet
 

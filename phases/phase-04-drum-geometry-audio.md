@@ -24,6 +24,7 @@ The strike definition (Q36–39) is geometric and deterministic. Keeping it in a
 - README §6 event taxonomy, §7 coordinate convention.
 - ADR-0003 (MVP zone set).
 - Local drum samples (royalty-free or self-recorded; licence recorded).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-011, REQ-014, REQ-015, REQ-016, REQ-017, REQ-018, REQ-020, REQ-036, REQ-037, REQ-038, REQ-039, REQ-053, REQ-110, REQ-111, REQ-115, REQ-116; contributes to REQ-004, REQ-021, REQ-055.
 
 ## Expected Outputs
 

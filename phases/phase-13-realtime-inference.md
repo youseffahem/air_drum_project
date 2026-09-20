@@ -24,6 +24,7 @@ Offline results (Phases 09–12) are only meaningful for the product and for the
 - Phase 05 application, commit policy, timing instrumentation; Phase 08 streaming features; Phase 04 geometry/audio.
 - Phase 09 harness and recorded sessions for parity.
 - Measured stage latencies (Phases 02/03/08/10).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-042 (live geometry path), REQ-052, REQ-108 (online parity), REQ-304; contributes to REQ-001, REQ-044, REQ-209, REQ-302.
 
 ## Expected Outputs
 

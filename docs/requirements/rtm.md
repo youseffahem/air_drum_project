@@ -208,11 +208,11 @@ Detailed register with re-inclusion rule: [`out-of-scope.md`](out-of-scope.md). 
 
 | Group | Rows | Unowned | Notes |
 |---|---|---|---|
-| Q1–Q60 | 64 (60 questions; Q50 and Q60 split) | 0 | — |
+| Q1–Q60 | 65 (60 questions; Q50 split into 3 rows, Q60 into 4) | 0 | — |
 | Architecture + research direction | 17 | 0 | — |
 | Scope rules | 11 | 0 | Out-of-scope items owned by Phase 00 register + Phase 23 audit |
 | Philosophy | 10 | 0 | — |
-| **Total** | **102** | **0** | Acceptance criterion 1 satisfied at document level; per-phase citation check recorded in `docs/gates/phase-00-gate.md`. |
+| **Total** | **103** | **0** | Acceptance criterion 1 satisfied at document level; per-phase citation check recorded in `docs/gates/phase-00-gate.md`. |
 
 ## 7. Phase → REQ reverse index
 

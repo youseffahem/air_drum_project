@@ -24,6 +24,7 @@ Without a single, tested harness, A/B/C comparisons would use different matching
 - Phase 08 feature samples and normalisation stats per fold.
 - Phase 04 geometry, Phase 05 commit policy and rule-based anticipator (frozen versions).
 - README §10 metric definitions.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-005, REQ-040, REQ-043, REQ-044, REQ-045, REQ-303, REQ-308; contributes to REQ-060b, REQ-302.
 
 ## Expected Outputs
 

@@ -22,6 +22,7 @@ The temporal model's input is not raw video; it is a sequence of kinematic descr
 
 - `ds-v1.0`: `tracks_causal.jsonl` per session (Phase 07), `LabelRecord`s, split files, session metadata, zone layout used during recording.
 - Phase 01 `KinematicFeatures` contract; Phase 03 `TrackState` fields.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-108; contributes to REQ-060b, REQ-302.
 
 ## Expected Outputs
 

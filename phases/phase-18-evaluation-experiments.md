@@ -22,6 +22,7 @@ This is the evidence for (or against) the contribution: whether causal temporal 
 - Live system (Phase 17 hardened) with arm switch, shadow mode, calibration wizard, experiment-mode overlay.
 - Phase 04 audio output latency, Phase 02 capture latency, Phase 07 acoustic validation (`t_impact_phys − t_impact_est`).
 - Consent for live-experiment participants (Phase 00 templates; new consent per session).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-002, REQ-005, REQ-009 (marker labelling), REQ-011, REQ-013, REQ-040, REQ-045, REQ-050b, REQ-050c, REQ-060c, REQ-117, REQ-211, REQ-307; contributes to REQ-027, REQ-028.
 
 ## Expected Outputs
 

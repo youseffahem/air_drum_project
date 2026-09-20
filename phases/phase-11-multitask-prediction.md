@@ -23,6 +23,7 @@ Q41 lists strike-within-horizon, TTI, zone, impact position, and intensity as pr
 - Phase 10 selected model family, `H`, `N`, operating-point rules, FP budget, pre-registration template, reproducibility package.
 - Phase 08 samples with auxiliary targets (`strike_within_H`, `tti` + mask, `zone_id`, `impact_position`, `intensity_proxy_gt`) and their masks.
 - Phase 09 harness (frozen), Baseline results.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-041 (task heads), REQ-014 (intensity agreement); contributes to REQ-109.
 
 ## Expected Outputs
 

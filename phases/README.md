@@ -267,6 +267,8 @@ The project is **CPU-first**. No GPU is assumed at inference time.
 
 Outside V1 scope: ESP32; IMU sensors; electronic stick hardware; multiple users; full-body tracking; mandatory depth estimation; foot/kick tracking; MIDI as a core requirement; cloud processing; mandatory visual markers.
 
+Authoritative register with re-inclusion rule: [`../docs/requirements/out-of-scope.md`](../docs/requirements/out-of-scope.md) (`REQ-201`–`REQ-211`, Phase 00 Task 00.2).
+
 - **Markerless tracking is primary.** Colored tape/markers are only a fallback or a benchmark/controlled experimental condition.
 - **Kick is outside V1**, but the zone registry must not make a future kick zone impossible (Phase 01/04).
 - **Single user, fully local, local drum samples.**

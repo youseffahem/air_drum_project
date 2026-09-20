@@ -23,6 +23,7 @@ The temporal model (Phase 10) learns from tip trajectories. The quality of those
 - `FrameSample` stream (Phase 02), camera profile, ROI.
 - Phase 01 contracts: `HandObservation`, `StickObservation`, `TrackState`, `TipEstimator`, `Tracker` interfaces; state machine (README §8).
 - Developer-only test captures (not dataset).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-007, REQ-009, REQ-010, REQ-029, REQ-030, REQ-031, REQ-032, REQ-034, REQ-035, REQ-103, REQ-104, REQ-105, REQ-106, REQ-107, REQ-210, REQ-211, REQ-305; contributes to REQ-025, REQ-033, REQ-051, REQ-060b, REQ-302.
 
 ## Expected Outputs
 

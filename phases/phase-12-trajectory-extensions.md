@@ -21,6 +21,7 @@ Potential refinements of the core contribution: larger useful lead time (longer 
 - Phase 10/11 selected model, reproducibility package, pre-registration template, FP budget, `W`, folds.
 - Phase 09 harness.
 - Compute/time budget available (Open Question for the owner at phase entry).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-044 (Tiny Transformer go/no-go); contributes to REQ-109.
 
 ## Expected Outputs
 

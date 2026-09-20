@@ -22,6 +22,7 @@ Direct. Success criterion 2 ("useful measurable Prediction Lead Time compared wi
 - Phase 09 harness (frozen version), Baseline A/B/C-GBDT results, primary `W`, operating-point selection rules, reporting templates.
 - Phase 04 geometry and Phase 05 commit policy (frozen versions).
 - Measured stage latencies (Phases 02, 03, 08) for the `Δ_proc` policy.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-002, REQ-041, REQ-042, REQ-043, REQ-044, REQ-050b, REQ-109, REQ-112, REQ-113, REQ-117, REQ-306; contributes to REQ-005, REQ-040, REQ-060b, REQ-302.
 
 ## Expected Outputs
 

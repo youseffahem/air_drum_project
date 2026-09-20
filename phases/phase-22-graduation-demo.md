@@ -19,6 +19,7 @@ Makes the contribution *visible*: predicted trajectory, predicted crossing, TTI 
 ## Inputs
 
 - RC with presets (Phase 20); dashboard (Phase 15); calibration wizard (Phase 14); Phase 18/19 figures; known-issues list; failure catalogue; environment/lighting checklist (Phase 02).
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-003, REQ-006, REQ-050a, REQ-059, REQ-310; contributes to REQ-020.
 
 ## Expected Outputs
 

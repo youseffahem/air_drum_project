@@ -22,6 +22,7 @@ Useful lead time is bounded by `H − Δ_proc`: every millisecond of processing 
 
 - Phase 13 application, Phase 15 overlay (experiment mode), Phase 02 camera profile (60 FPS evidence), stage latency measurements (Phases 02/03/08/10/13).
 - Phase 09 harness and a fixed regression session set.
+- Requirements traced (Phase 00 RTM, `docs/requirements/rtm.md`): owns REQ-023 (native 60 FPS attempt), REQ-304.
 
 ## Expected Outputs
 
