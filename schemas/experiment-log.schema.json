@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/experiment-log.schema.json",
+  "title": "Space Drums experiment-log record",
+  "description": "One record per experiment run. Defined in Phase 00 (Task 00.5, docs/reproducibility-policy.md); written by the Phase 09 harness and every training/evaluation script in Phases 09-19. All fields marked required must be present for a run to be citable in any document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "phase",
+    "task",
+    "status",
+    "config_hash",
+    "config_path",
+    "dataset_version",
+    "dataset_hash",
+    "git_sha",
+    "git_dirty",
+    "hardware_id",
+    "environment",
+    "seed",
+    "started_at",
+    "finished_at",
+    "metrics",
+    "artefacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Version of this schema. Bump on any breaking change; keep old records readable."
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[0-9]{4}-[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "YYYYMMDD-HHMM-<slug> (local time of start, docs/repo-layout.md naming rules). Unique within experiments/."
+    },
+    "phase": {
+      "type": "string",
+      "pattern": "^[0-2][0-9]$",
+      "description": "Two-digit phase number that produced this run, e.g. \"09\"."
+    },
+    "task": {
+      "type": "string",
+      "pattern": "^[0-2][0-9]\\.[0-9]+$",
+      "description": "Task id within the phase, e.g. \"09.4\"."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["RUNNING", "COMPLETED", "FAILED", "ABORTED"],
+      "description": "Only COMPLETED runs may be cited."
+    },
+    "description": {
+      "type": "string",
+      "description": "Free-text purpose of the run (one or two sentences)."
+    },
+    "arm": {
+      "type": "string",
+      "enum": ["A", "B", "C-GBDT", "C-GRU", "C-TCN", "C-MT", "C-TT", "NA"],
+      "description": "Baseline / system arm per phases/README.md section 9; NA for runs that are not arm-specific (e.g. feature extraction)."
+    },
+    "config_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 over the canonicalised (sorted-key, UTF-8, no-whitespace JSON) fully-resolved config used by the run."
+    },
+    "config_path": {
+      "type": "string",
+      "description": "Path (relative to the run directory) of the stored resolved config snapshot, e.g. \"config.resolved.yaml\"."
+    },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^ds(-[a-z0-9]+)?-v[0-9]+\\.[0-9]+$",
+      "description": "Dataset version identifier, e.g. \"ds-v1.0\" or \"ds-raw-v1.0\". Use \"ds-none-v0.0\" only for runs that consume no dataset (must be justified in description)."
+    },
+    "dataset_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 of the dataset manifest file for dataset_version."
+    },
+    "split": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Participant-level split actually used (ids are pseudonymous participant codes).",
+      "properties": {
+        "scheme": { "type": "string", "description": "e.g. \"fixed-v1\", \"loPo-fold-3\"" },
+        "train": { "type": "array", "items": { "type": "string" } },
+        "val": { "type": "array", "items": { "type": "string" } },
+        "test": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["scheme"]
+    },
+    "git_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Full commit hash of the code that ran."
+    },
+    "git_dirty": {
+      "type": "boolean",
+      "description": "True if the working tree had uncommitted changes. Dirty runs may not be cited as VALIDATED."
+    },
+    "hardware_id": {
+      "type": "string",
+      "description": "Identifier of a hardware descriptor in docs/hardware-inventory.md (e.g. \"HW-01\")."
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Snapshot of the descriptor at run time (cpu_model, physical_cores, logical_cores, ram_gb, os_build, camera_model, audio_device). Redundant with hardware_id on purpose: records must stay readable if the inventory changes.",
+      "properties": {
+        "cpu_model": { "type": "string" },
+        "physical_cores": { "type": "integer", "minimum": 1 },
+        "logical_cores": { "type": "integer", "minimum": 1 },
+        "ram_gb": { "type": "number", "minimum": 0 },
+        "os_build": { "type": "string" },
+        "camera_model": { "type": "string" },
+        "audio_device": { "type": "string" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["python", "lock_hash"],
+      "description": "Runtime environment: interpreter and hash of requirements.lock, plus optional per-library versions and thread settings.",
+      "properties": {
+        "python": { "type": "string" },
+        "lock_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "libraries": { "type": "object", "additionalProperties": { "type": "string" } },
+        "threads": { "type": "object", "additionalProperties": { "type": "integer" } }
+      }
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Global seed applied to Python, NumPy, PyTorch and GBDT (docs/reproducibility-policy.md section 2)."
+    },
+    "deterministic": {
+      "type": "boolean",
+      "description": "True if deterministic algorithms were requested (torch.use_deterministic_algorithms etc.)."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 with timezone offset."
+    },
+    "finished_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO-8601 with timezone offset; null while status is RUNNING."
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Flat or nested numeric results. Every key must be a metric named in phases/README.md section 10 or defined in the run's phase document. No metric here is a result until the run is cited by a gate record.",
+      "additionalProperties": true
+    },
+    "artefacts": {
+      "type": "array",
+      "description": "Files produced by the run (models, plots, tables), each with a hash.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "kind": { "type": "string", "enum": ["model", "onnx", "figure", "table", "log", "config", "predictions", "other"] },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "parent_run_id": {
+      "type": ["string", "null"],
+      "description": "run_id of the run this one reproduces or continues (used for VALIDATED reproduction pairs)."
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

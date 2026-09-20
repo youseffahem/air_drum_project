@@ -1,0 +1,32 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# --- Recordings, datasets, model artefacts (manifest-tracked, never committed) ---
+data/**
+!data/README.md
+experiments/**
+!experiments/README.md
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.mp4
+*.avi
+*.mkv
+*.wav
+*.npz
+*.npy
+*.parquet
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.kilocode/

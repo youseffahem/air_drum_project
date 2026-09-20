@@ -1,0 +1,32 @@
+# Space Drums — top-level dependency candidates (Phase 00, Task 00.3).
+# This file lists INTENT (loose pins). The reproducible environment is
+# requirements.lock, generated from a clean venv (see docs/environment.md).
+#
+# PyTorch: CPU-only build. The project is CPU-first (phases/README.md §11).
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# --- numerics ---
+numpy>=1.26,<3
+scipy>=1.11
+
+# --- camera / CV (Phase 02, 03) ---
+opencv-python>=4.9
+mediapipe>=0.10.14
+
+# --- training / inference (Phase 09-13) ---
+torch>=2.2
+onnxruntime>=1.17
+lightgbm>=4.3
+
+# --- audio (Phase 04) ---
+sounddevice>=0.4.6
+soundfile>=0.12
+
+# --- config / schemas ---
+pydantic>=2.6
+PyYAML>=6.0
+jsonschema>=4.21
+
+# --- dev / test ---
+pytest>=8.0
+ruff>=0.4

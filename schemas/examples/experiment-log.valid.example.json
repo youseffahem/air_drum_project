@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "run_id": "20260101-0000-example-schema-check",
+  "phase": "00",
+  "task": "00.5",
+  "status": "COMPLETED",
+  "description": "SYNTHETIC EXAMPLE used only to validate the schema. Contains no real measurement. Every value is a placeholder.",
+  "arm": "NA",
+  "config_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "config_path": "config.resolved.yaml",
+  "dataset_version": "ds-none-v0.0",
+  "dataset_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "split": { "scheme": "none" },
+  "git_sha": "0000000000000000000000000000000000000000",
+  "git_dirty": true,
+  "hardware_id": "HW-00-PLACEHOLDER",
+  "environment": {
+    "python": "0.0.0",
+    "lock_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "seed": 0,
+  "deterministic": true,
+  "started_at": "2026-01-01T00:00:00+00:00",
+  "finished_at": "2026-01-01T00:00:01+00:00",
+  "metrics": {},
+  "artefacts": [],
+  "parent_run_id": null,
+  "notes": "Placeholder record. Not a result."
+}
