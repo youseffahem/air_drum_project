@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/trajectory-prediction.schema.json",
+  "title": "TrajectoryPrediction",
+  "description": "Predicted future tip trajectory for one hand from one reference frame (Phase 01 contract; produced by an Anticipator: rule-based Phase 05, learned Phases 09-12). The PRIMARY output is positions[]; every aux field is optional and auxiliary (trajectory-first, ADR-0007). docs/architecture/contracts.md section 3.6.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "frame_id", "t_capture", "hand_id", "anticipator_id", "model_hash",
+    "K", "dt_step", "t_offsets_s", "positions", "velocities", "uncertainty", "uncertainty_kind", "aux", "t_inference_done"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "t_capture": {
+      "$ref": "common.schema.json#/$defs/t_mono",
+      "description": "Reference time t_ref: the t_capture of the latest frame the prediction was allowed to see. Step k (1-based) is at t_ref + k * dt_step."
+    },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "anticipator_id": {
+      "$ref": "common.schema.json#/$defs/identifier",
+      "description": "Implementation + config id, e.g. 'rule-cv-v1', 'gru-traj-ds-v1.0-17-3fa9c2e1'."
+    },
+    "model_hash": {
+      "anyOf": [ { "$ref": "common.schema.json#/$defs/sha256" }, { "type": "null" } ],
+      "description": "SHA-256 of the loaded model artefact (verified at load, Phase 13); null for rule-based anticipators."
+    },
+    "K": { "type": "integer", "minimum": 1, "description": "Number of predicted steps = len(positions) (tunable; README section 14)." },
+    "dt_step": { "$ref": "common.schema.json#/$defs/duration_s", "description": "Seconds between consecutive predicted steps (> 0) when t_offsets_s is null. Horizon H = K * dt_step (uniform) or the last offset (sparse)." },
+    "t_offsets_s": {
+      "anyOf": [ { "type": "array", "minItems": 1, "items": { "type": "number", "exclusiveMinimum": 0 } }, { "type": "null" } ],
+      "description": "Null = uniform steps: step k (1-based) is at t_capture + k * dt_step. Otherwise K strictly increasing positive offsets from t_capture, one per position - for anticipators that predict a few sparse horizons (e.g. Phase 09 C-GBDT head iv at k in {K/2, K}); geometry intersects the polyline as given and never interpolates missing steps into a denser trajectory."
+    },
+    "positions": {
+      "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/point2" },
+      "description": "K predicted tip positions, ROI-normalized, in time order. PRIMARY OUTPUT; never empty (a prediction without a trajectory is a DirectPrediction, a different, diagnostic-only record)."
+    },
+    "velocities": {
+      "anyOf": [ { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/vector2" } }, { "type": "null" } ],
+      "description": "K predicted velocities (units/s) or null."
+    },
+    "uncertainty": {
+      "anyOf": [ { "type": "array", "minItems": 1, "items": { "type": "array", "items": { "type": "number" }, "minItems": 1 } }, { "type": "null" } ],
+      "description": "K rows of per-step uncertainty values; layout named by uncertainty_kind. Reserved nullable in V1 (Phase 12 Open Question)."
+    },
+    "uncertainty_kind": {
+      "type": ["string", "null"],
+      "description": "e.g. 'sigma_xy' (2 values: std x, std y) or 'cov_xy' (3 values: var x, var y, cov). Null when uncertainty is null."
+    },
+    "aux": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strike_prob_within_H", "tti", "zone_logits", "zone_ids", "impact_pos", "intensity_proxy"],
+      "description": "Auxiliary heads (Phase 11). All nullable. Never used INSTEAD of positions[] to decide a strike: geometry decides (ADR-0007).",
+      "properties": {
+        "strike_prob_within_H": { "$ref": "common.schema.json#/$defs/confidence_or_null" },
+        "tti": { "type": ["number", "null"], "description": "Predicted Time-to-Impact in seconds from t_capture (t_ref)." },
+        "zone_logits": { "anyOf": [ { "type": "array", "items": { "type": "number" }, "minItems": 1 }, { "type": "null" } ], "description": "Z raw scores aligned with zone_ids." },
+        "zone_ids": { "anyOf": [ { "type": "array", "items": { "$ref": "common.schema.json#/$defs/zone_id" }, "minItems": 1 }, { "type": "null" } ], "description": "Zone id per logit position; must be present when zone_logits is." },
+        "impact_pos": { "$ref": "common.schema.json#/$defs/point2_or_null" },
+        "intensity_proxy": { "type": ["number", "null"], "description": "Kinematic intensity proxy (README section 6); not force." }
+      }
+    },
+    "t_inference_done": {
+      "$ref": "common.schema.json#/$defs/t_mono",
+      "description": "Instant the anticipator returned (README section 5.2)."
+    }
+  }
+}

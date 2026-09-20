@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/hand-observation.schema.json",
+  "title": "HandObservation",
+  "description": "Per-frame, per-hand landmark observation (Phase 01 contract; produced by hands, Phase 03). Coordinates are converted to ROI-normalized at the hands module boundary (ADR-0005). docs/architecture/contracts.md section 3.2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "frame_id", "t_capture", "hand_id", "present", "detector_id",
+    "landmarks", "landmark_visibility", "handedness_score", "bbox"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "t_capture": {
+      "$ref": "common.schema.json#/$defs/t_mono",
+      "description": "t_capture of the FrameSample this observation derives from (Task 01.3 rule: every record carries it)."
+    },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "present": {
+      "type": "boolean",
+      "description": "False when the detector produced no landmarks for this hand in this frame; then landmarks, landmark_visibility, bbox and handedness_score are null."
+    },
+    "detector_id": {
+      "$ref": "common.schema.json#/$defs/identifier",
+      "description": "Landmark model / configuration id (e.g. a Hand Landmarker task file name + hash)."
+    },
+    "landmarks": {
+      "anyOf": [
+        { "type": "array", "minItems": 21, "maxItems": 21, "items": { "$ref": "common.schema.json#/$defs/point2" } },
+        { "type": "null" }
+      ],
+      "description": "21 keypoints in the MediaPipe ordering (README section 14), ROI-normalized."
+    },
+    "landmark_visibility": {
+      "anyOf": [
+        { "type": "array", "minItems": 21, "maxItems": 21, "items": { "$ref": "common.schema.json#/$defs/confidence" } },
+        { "type": "null" }
+      ],
+      "description": "Per-landmark visibility/presence score if the estimator provides one; null otherwise."
+    },
+    "handedness_score": {
+      "$ref": "common.schema.json#/$defs/confidence_or_null",
+      "description": "Estimator's confidence that hand_id is correct."
+    },
+    "bbox": {
+      "anyOf": [ { "$ref": "common.schema.json#/$defs/rect_norm" }, { "type": "null" } ],
+      "description": "Hand bounding box [x, y, w, h], ROI-normalized."
+    }
+  },
+  "if": { "properties": { "present": { "const": true } } },
+  "then": {
+    "properties": {
+      "landmarks": { "type": "array" },
+      "bbox": { "type": "array" },
+      "handedness_score": { "type": "number" }
+    }
+  }
+}

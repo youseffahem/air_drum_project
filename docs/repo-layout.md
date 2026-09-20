@@ -3,6 +3,8 @@
 **Phase:** 00 — Task 00.4 · **Status:** IMPLEMENTED (skeleton directories with README stubs exist; no package code)
 **Depends on:** Task 00.3 ([`environment.md`](environment.md)). Phase 01 may amend this layout by ADR (Phase 00 risk: "over-specifying before contracts exist" — layout is deliberately minimal).
 
+> **Amended by Phase 01 (2026-09-20, [ADR-0010](decisions/ADR-0010-configuration-schema.md), [ADR-0012](decisions/ADR-0012-record-contracts-json-schema.md)):** added `docs/architecture/`, `src/spacedrums/{contracts,timing,config}/` (type-only layer L0), `src/spacedrums/app/` (composition root, created by Phase 05), `tests/contracts/`, `scripts/validate_contracts.py`, `configs/example.candidate.yaml`, `configs/schema/config.schema.json`, twelve record schemas under `schemas/`, and a tool-configuration-only `pyproject.toml`. Config naming gains the `*.candidate.yaml` development form (§3.1). The amended items are marked *(P01)* below.
+
 ## 1. Top-level layout
 
 ```
@@ -14,22 +16,27 @@ air_drum_project/
 │   ├── decisions/                # ADR-NNNN-<slug>.md + README.md (index)
 │   ├── ethics/                   # information-sheet.md, consent-form.md, ethics-approval-note.md
 │   ├── gates/                    # gate-procedure.md, gate-record-template.md, phase-XX-gate.md
+│   ├── architecture/             # (P01) architecture.md, contracts.md, causality-tests.md
 │   ├── environment.md
 │   ├── repo-layout.md            # this file
 │   ├── reproducibility-policy.md
 │   ├── integrity-checklist.md
 │   └── hardware-inventory.md
-├── schemas/                      # JSON Schemas (experiment log, later: dataset manifest, config)
-│   └── examples/                 # example records used by schema tests
-├── configs/                      # versioned YAML configs (Phase 01 defines the schema)
-│   └── schema/                   # config schema placeholder (pydantic models / JSON Schema)
+├── schemas/                      # JSON Schemas: experiment log (P00); common + 12 record contracts (P01); later: session metadata, labels
+│   └── examples/                 # SYNTHETIC example records used by schema tests
+├── configs/                      # versioned YAML configs; (P01) example.candidate.yaml
+│   └── schema/                   # (P01) config.schema.json
 ├── src/spacedrums/               # the Python package (empty stubs until Phase 02)
+│   ├── contracts/  timing/  config/          # (P01) layer L0: records, interfaces, clock, config loader
 │   ├── capture/  hands/  stick/  tracking/  features/  geometry/
 │   ├── prediction/  commit/  audio/  ui/  eval/  data/  calib/
+│   └── app/                                  # (P01, created in P05) composition root
 ├── tests/                        # pytest suites, mirrored by subpackage from Phase 02 on
-├── scripts/                      # one-off tools; Phase 00: env_smoke.py only
+│   └── contracts/                # (P01) TEST-SCHEMA-1
+├── scripts/                      # one-off tools: env_smoke.py (P00), validate_contracts.py (P01)
 ├── experiments/                  # run directories (git-ignored except README.md)
 ├── data/                         # datasets & recordings (git-ignored except README.md; manifest-tracked)
+├── pyproject.toml                # (P01) tool configuration only (pytest, ruff); [project] arrives with Phase 02 code
 ├── requirements.in / requirements.lock
 ├── .gitignore
 └── .venv/                        # local virtual environment (git-ignored)
@@ -41,6 +48,9 @@ Later phases add, without changing the above: `models/` (exported model artefact
 
 | Subpackage | Pipeline stage(s) (README §1) | Owning phase |
 |---|---|---|
+| `contracts/` *(P01)* | Record types, enums, interface `Protocol`s (`docs/architecture/contracts.md`, `architecture.md` §11); type-only, layer L0 | 01 (spec), 02 (code) |
+| `timing/` *(P01)* | Single `t_mono` clock accessor, `TimingRecord` collector (ADR-0004) | 01 (spec), 02, 05 |
+| `config/` *(P01)* | Schema-validated config loading, resolution, `config_hash` (ADR-0010) | 01 (schema), 02 (loader) |
 | `capture/` | Webcam, fixed playing ROI, timestamp mapping to `t_mono` | 02 |
 | `hands/` | Hand detection / landmarks, handedness | 03 |
 | `stick/` | Stick detection/segmentation, axis estimation, `TipEstimator` (`GEOM`, `AXIS_REFINED`, `MARKER`) | 03 |
@@ -54,8 +64,9 @@ Later phases add, without changing the above: `models/` (exported model artefact
 | `eval/` | Causal replay simulator, event matching, canonical metrics, experiment-log writer | 09 |
 | `data/` | Recording tool, session metadata, dataset manifests, labelling/QC tools, splits | 06, 07 |
 | `calib/` | Calibration wizard and calibration file I/O | 14 |
+| `app/` *(P01, created in P05)* | Composition root: wires modules into the live loop, arm switch, record/replay mode | 05, 13 |
 
-The **canonical timing/event/metric definitions live in `phases/README.md` §5–§10** and are implemented once (`geometry/`, `eval/`); no subpackage redefines them.
+The **canonical timing/event/metric definitions live in `phases/README.md` §5–§10** and are implemented once (`geometry/`, `eval/`); no subpackage redefines them. Allowed import directions between subpackages are fixed in `docs/architecture/architecture.md` §2.2 and enforced with import-linter from Phase 02.
 
 ## 3. Naming conventions
 
@@ -65,8 +76,9 @@ The **canonical timing/event/metric definitions live in `phases/README.md` §5�
 - `<variant>`: short lowercase slug (`default`, `mvp4`, `v1-7zones`, `laptopcam`, `gru-h150ms`).
 - `v<N>`: integer version, bumped on **any** change to values or keys. Old versions are never edited; they stay for reproducibility.
 - Examples: `configs/zones.mvp4.v1.yaml`, `configs/capture.laptopcam.v2.yaml`, `configs/commit.default.v1.yaml`.
-- Every config file carries a `meta:` block: `schema_version`, `created`, `phase`, `description`, `supersedes` (previous file or `null`).
-- A run stores its **fully resolved** config (all defaults expanded, all includes merged) as `config.resolved.yaml` in the run directory, and its canonical SHA-256 as `config_hash` (see `reproducibility-policy.md` §3).
+- Every config file carries a `meta:` block: `schema_version`, `created`, `phase`, `description`, `supersedes` (previous file or `null`), and *(P01)* `status: frozen | candidate`.
+- *(P01, ADR-0010)* Development files may be named `<name>.candidate.yaml` with `meta.status: candidate`; they are never cited by a gate record or a result. Freezing copies them to a versioned name with `meta.status: frozen` and `supersedes` set. `configs/example.candidate.yaml` is the schema example / test fixture only.
+- A run stores its **fully resolved** config (all defaults expanded, all includes merged) as `config.resolved.yaml` in the run directory, and its canonical SHA-256 as `config_hash` (see `reproducibility-policy.md` §3). The resolved document validates against `configs/schema/config.schema.json` *(P01)*.
 
 ### 3.2 Model artefacts — `<family>-<task>-<dataset_version>-<seed>-<hash8>`
 
@@ -113,6 +125,7 @@ The **canonical timing/event/metric definitions live in `phases/README.md` §5�
 
 ## 4. What is *not* in the layout yet
 
-- No `pyproject.toml` / package metadata: created in Phase 01 together with the first module contracts (keeping Phase 00 free of code).
+- ~~No `pyproject.toml` / package metadata: created in Phase 01 together with the first module contracts (keeping Phase 00 free of code).~~ *(P01)* `pyproject.toml` exists with tool configuration only; the `[project]` table and build backend arrive with the first module code (Phase 02).
 - No `models/`, `assets/`, `thesis/`, `release/` directories: created by the phases that own them.
-- No `tests/` content: the first tests arrive with Phase 01's contract tests.
+- ~~No `tests/` content: the first tests arrive with Phase 01's contract tests.~~ *(P01)* `tests/contracts/` exists (`TEST-SCHEMA-1`); per-subpackage tests arrive with Phase 02+.
+- No `.importlinter` contract yet: committed with the first module in Phase 02 (`docs/architecture/architecture.md` §2.4).

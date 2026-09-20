@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "hand_id": "RIGHT",
+  "feature_schema_id": "example-fs",
+  "values": [
+    0.63,
+    0.78,
+    0.1,
+    1.5,
+    0.0,
+    4.0
+  ],
+  "mask": [
+    true,
+    true,
+    true,
+    true,
+    false,
+    false
+  ],
+  "dt": 0.0333,
+  "track_status": "VALID"
+}

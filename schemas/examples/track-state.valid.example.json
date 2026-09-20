@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "hand_id": "RIGHT",
+  "status": "VALID",
+  "tracker_id": "example-tracker",
+  "tip_method": "GEOM",
+  "tip_filtered": [
+    0.63,
+    0.78
+  ],
+  "tip_velocity": [
+    0.1,
+    1.5
+  ],
+  "tip_acceleration": [
+    0.0,
+    4.0
+  ],
+  "axis_angle": 0.93,
+  "axis_angular_velocity": 2.0,
+  "confidence": 0.8,
+  "frames_since_valid": 0,
+  "last_valid_t": 12.345678,
+  "history_ref": {
+    "n": 8,
+    "oldest_frame_id": 112
+  },
+  "reset_reason": null
+}

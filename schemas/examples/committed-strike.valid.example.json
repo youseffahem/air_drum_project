@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "strike_id": "example-session-RIGHT-s0001",
+  "candidate_id": "example-session-RIGHT-c0001",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "hand_id": "RIGHT",
+  "zone_id": "snare",
+  "source": "RULE",
+  "derivation": "GEOMETRY",
+  "arm": "B",
+  "shadow": false,
+  "t_commit": 12.3607,
+  "t_impact_target": 12.41,
+  "intensity_proxy": 1.5,
+  "gain": 0.6,
+  "refractory_until": 12.51,
+  "episode_id": "example-session-RIGHT-snare-e0001",
+  "commit_policy_id": "example-commit-policy"
+}

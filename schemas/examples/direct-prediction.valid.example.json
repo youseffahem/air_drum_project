@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "hand_id": "RIGHT",
+  "anticipator_id": "example-gbdt-direct",
+  "model_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "diagnostic_mode": "P09_GBDT_DIRECT",
+  "strike_prob_within_H": 0.7,
+  "horizon_s": 0.2,
+  "tti": 0.064,
+  "zone_logits": [
+    0.1,
+    0.9
+  ],
+  "zone_ids": [
+    "hihat",
+    "snare"
+  ],
+  "impact_pos": null,
+  "intensity_proxy": null,
+  "t_inference_done": 12.36
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "hand_id": "RIGHT",
+  "present": true,
+  "method_id": "GEOM",
+  "axis_origin": [
+    0.45,
+    0.55
+  ],
+  "axis_dir": [
+    0.6,
+    0.8
+  ],
+  "tip": [
+    0.63,
+    0.79
+  ],
+  "tip_confidence": 0.8,
+  "axis_confidence": 0.85,
+  "stick_length_est": 0.3
+}

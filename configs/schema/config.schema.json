@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/config.schema.json",
+  "title": "Space Drums resolved configuration",
+  "description": "Top-level configuration schema (Phase 01, Task 01.7; ADR-0010). Validated at load, before any computation; the resolved document is hashed into config_hash (docs/reproducibility-policy.md section 3). Every numeric value is TUNABLE and is a candidate until a phase freezes it by evidence; nothing in a config is a result. Units: seconds (_s), pixels (_px), ROI-normalized coordinates (ADR-0005), Hz, frames.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "camera_profile", "roi", "zones", "tracking", "anticipator", "commit", "audio", "debug"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "created", "phase", "description", "supersedes", "status"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "created": { "type": "string", "format": "date" },
+        "phase": { "type": "string", "pattern": "^[0-2][0-9]$" },
+        "description": { "type": "string", "minLength": 1 },
+        "supersedes": { "type": ["string", "null"], "description": "Previous config file this one replaces (docs/repo-layout.md section 3.1), or null." },
+        "status": { "type": "string", "enum": ["candidate", "frozen"], "description": "candidate: development values, may not be cited by a MEASURED result; frozen: versioned <component>.<variant>.v<N>.yaml file, immutable." }
+      }
+    },
+
+    "camera_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "device", "resolution_px", "requested_fps", "exposure", "timestamp_source", "native_fps_measured", "queue"],
+      "properties": {
+        "profile_id": { "type": "string", "minLength": 1, "description": "Id of the camera profile document (Phase 02, Task 02.10); stamped into every FrameSample." },
+        "device": {
+          "type": "object", "additionalProperties": false, "required": ["index", "name", "backend"],
+          "properties": {
+            "index": { "type": ["integer", "null"], "minimum": 0 },
+            "name": { "type": ["string", "null"] },
+            "backend": { "type": ["string", "null"], "description": "Capture backend name as logged by Phase 02 (e.g. an OpenCV backend id); null = library default." }
+          }
+        },
+        "resolution_px": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2, "description": "[width, height] requested." },
+        "requested_fps": { "type": "number", "exclusiveMinimum": 0, "description": "REQUESTED mode only. Delivered FPS is measured (Phase 02) and lives in native_fps_measured, never here." },
+        "exposure": {
+          "type": "object", "additionalProperties": false, "required": ["mode", "value"],
+          "properties": {
+            "mode": { "type": "string", "enum": ["AUTO", "MANUAL"] },
+            "value": { "type": ["number", "null"], "description": "Backend-specific exposure value when MANUAL; null when AUTO." }
+          }
+        },
+        "timestamp_source": { "type": "string", "enum": ["DRIVER_MAPPED", "GRAB_RETURN"], "description": "Policy for t_capture (Phase 02, Task 02.2)." },
+        "native_fps_measured": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["value_fps", "run_id", "method"],
+          "properties": {
+            "value_fps": { "type": "number", "exclusiveMinimum": 0 },
+            "run_id": { "type": "string", "pattern": "^[0-9]{8}-[0-9]{4}-[a-z0-9]+(-[a-z0-9]+)*$", "description": "Experiment-log run that MEASURED the value (Phase 02, Task 02.4)." },
+            "method": { "type": "string", "minLength": 1 }
+          },
+          "description": "Reference to the MEASURED native delivery rate of this profile. Null until Phase 02 measures it. A number here without a run_id is impossible by schema (integrity item I-5)."
+        },
+        "queue": {
+          "type": "object", "additionalProperties": false, "required": ["max_frames", "drop_policy", "stall_factor"],
+          "properties": {
+            "max_frames": { "type": "integer", "minimum": 1, "description": "Bounded capture queue size (tunable)." },
+            "drop_policy": { "type": "string", "enum": ["DROP_OLDEST"], "description": "Only policy allowed by the architecture (latency never accumulates). Drops are counted in FrameSample.dropped_since_last." },
+            "stall_factor": { "type": "number", "exclusiveMinimum": 1, "description": "A stall is flagged when no frame arrives for > stall_factor x expected interval (tunable)." }
+          }
+        }
+      }
+    },
+
+    "roi": {
+      "type": "object", "additionalProperties": false, "required": ["px"],
+      "properties": {
+        "px": { "$ref": "common.schema.json#/$defs/rect_px", "description": "Fixed playing ROI in full-frame pixels; origin of ROI-normalized coordinates (ADR-0005). Candidate until the Phase 02 distance benchmark." }
+      }
+    },
+
+    "zones": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Zone registry (Phase 04 implements; ADR-0003 ids; ADR-0011 extensibility). Zones are hand-agnostic by default (REQ-011).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["zone_id", "name", "trigger_type", "shape", "impact_surface", "inward_normal", "sample_id", "gain_curve_id"],
+        "properties": {
+          "zone_id": { "$ref": "common.schema.json#/$defs/zone_id" },
+          "name": { "type": "string", "minLength": 1 },
+          "trigger_type": { "$ref": "common.schema.json#/$defs/trigger_type" },
+          "allowed_hands": {
+            "type": "array", "items": { "$ref": "common.schema.json#/$defs/hand_id" }, "minItems": 1, "maxItems": 2, "uniqueItems": true,
+            "default": ["LEFT", "RIGHT"],
+            "description": "Reserved for future hand-zone experiments (REQ-011 / Phase 18). Omitted = both hands. Restricting it in V1 requires an ADR."
+          },
+          "shape": {
+            "oneOf": [
+              {
+                "type": "object", "additionalProperties": false, "required": ["type", "center", "rx", "ry", "angle_rad"],
+                "properties": {
+                  "type": { "const": "ELLIPSE" },
+                  "center": { "$ref": "common.schema.json#/$defs/point2" },
+                  "rx": { "type": "number", "exclusiveMinimum": 0 },
+                  "ry": { "type": "number", "exclusiveMinimum": 0 },
+                  "angle_rad": { "type": "number" }
+                }
+              },
+              {
+                "type": "object", "additionalProperties": false, "required": ["type", "points"],
+                "properties": {
+                  "type": { "const": "POLYGON" },
+                  "points": { "type": "array", "minItems": 3, "items": { "$ref": "common.schema.json#/$defs/point2" } }
+                }
+              }
+            ],
+            "description": "ROI-normalized zone geometry (Phase 04 zone model)."
+          },
+          "impact_surface": {
+            "oneOf": [
+              {
+                "type": "object", "additionalProperties": false, "required": ["type", "p0", "p1"],
+                "properties": {
+                  "type": { "const": "SEGMENT" },
+                  "p0": { "$ref": "common.schema.json#/$defs/point2" },
+                  "p1": { "$ref": "common.schema.json#/$defs/point2" }
+                }
+              },
+              {
+                "type": "object", "additionalProperties": false, "required": ["type", "center", "rx", "ry", "angle_rad", "theta_start_rad", "theta_end_rad"],
+                "properties": {
+                  "type": { "const": "ARC" },
+                  "center": { "$ref": "common.schema.json#/$defs/point2" },
+                  "rx": { "type": "number", "exclusiveMinimum": 0 },
+                  "ry": { "type": "number", "exclusiveMinimum": 0 },
+                  "angle_rad": { "type": "number" },
+                  "theta_start_rad": { "type": "number" },
+                  "theta_end_rad": { "type": "number" }
+                }
+              }
+            ],
+            "description": "Subset of the zone boundary through which a valid entry must pass (Phase 04, Task 04.2 validates it lies on the boundary)."
+          },
+          "inward_normal": { "$ref": "common.schema.json#/$defs/unit_vector2", "description": "Unit vector pointing into the zone from the impact surface. Stored explicitly so no zone hard-codes 'down' (Phase 04)." },
+          "sample_id": { "type": "string", "minLength": 1 },
+          "gain_curve_id": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+
+    "tracking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tracker_id", "c_valid", "c_min", "g_max_frames", "age_max_s", "history_n", "filter"],
+      "properties": {
+        "tracker_id": { "type": "string", "minLength": 1 },
+        "c_valid": { "type": "number", "minimum": 0, "maximum": 1, "description": "Confidence >= c_valid -> VALID (README section 8)." },
+        "c_min": { "type": "number", "minimum": 0, "maximum": 1, "description": "Confidence in [c_min, c_valid) -> DEGRADED; below -> INVALID. Must be <= c_valid (checked by the loader)." },
+        "g_max_frames": { "type": "integer", "minimum": 0, "description": "Max gap bridged causally in DEGRADED before INVALID." },
+        "age_max_s": { "type": "number", "exclusiveMinimum": 0, "description": "State older than this since last VALID -> STALE." },
+        "history_n": { "type": "integer", "minimum": 1, "description": "Causal history window N (README section 14); the declared window for TEST-CAUSAL-2." },
+        "filter": {
+          "type": "object", "additionalProperties": false, "required": ["type", "params"],
+          "properties": {
+            "type": { "type": "string", "minLength": 1, "description": "Filter family id chosen in Phase 03 (Pending Benchmark)." },
+            "params": { "type": "object", "description": "Filter-specific parameters; validated by the filter implementation." }
+          }
+        }
+      }
+    },
+
+    "anticipator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "anticipator_id", "K", "dt_step_s", "rule", "model", "fallback"],
+      "properties": {
+        "type": { "type": "string", "enum": ["rule", "model"] },
+        "anticipator_id": { "type": "string", "minLength": 1 },
+        "K": { "type": "integer", "minimum": 1, "description": "Prediction steps (tunable)." },
+        "dt_step_s": { "type": "number", "exclusiveMinimum": 0, "description": "Step interval; horizon H = K * dt_step_s (tunable)." },
+        "rule": {
+          "type": ["object", "null"], "additionalProperties": false, "required": ["motion_model"],
+          "properties": {
+            "motion_model": { "type": "string", "enum": ["CV", "CA"], "description": "Constant-velocity or constant-acceleration extrapolation (Phase 05)." },
+            "params": { "type": "object" }
+          },
+          "description": "Required when type = rule; null otherwise."
+        },
+        "model": {
+          "type": ["object", "null"], "additionalProperties": false, "required": ["path", "hash", "runtime", "intra_op_threads", "feature_schema_id"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "Verified at load (Phase 13, Task 13.2)." },
+            "runtime": { "type": "string", "enum": ["onnxruntime", "torchscript"], "description": "Pending Benchmark (Phase 13)." },
+            "intra_op_threads": { "type": "integer", "minimum": 1 },
+            "feature_schema_id": { "type": "string", "minLength": 1 }
+          },
+          "description": "Required when type = model; null otherwise."
+        },
+        "fallback": {
+          "type": ["object", "null"], "additionalProperties": false, "required": ["enabled", "to", "budget_s", "window_frames", "cooldown_s"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "to": { "type": "string", "enum": ["B", "A"] },
+            "budget_s": { "type": "number", "exclusiveMinimum": 0, "description": "Per-frame inference budget; candidates To Be Experimentally Determined (Phase 16)." },
+            "window_frames": { "type": "integer", "minimum": 1 },
+            "cooldown_s": { "type": "number", "minimum": 0 }
+          },
+          "description": "Reserved for Phase 13 (Task 13.4); null until then."
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "rule" } } }, "then": { "properties": { "rule": { "type": "object" } } } },
+        { "if": { "properties": { "type": { "const": "model" } } }, "then": { "properties": { "model": { "type": "object" } } } }
+      ]
+    },
+
+    "commit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit_policy_id", "tti_commit_s", "p_commit", "n_confirm_frames", "refractory_zone_s", "refractory_hand_s", "allow_degraded_commits", "stale_prediction_tolerance_s", "max_dropped_since_last"],
+      "properties": {
+        "commit_policy_id": { "type": "string", "minLength": 1 },
+        "tti_commit_s": { "type": "number", "minimum": 0, "description": "tau_commit: commit when predicted impact is within this time (tunable; swept in Phases 09/18)." },
+        "p_commit": { "type": "number", "minimum": 0, "maximum": 1, "description": "Minimum strike_probability to commit (tunable)." },
+        "n_confirm_frames": { "type": "integer", "minimum": 0, "description": "Optional persistence requirement before ARMED -> COMMITTED; 0 disables." },
+        "refractory_zone_s": { "type": "number", "minimum": 0, "description": "r_zone: per (hand, zone) refractory." },
+        "refractory_hand_s": { "type": "number", "minimum": 0, "description": "r_hand: per-hand minimum inter-commit interval." },
+        "allow_degraded_commits": { "type": "boolean", "description": "Default false (README section 8). Enabling is an explicit experiment (Phase 05/17)." },
+        "stale_prediction_tolerance_s": { "type": "number", "minimum": 0, "description": "Reject a candidate whose t_impact_pred is in the past by more than this." },
+        "max_dropped_since_last": { "type": "integer", "minimum": 0, "description": "Frame-drop guard: no commit when the current frame's dropped_since_last exceeds this." }
+      }
+    },
+
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["audio_profile_id", "device", "sample_rate_hz", "buffer_frames", "sample_bank", "gain"],
+      "properties": {
+        "audio_profile_id": { "type": "string", "minLength": 1, "description": "Id of the audio profile holding the MEASURED output latency (Phase 04, Task 04.8)." },
+        "device": {
+          "type": "object", "additionalProperties": false, "required": ["name", "host_api"],
+          "properties": {
+            "name": { "type": ["string", "null"] },
+            "host_api": { "type": ["string", "null"], "description": "Pending Benchmark (Phase 04)." }
+          }
+        },
+        "sample_rate_hz": { "type": "integer", "minimum": 1 },
+        "buffer_frames": { "type": "integer", "minimum": 1, "description": "Callback buffer size B (tunable)." },
+        "sample_bank": {
+          "type": "object", "additionalProperties": false, "required": ["path", "manifest"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "manifest": { "type": "string", "minLength": 1, "description": "File listing sample_id -> file + licence + SHA-256 (Phase 04, Task 04.6)." }
+          }
+        },
+        "gain": {
+          "type": "object", "additionalProperties": false, "required": ["curves"],
+          "properties": {
+            "curves": {
+              "type": "array", "minItems": 1,
+              "items": {
+                "type": "object", "additionalProperties": false, "required": ["gain_curve_id", "type", "proxy_min", "proxy_max", "gain_min", "gain_max"],
+                "properties": {
+                  "gain_curve_id": { "type": "string", "minLength": 1 },
+                  "type": { "type": "string", "enum": ["LINEAR_CLIPPED", "POWER"], "description": "Monotone intensity-proxy -> gain mapping (Phase 04, Task 04.10). Proxy, not force." },
+                  "exponent": { "type": "number", "exclusiveMinimum": 0 },
+                  "proxy_min": { "type": "number" },
+                  "proxy_max": { "type": "number" },
+                  "gain_min": { "type": "number", "minimum": 0 },
+                  "gain_max": { "type": "number", "minimum": 0 }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "debug": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overlay", "record_mode"],
+      "properties": {
+        "overlay": {
+          "type": "object", "additionalProperties": false,
+          "required": ["enabled", "show_landmarks", "show_stick", "show_zones", "show_track_state", "show_prediction", "show_candidates", "show_commits", "show_timing"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "show_landmarks": { "type": "boolean" },
+            "show_stick": { "type": "boolean" },
+            "show_zones": { "type": "boolean" },
+            "show_track_state": { "type": "boolean" },
+            "show_prediction": { "type": "boolean" },
+            "show_candidates": { "type": "boolean" },
+            "show_commits": { "type": "boolean" },
+            "show_timing": { "type": "boolean" }
+          }
+        },
+        "record_mode": {
+          "type": "object", "additionalProperties": false, "required": ["enabled", "output_dir", "store_crop"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "output_dir": { "type": "string", "minLength": 1 },
+            "store_crop": { "type": "string", "enum": ["FULL", "ROI"], "description": "What the raw video stores (FrameSample.image_ref.crop)." }
+          }
+        }
+      }
+    },
+
+    "arms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active", "shadow"],
+      "properties": {
+        "active": { "$ref": "common.schema.json#/$defs/arm", "description": "Arm whose commits sound (Phase 05 runtime switch; Phase 13 adds C)." },
+        "shadow": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/arm" }, "uniqueItems": true, "description": "Arms run for logging only." }
+      },
+      "description": "Optional in Phase 01; required from Phase 05."
+    }
+  }
+}

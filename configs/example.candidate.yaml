@@ -1,0 +1,147 @@
+# Space Drums — EXAMPLE configuration (Phase 01, Task 01.7).
+#
+# Purpose: demonstrate every block of configs/schema/config.schema.json and serve as the
+# schema-test fixture (tests/contracts/test_config_schema.py, scripts/validate_contracts.py).
+#
+# EVERY NUMBER IN THIS FILE IS A `# candidate` VALUE. None was measured, tuned, or validated.
+# Nothing here is a result. Real configs are created by the owning phases (Phase 02 camera,
+# Phase 04 zones/audio, Phase 05 commit, Phase 13 model) and frozen only with evidence.
+# Frame-period arithmetic used for candidates: 1/30 s ≈ 0.0333 s (arithmetic, not a measurement).
+
+meta:
+  schema_version: "1.0"
+  created: "2026-09-20"
+  phase: "01"
+  description: "Schema example only. All values are placeholders/candidates; not a runnable profile."
+  supersedes: null
+  status: candidate
+
+camera_profile:
+  profile_id: example-camera-profile
+  device:
+    index: 0                    # candidate (Phase 02 enumerates devices)
+    name: null
+    backend: null               # Pending Benchmark (Phase 02): backend id logged when chosen
+  resolution_px: [1280, 720]    # candidate
+  requested_fps: 30             # candidate: 30 FPS baseline is the REQUESTED mode (Q23); delivered FPS is measured
+  exposure:
+    mode: AUTO
+    value: null
+  timestamp_source: GRAB_RETURN # candidate until Phase 02 Task 02.2 decides
+  native_fps_measured: null     # MUST stay null until a Phase 02 run measures it (integrity I-5)
+  queue:
+    max_frames: 2               # candidate (Phase 02 Task 02.3: 1–2 frames)
+    drop_policy: DROP_OLDEST
+    stall_factor: 2.0           # candidate
+
+roi:
+  px: [160, 40, 960, 640]       # candidate; Phase 02 distance benchmark decides
+
+zones:                          # MVP set per ADR-0003; positions are candidates (Phase 04/05/14)
+  - zone_id: hihat
+    name: Hi-Hat
+    trigger_type: HAND_TIP
+    shape: { type: ELLIPSE, center: [0.20, 0.30], rx: 0.12, ry: 0.06, angle_rad: 0.0 }   # candidate
+    impact_surface: { type: SEGMENT, p0: [0.08, 0.30], p1: [0.32, 0.30] }                 # candidate
+    inward_normal: [0.0, 1.0]   # +y = downward in the image frame (ADR-0005)
+    sample_id: example-hihat-sample
+    gain_curve_id: default
+  - zone_id: snare
+    name: Snare
+    trigger_type: HAND_TIP
+    shape: { type: ELLIPSE, center: [0.40, 0.65], rx: 0.14, ry: 0.08, angle_rad: 0.0 }   # candidate
+    impact_surface: { type: SEGMENT, p0: [0.26, 0.65], p1: [0.54, 0.65] }                 # candidate
+    inward_normal: [0.0, 1.0]
+    sample_id: example-snare-sample
+    gain_curve_id: default
+  - zone_id: tom1
+    name: Tom 1
+    trigger_type: HAND_TIP
+    shape: { type: ELLIPSE, center: [0.55, 0.35], rx: 0.11, ry: 0.06, angle_rad: 0.0 }   # candidate
+    impact_surface: { type: SEGMENT, p0: [0.44, 0.35], p1: [0.66, 0.35] }                 # candidate
+    inward_normal: [0.0, 1.0]
+    sample_id: example-tom1-sample
+    gain_curve_id: default
+  - zone_id: crash_ride
+    name: Crash/Ride
+    trigger_type: HAND_TIP
+    # allowed_hands omitted on purpose: defaults to [LEFT, RIGHT] (REQ-011, hand-agnostic)
+    shape: { type: POLYGON, points: [[0.72, 0.22], [0.95, 0.22], [0.95, 0.40], [0.72, 0.40]] }  # candidate
+    impact_surface: { type: SEGMENT, p0: [0.72, 0.22], p1: [0.95, 0.22] }                        # candidate
+    inward_normal: [0.0, 1.0]
+    sample_id: example-crash-sample
+    gain_curve_id: default
+  # OOS-REF:REQ-207 — a future kick zone would use a reserved trigger_type (e.g. FOOT) added by
+  # schema bump + ADR (ADR-0011). It is NOT expressible in schema 1.0 and must not appear here.
+
+tracking:
+  tracker_id: example-tracker
+  c_valid: 0.6                  # candidate (README §8 c_valid)
+  c_min: 0.3                    # candidate (README §8 c_min)
+  g_max_frames: 3               # candidate (README §8 g_max)
+  age_max_s: 0.5                # candidate (README §8 age_max)
+  history_n: 16                 # candidate (README §14 history window N; TEST-CAUSAL-2 window)
+  filter:
+    type: example-filter        # Pending Benchmark (Phase 03): filter family not chosen here
+    params: {}
+
+anticipator:
+  type: rule
+  anticipator_id: example-rule-anticipator
+  K: 6                          # candidate (README §14 prediction steps)
+  dt_step_s: 0.0333             # candidate (≈ one 30 FPS frame period; arithmetic)
+  rule:
+    motion_model: CV            # candidate (Phase 05 Baseline B: CV vs CA)
+    params: {}
+  model: null                   # only for type: model (Phase 13)
+  fallback: null                # reserved for Phase 13 Task 13.4
+
+commit:
+  commit_policy_id: example-commit-policy
+  tti_commit_s: 0.05            # candidate (τ_commit; swept in Phases 09/18)
+  p_commit: 0.5                 # candidate
+  n_confirm_frames: 0           # candidate (0 = disabled)
+  refractory_zone_s: 0.10       # candidate (r_zone)
+  refractory_hand_s: 0.04       # candidate (r_hand)
+  allow_degraded_commits: false # default per README §8; enabling is an explicit experiment
+  stale_prediction_tolerance_s: 0.02   # candidate
+  max_dropped_since_last: 1     # candidate
+
+audio:
+  audio_profile_id: example-audio-profile
+  device:
+    name: null
+    host_api: null              # Pending Benchmark (Phase 04)
+  sample_rate_hz: 48000         # candidate
+  buffer_frames: 128            # candidate (buffer size B; measured latency decides)
+  sample_bank:
+    path: assets/samples        # created in Phase 04
+    manifest: assets/samples/manifest.json
+  gain:
+    curves:
+      - gain_curve_id: default
+        type: LINEAR_CLIPPED    # candidate (Phase 04 Task 04.10)
+        proxy_min: 0.5          # candidate; intensity proxy units (ROI-normalized/s), not force
+        proxy_max: 4.0          # candidate
+        gain_min: 0.2           # candidate
+        gain_max: 1.0           # candidate
+
+debug:
+  overlay:
+    enabled: true
+    show_landmarks: true
+    show_stick: true
+    show_zones: true
+    show_track_state: true
+    show_prediction: true
+    show_candidates: true
+    show_commits: true
+    show_timing: true
+  record_mode:
+    enabled: false
+    output_dir: data/sessions
+    store_crop: FULL
+
+arms:
+  active: B
+  shadow: [A]

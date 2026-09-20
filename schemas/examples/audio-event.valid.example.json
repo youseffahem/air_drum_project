@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "strike_id": "example-session-RIGHT-s0001",
+  "sample_id": "example-snare-sample",
+  "t_audio_scheduled": 12.3609,
+  "t_target_play": 12.41,
+  "t_audio_out_est": 12.41,
+  "audio_late_s": 0.0,
+  "gain": 0.6,
+  "audio_profile_id": "example-audio-profile"
+}

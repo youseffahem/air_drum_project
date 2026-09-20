@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/audio-event.schema.json",
+  "title": "AudioEvent",
+  "description": "A scheduled sample playback for one CommittedStrike (Phase 01 contract; produced by audio, Phase 04). docs/architecture/contracts.md section 3.9.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "strike_id", "sample_id", "t_audio_scheduled", "t_target_play",
+    "t_audio_out_est", "audio_late_s", "gain", "audio_profile_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "strike_id": { "$ref": "common.schema.json#/$defs/opaque_id" },
+    "sample_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "Sample-bank entry (Phase 04, Task 04.6)." },
+    "t_audio_scheduled": { "$ref": "common.schema.json#/$defs/t_mono", "description": "Instant the audio engine received the request (README section 5.2)." },
+    "t_target_play": { "$ref": "common.schema.json#/$defs/t_mono", "description": "Requested first-sample instant (= CommittedStrike.t_impact_target)." },
+    "t_audio_out_est": {
+      "$ref": "common.schema.json#/$defs/t_mono",
+      "description": "ESTIMATED instant the first sample leaves the DAC: the buffer/sample placement time plus the MEASURED audio output latency of audio_profile_id (Phase 04, Task 04.8). This is an estimate, never a measured t_audio_out; external measurement is Phase 18."
+    },
+    "audio_late_s": {
+      "type": "number", "minimum": 0.0,
+      "description": "Seconds by which t_target_play was already in the past when placed (0 when scheduled in the future). Phase 04 late-event rule."
+    },
+    "gain": { "type": "number", "minimum": 0.0 },
+    "audio_profile_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "Id of the audio device profile whose measured output latency was used." }
+  }
+}

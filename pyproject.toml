@@ -1,0 +1,21 @@
+# Space Drums — tool configuration only (Phase 01).
+#
+# Deliberately NO [project] table and NO build backend yet: src/spacedrums/ contains no
+# code in Phase 01 (docs/repo-layout.md section 4). Package metadata and the build backend
+# arrive with the first module implementation (Phase 02) and are recorded there.
+# Dependencies live in requirements.in / requirements.lock (docs/environment.md).
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+# tests/contracts/ imports its own conftest helpers; rootdir-relative import mode keeps
+# test modules importable without installing anything.
+pythonpath = ["tests/contracts"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = [".venv", "data", "experiments"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

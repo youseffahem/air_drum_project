@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/frame-sample.schema.json",
+  "title": "FrameSample",
+  "description": "One captured camera frame with its timestamps and ROI (Phase 01 contract; produced by capture, Phase 02). The image itself is referenced, not embedded. docs/architecture/contracts.md section 3.1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "frame_id", "t_capture", "t_frame_available", "timestamp_source",
+    "frame_size_px", "roi_px", "image_ref", "camera_profile_id", "dropped_since_last"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "t_capture": {
+      "$ref": "common.schema.json#/$defs/t_mono",
+      "description": "Exposure/capture instant on t_mono (README section 5.2). Mapped from the driver clock or stamped at grab return per timestamp_source (Phase 02, Task 02.2)."
+    },
+    "t_frame_available": {
+      "$ref": "common.schema.json#/$defs/t_mono",
+      "description": "Instant the frame was handed to the application. Must be >= t_capture (checked by the consumer)."
+    },
+    "timestamp_source": {
+      "type": "string",
+      "enum": ["DRIVER_MAPPED", "GRAB_RETURN", "REPLAY"],
+      "description": "How t_capture was obtained. DRIVER_MAPPED: driver timestamp mapped onto t_mono; GRAB_RETURN: stamped at grab return minus the camera profile's bias estimate; REPLAY: original recorded value fed by a replay source (Task 01.9)."
+    },
+    "frame_size_px": {
+      "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2,
+      "description": "[width, height] of the full camera frame in pixels."
+    },
+    "roi_px": {
+      "$ref": "common.schema.json#/$defs/rect_px",
+      "description": "Fixed playing ROI rectangle in full-frame pixels. All ROI-normalized coordinates downstream are relative to this rectangle (ADR-0005)."
+    },
+    "image_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["MEMORY", "FILE"], "description": "MEMORY: live in-process array (not serialisable; record mode replaces it by FILE). FILE: frame stored in a video/image file." },
+        "path": { "type": "string", "description": "Path relative to the session directory (FILE only)." },
+        "index": { "type": "integer", "minimum": 0, "description": "Frame index within the file (FILE only)." },
+        "crop": { "type": "string", "enum": ["FULL", "ROI"], "description": "Whether the stored image is the full frame (default; authoritative for re-processing) or only the ROI crop." }
+      },
+      "if": { "properties": { "kind": { "const": "FILE" } } },
+      "then": { "required": ["path", "index", "crop"] }
+    },
+    "camera_profile_id": {
+      "$ref": "common.schema.json#/$defs/identifier",
+      "description": "Id of the camera profile document (Phase 02, Task 02.10) whose measured properties apply to this frame."
+    },
+    "dropped_since_last": {
+      "type": "integer", "minimum": 0,
+      "description": "Frames dropped by the bounded capture queue since the previous delivered FrameSample (Phase 02, Task 02.3)."
+    }
+  }
+}

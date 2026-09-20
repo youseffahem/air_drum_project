@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/stick-observation.schema.json",
+  "title": "StickObservation",
+  "description": "Per-frame, per-hand stick axis and tip estimate (Phase 01 contract; produced by a TipEstimator in stick, Phase 03). docs/architecture/contracts.md section 3.3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "frame_id", "t_capture", "hand_id", "present", "method_id",
+    "axis_origin", "axis_dir", "tip", "tip_confidence", "axis_confidence", "stick_length_est"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "t_capture": { "$ref": "common.schema.json#/$defs/t_mono" },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "present": {
+      "type": "boolean",
+      "description": "False when no stick estimate exists for this hand in this frame (hand absent or estimator failed); geometry fields are then null and confidences are 0."
+    },
+    "method_id": { "$ref": "common.schema.json#/$defs/tip_method" },
+    "axis_origin": {
+      "$ref": "common.schema.json#/$defs/point2_or_null",
+      "description": "Point on the stick axis near the hand (e.g. grip centre), ROI-normalized."
+    },
+    "axis_dir": {
+      "anyOf": [ { "$ref": "common.schema.json#/$defs/unit_vector2" }, { "type": "null" } ],
+      "description": "Unit direction from axis_origin towards the tip."
+    },
+    "tip": {
+      "$ref": "common.schema.json#/$defs/point2_or_null",
+      "description": "Estimated stick tip, ROI-normalized. May lie outside [0,1]^2."
+    },
+    "tip_confidence": {
+      "$ref": "common.schema.json#/$defs/confidence",
+      "description": "Producer-defined confidence in the tip estimate; consumed by tracking against c_valid / c_min."
+    },
+    "axis_confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+    "stick_length_est": {
+      "type": ["number", "null"], "minimum": 0,
+      "description": "Apparent stick length in ROI-normalized units, if estimated; null otherwise."
+    }
+  },
+  "if": { "properties": { "present": { "const": true } } },
+  "then": {
+    "properties": {
+      "axis_origin": { "type": "array" },
+      "axis_dir": { "type": "array" },
+      "tip": { "type": "array" }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/kinematic-features.schema.json",
+  "title": "KinematicFeatures",
+  "description": "Per-frame, per-hand causal feature vector (Phase 01 contract; produced by features, Phase 08). The meaning and order of values is fixed by the feature schema named in feature_schema_id (Phase 08, schemas/feature-schema-v1.json); this record only fixes the envelope. docs/architecture/contracts.md section 3.5.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "frame_id", "t_capture", "hand_id", "feature_schema_id", "values", "mask", "dt", "track_status"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "t_capture": { "$ref": "common.schema.json#/$defs/t_mono" },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "feature_schema_id": {
+      "$ref": "common.schema.json#/$defs/identifier",
+      "description": "Id of the feature schema that defines values[] (e.g. 'fs-v1', Phase 08). Consumers refuse a mismatch."
+    },
+    "values": {
+      "type": "array", "items": { "type": "number" },
+      "description": "F floats; units per feature are declared in the feature schema. NaN/Inf forbidden (use mask)."
+    },
+    "mask": {
+      "type": "array", "items": { "type": "boolean" },
+      "description": "F booleans; false marks a feature that could not be computed causally at this frame (e.g. insufficient history). Same length as values."
+    },
+    "dt": {
+      "$ref": "common.schema.json#/$defs/duration_s",
+      "description": "t_capture(this frame) - t_capture(previous processed frame for this hand); the actual, not nominal, frame interval."
+    },
+    "track_status": {
+      "$ref": "common.schema.json#/$defs/track_status",
+      "description": "Status of the TrackState this vector derives from; carried so consumers need not join records."
+    }
+  }
+}

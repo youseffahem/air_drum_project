@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "t_frame_available": 12.351234,
+  "timestamp_source": "GRAB_RETURN",
+  "frame_size_px": [1280, 720],
+  "roi_px": [160, 40, 960, 640],
+  "image_ref": { "kind": "FILE", "path": "video.mkv", "index": 120, "crop": "FULL" },
+  "camera_profile_id": "example-camera-profile",
+  "dropped_since_last": 0
+}

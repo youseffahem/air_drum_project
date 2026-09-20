@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+IMPLEMENTED (specification-only phase) — awaiting Exit Gate review. Gate record: [`../docs/gates/phase-01-gate.md`](../docs/gates/phase-01-gate.md). Architecture spec, contracts (12 JSON Schemas + config schema), causality/parity/conformance test specifications and ADR-0004…0012 exist; the only executable test is `TEST-SCHEMA-1` (99 pytest cases, pass on HW-01, 2026-09-21 after the gate-review corrections). No module code, no measurement, no research quantity.
 
 ## Purpose
 
@@ -262,6 +262,8 @@ Not applicable.
 ## Exit Gate
 
 Reviewer confirms acceptance criteria; PASS recorded. Phases 02 and 04 may start (in parallel); Phase 03 after 02.
+
+Gate record: [`../docs/gates/phase-01-gate.md`](../docs/gates/phase-01-gate.md) — submitted 2026-09-20, verdict **pending owner review**.
 
 ## What Must NOT Be Done Yet
 

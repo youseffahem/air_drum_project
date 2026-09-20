@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/common.schema.json",
+  "title": "Space Drums shared contract definitions",
+  "description": "Shared $defs referenced by every record schema (Phase 01, Task 01.2, docs/architecture/contracts.md). Units: time in seconds on the single monotonic clock t_mono (ADR-0004); positions ROI-normalized, origin top-left, y increasing downward (ADR-0005); angles in radians measured from +x towards +y. This file defines no record on its own.",
+  "$defs": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Contract version of the record. Each record schema pins a const value; a breaking change bumps the major part and is recorded by an ADR with migration notes."
+    },
+    "t_mono": {
+      "type": "number",
+      "description": "Instant in seconds on t_mono (monotonic, process-wide, ADR-0004). Never milliseconds; never wall-clock."
+    },
+    "t_mono_or_null": {
+      "type": ["number", "null"],
+      "description": "t_mono instant, or null when the event has not happened / is not applicable."
+    },
+    "duration_s": {
+      "type": "number",
+      "description": "Duration in seconds."
+    },
+    "frame_id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonically increasing per session, assigned by capture; a dropped frame consumes no id (drops are counted in FrameSample.dropped_since_last)."
+    },
+    "hand_id": {
+      "type": "string",
+      "enum": ["LEFT", "RIGHT"],
+      "description": "Tracked-point identity. V1: the two hands. The identity space is declared open by contract (docs/architecture/contracts.md section 2.3): a future non-hand tracked point (OOS-REF:REQ-207, e.g. a foot) is added by a schema-version bump + ADR, never by reusing LEFT/RIGHT."
+    },
+    "point2": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[x, y] in ROI-normalized units (nominally [0,1]^2; values outside are permitted and mean 'outside the ROI'). Exactly two components in schema_version 1.x; an optional depth component would be a version bump (out-of-scope register REQ-206 note)."
+    },
+    "point2_or_null": {
+      "anyOf": [ { "$ref": "#/$defs/point2" }, { "type": "null" } ]
+    },
+    "vector2": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[vx, vy] in ROI-normalized units per second (or per second squared for accelerations)."
+    },
+    "vector2_or_null": {
+      "anyOf": [ { "$ref": "#/$defs/vector2" }, { "type": "null" } ]
+    },
+    "unit_vector2": {
+      "type": "array",
+      "items": { "type": "number", "minimum": -1.0, "maximum": 1.0 },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[ux, uy], unit length (|u| = 1 within floating-point tolerance; enforced by the consumer, not by the schema)."
+    },
+    "rect_px": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 },
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "[x, y, w, h] in full-frame pixels, origin top-left."
+    },
+    "rect_norm": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "[x, y, w, h] in ROI-normalized units."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Confidence / probability in [0, 1]. Semantics are defined by the producer and named by its *_id field."
+    },
+    "confidence_or_null": {
+      "anyOf": [ { "$ref": "#/$defs/confidence" }, { "type": "null" } ]
+    },
+    "track_status": {
+      "type": "string",
+      "enum": ["VALID", "DEGRADED", "INVALID", "STALE"],
+      "description": "Per-hand tracking state (phases/README.md section 8)."
+    },
+    "tip_method": {
+      "type": "string",
+      "enum": ["GEOM", "AXIS_REFINED", "MARKER"],
+      "description": "Tip-estimation method (README section 14). MARKER is a fallback / benchmark condition only (REQ-211) and must be labelled as such wherever a result derived from it is reported."
+    },
+    "candidate_source": {
+      "type": "string",
+      "enum": ["REACTIVE", "RULE", "MODEL"],
+      "description": "Origin of a StrikeCandidate (README section 9; ADR-0008). Invariant with arm: REACTIVE <-> A, RULE <-> B, MODEL <-> C-* (enforced on CommittedStrike)."
+    },
+    "candidate_derivation": {
+      "type": "string",
+      "enum": ["GEOMETRY", "DIRECT_HEAD"],
+      "description": "How a StrikeCandidate was derived. GEOMETRY = geometry.intersect over a trajectory (trajectory-first, ADR-0007; the only derivation permitted in the live application). DIRECT_HEAD = from a DirectPrediction's heads without geometry; diagnostic harness modes only (Phase 09 C-GBDT direct mode, Phase 19 AB-NOTRAJ), source MODEL only, always labelled 'direct / no-trajectory (diagnostic)' in results."
+    },
+    "arm": {
+      "type": "string",
+      "enum": ["A", "B", "C-GBDT", "C-GRU", "C-TCN", "C-MT", "C-TT"],
+      "description": "Baseline / system arm (README section 9). Same enum as schemas/experiment-log.schema.json minus NA."
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": ["HAND_TIP"],
+      "description": "Zone trigger type. V1 implements HAND_TIP only. The enum is OPEN by contract: FOOT is reserved (OOS-REF:REQ-207, ADR-0011) and is added by a schema-version bump + ADR, not by editing this list in place."
+    },
+    "zone_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Stable zone identifier (ADR-0003): snare, hihat, tom1, tom2, floor_tom, crash_ride, ... Layout positions live in config, never in the id."
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Free-form stable identifier (detector_id, anticipator_id, camera_profile_id, ...). Producers document their values."
+    },
+    "opaque_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique id for a candidate / strike / episode within a session (e.g. '<session>-<hand>-<counter>'); uniqueness is the producer's responsibility."
+    }
+  }
+}

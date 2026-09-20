@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "record_type": "TrackState",
+  "record_schema_version": "1.0",
+  "units": {
+    "time": "s",
+    "clock": "t_mono",
+    "position": "roi_norm",
+    "velocity": "roi_norm_per_s",
+    "angle": "rad"
+  },
+  "session_id": "dev-example",
+  "config_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "git_sha": "0000000000000000000000000000000000000000",
+  "clock_id": "perf_counter",
+  "producer": "LIVE",
+  "derived": true
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/strike-candidate.schema.json",
+  "title": "StrikeCandidate",
+  "description": "A possible strike produced by geometry from an observed (REACTIVE) or predicted (RULE/MODEL) trajectory (Phase 01 contract; produced by geometry, Phase 04; consumed by commit, Phase 05), or - diagnostic harness modes only - by the direct-head adapter (derivation DIRECT_HEAD). docs/architecture/contracts.md section 3.7. ADR-0007, ADR-0008.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "candidate_id", "frame_id", "t_capture", "hand_id", "zone_id", "source", "derivation", "anticipator_id",
+    "t_impact_pred", "t_impact_est", "tti", "impact_position", "crossing_velocity",
+    "strike_probability", "intensity_proxy", "t_candidate"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "candidate_id": { "$ref": "common.schema.json#/$defs/opaque_id" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id", "description": "Frame whose trajectory (observed or predicted) produced the candidate." },
+    "t_capture": { "$ref": "common.schema.json#/$defs/t_mono" },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "zone_id": { "$ref": "common.schema.json#/$defs/zone_id" },
+    "source": { "$ref": "common.schema.json#/$defs/candidate_source" },
+    "derivation": {
+      "$ref": "common.schema.json#/$defs/candidate_derivation",
+      "description": "GEOMETRY: produced by geometry.intersect from a trajectory (the trajectory-first path; the only derivation allowed in the live application). DIRECT_HEAD: produced from a DirectPrediction's heads without geometry - permitted only for source MODEL in the diagnostic harness modes of Phase 09 (C-GBDT direct mode) and Phase 19 (AB-NOTRAJ); every result derived from it is labelled 'direct / no-trajectory (diagnostic)'."
+    },
+    "anticipator_id": {
+      "type": ["string", "null"], "minLength": 1,
+      "description": "Anticipator that produced the predicted trajectory (RULE/MODEL); null for REACTIVE."
+    },
+    "t_impact_pred": {
+      "$ref": "common.schema.json#/$defs/t_mono_or_null",
+      "description": "Predicted impact time (README section 5.2). Null for REACTIVE."
+    },
+    "t_impact_est": {
+      "$ref": "common.schema.json#/$defs/t_mono_or_null",
+      "description": "Sub-frame interpolated crossing time of the OBSERVED tip (README section 5.2). Set for REACTIVE; null for RULE/MODEL."
+    },
+    "tti": {
+      "type": ["number", "null"],
+      "description": "Time-to-Impact = t_impact_pred - t_capture (README section 6). Null for REACTIVE."
+    },
+    "impact_position": { "$ref": "common.schema.json#/$defs/point2", "description": "Crossing point on the impact surface, ROI-normalized." },
+    "crossing_velocity": { "$ref": "common.schema.json#/$defs/vector2", "description": "Tip velocity at the crossing (units/s)." },
+    "strike_probability": {
+      "$ref": "common.schema.json#/$defs/confidence_or_null",
+      "description": "Source-agnostic confidence used by the commit policy; null when the source provides none (REACTIVE may use 1.0 or null)."
+    },
+    "intensity_proxy": { "type": "number", "description": "Kinematic intensity proxy at the crossing (README section 6). Not force." },
+    "t_candidate": { "$ref": "common.schema.json#/$defs/t_mono", "description": "Instant the candidate was emitted (README section 5.2)." }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "source": { "const": "REACTIVE" } } },
+      "then": { "properties": { "t_impact_est": { "type": "number" }, "t_impact_pred": { "type": "null" }, "tti": { "type": "null" }, "anticipator_id": { "type": "null" } } }
+    },
+    {
+      "if": { "properties": { "source": { "enum": ["RULE", "MODEL"] } } },
+      "then": { "properties": { "t_impact_pred": { "type": "number" }, "tti": { "type": "number" }, "t_impact_est": { "type": "null" }, "anticipator_id": { "type": "string" } } }
+    },
+    {
+      "if": { "properties": { "derivation": { "const": "DIRECT_HEAD" } } },
+      "then": { "properties": { "source": { "const": "MODEL" } } }
+    },
+    {
+      "if": { "properties": { "source": { "enum": ["REACTIVE", "RULE"] } } },
+      "then": { "properties": { "derivation": { "const": "GEOMETRY" } } }
+    }
+  ]
+}

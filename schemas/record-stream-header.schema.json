@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/record-stream-header.schema.json",
+  "title": "RecordStreamHeader",
+  "description": "First line of every per-record-type JSONL file written in record mode (Task 01.9). Declares the record type, its schema version, the units in force and the provenance needed to regenerate the stream. Units are pinned by const so a stream written in the wrong units cannot validate. docs/architecture/contracts.md section 4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "record_type", "record_schema_version", "units", "session_id", "config_hash", "git_sha", "clock_id", "producer", "derived"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "record_type": {
+      "type": "string",
+      "enum": ["FrameSample", "HandObservation", "StickObservation", "TrackState", "KinematicFeatures", "TrajectoryPrediction", "DirectPrediction", "StrikeCandidate", "CommittedStrike", "AudioEvent", "TimingRecord"],
+      "description": "Record types that may be streamed. Non-causal label artefacts (LabelRecord, ReferenceTrack) are NOT stream record types and never appear here (docs/architecture/causality-tests.md section 1.1)."
+    },
+    "record_schema_version": { "$ref": "common.schema.json#/$defs/schema_version" },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time", "clock", "position", "velocity", "angle"],
+      "properties": {
+        "time": { "const": "s", "description": "Seconds. Milliseconds are never stored." },
+        "clock": { "const": "t_mono", "description": "Single monotonic clock (ADR-0004)." },
+        "position": { "const": "roi_norm", "description": "ROI-normalized, origin top-left, y down (ADR-0005)." },
+        "velocity": { "const": "roi_norm_per_s" },
+        "angle": { "const": "rad" }
+      }
+    },
+    "session_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "P<NN>-S<N> for participant sessions or dev-<slug> for developer sessions (docs/repo-layout.md section 3.5)." },
+    "config_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+    "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "clock_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "producer": {
+      "type": "string",
+      "enum": ["LIVE", "REPLAY", "REGENERATED"],
+      "description": "LIVE: written during a live session. REPLAY: written by the replay source path of the live app. REGENERATED: re-derived from raw video by the offline pipeline (Phase 09 harness)."
+    },
+    "derived": {
+      "type": "boolean",
+      "description": "False only for FrameSample streams accompanying raw video (authoritative). True for every record type that can be regenerated from raw video + config (Task 01.9)."
+    }
+  }
+}

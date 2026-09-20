@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/timing-record.schema.json",
+  "title": "TimingRecord",
+  "description": "All README section 5.2 timestamps for one frame (kind FRAME, per hand null) or one committed strike (kind STRIKE), on t_mono (Phase 01 contract, Task 01.3; collected by timing; fully populated from Phase 05). Latency components (README section 5.3) are DERIVED from these fields by eval, never stored. docs/architecture/contracts.md section 3.10.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "frame_id", "strike_id", "hand_id", "arm",
+    "t_capture", "t_frame_available", "t_tracking_done", "t_features_done", "t_inference_done",
+    "t_candidate", "t_commit", "t_audio_scheduled", "t_audio_out_est", "t_audio_out", "t_acoustic_onset",
+    "t_impact_est", "t_impact_pred", "t_impact_phys",
+    "hardware_id", "config_hash", "clock_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "type": "string", "enum": ["FRAME", "STRIKE"] },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "strike_id": { "anyOf": [ { "$ref": "common.schema.json#/$defs/opaque_id" }, { "type": "null" } ], "description": "Set for kind STRIKE; null for FRAME." },
+    "hand_id": { "anyOf": [ { "$ref": "common.schema.json#/$defs/hand_id" }, { "type": "null" } ], "description": "Set for kind STRIKE; null for FRAME (frame-level stamps are hand-independent)." },
+    "arm": { "anyOf": [ { "$ref": "common.schema.json#/$defs/arm" }, { "type": "null" } ] },
+    "t_capture": { "$ref": "common.schema.json#/$defs/t_mono" },
+    "t_frame_available": { "$ref": "common.schema.json#/$defs/t_mono" },
+    "t_tracking_done": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Both hands' tracking finished for this frame." },
+    "t_features_done": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Null for arms without a feature stage (Baseline A)." },
+    "t_inference_done": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Anticipator returned (rule-based or model); null for Baseline A." },
+    "t_candidate": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+    "t_commit": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+    "t_audio_scheduled": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+    "t_audio_out_est": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Software estimate from AudioEvent (measured output latency added)." },
+    "t_audio_out": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Externally MEASURED DAC output instant. Null unless an external measurement exists (Phase 18)." },
+    "t_acoustic_onset": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Externally measured (microphone) onset of the drum sound. Null unless measured (Phase 18)." },
+    "t_impact_est": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Sub-frame estimated virtual impact time from OBSERVED tip positions (README section 5.2). Null until the crossing has been observed." },
+    "t_impact_pred": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+    "t_impact_phys": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Physical impact time from the optional practice-pad + microphone condition (ADR-0002). Null unless that condition was recorded and labelled (Phase 07)." },
+    "hardware_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "docs/hardware-inventory.md descriptor id." },
+    "config_hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "Hash of the resolved config in force (docs/reproducibility-policy.md section 3)." },
+    "clock_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "Identity of the t_mono source (ADR-0004), e.g. 'perf_counter'." }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "STRIKE" } } },
+      "then": { "properties": { "strike_id": { "type": "string" }, "hand_id": { "type": "string" }, "t_commit": { "type": "number" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "FRAME" } } },
+      "then": { "properties": { "strike_id": { "type": "null" }, "hand_id": { "type": "null" } } }
+    }
+  ]
+}

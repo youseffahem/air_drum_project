@@ -28,10 +28,10 @@
 
 | Q# | REQ | Requirement (verbatim / tight paraphrase) | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|---|
-| Q1 | REQ-001 | Software-only virtual drumming: single webcam + CV tracks **ordinary** drumsticks; estimates stick-tip motion; detects or predicts imminent virtual strikes; maps to zones; plays drum sounds in real time. Main contribution is Causal Temporal Strike Anticipation. | F/R | 01, 05, 13, 20 | review (01), system test (05, 13, 20) | PLANNED |
+| Q1 | REQ-001 | Software-only virtual drumming: single webcam + CV tracks **ordinary** drumsticks; estimates stick-tip motion; detects or predicts imminent virtual strikes; maps to zones; plays drum sounds in real time. Main contribution is Causal Temporal Strike Anticipation. | F/R | 01, 05, 13, 20 | review (01), system test (05, 13, 20) | PLANNED — P01 spec: `docs/architecture/architecture.md` §1, §4, §11 — gate pending |
 | Q2 | REQ-002 | Allow playing a virtual kit without an electronic kit; research focus: reduce *perceived* Action-to-Sound Latency by predicting an imminent strike before the actual/virtual impact. | R | 10, 18 | measurement (18, external timing) | PLANNED |
 | Q3 | REQ-003 | Primary user: beginners, students, hobbyists, users without a real kit, using ordinary sticks + webcam. | C | 06, 22 | review (protocol difficulty in 06; demo framing in 22) | PLANNED |
-| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED |
+| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED — P01 contribution: `architecture.md` §3 pipeline order — gate pending |
 | Q5 | REQ-005 | Contribution = causal temporal prediction of strikes from camera-derived hand/stick motion. Must clearly measure **Prediction Lead Time, Timing Error, False Positives**, and the effect of prediction on **Effective System Latency**. | R | 09, 10, 18 | measurement (harness 09; final 18) | PLANNED |
 | Q6 | REQ-006 | Both research project and usable system; research is primary; system must be usable enough to demonstrate real-time virtual drumming. | C | 05, 20, 22 | review + system test | PLANNED |
 
@@ -58,7 +58,7 @@
 | Q18 | REQ-018 | Drum zones are initially **fixed**. | C | 04, 14 | test (zone geometry deterministic across a session) | PLANNED |
 | Q19 | REQ-019 | User does **not** manually determine position; the system defines and displays the stand-here area directly in the webcam view. | F | 02, 14 | test (02 guide overlay; 14 fit check) | PLANNED |
 | Q20 | REQ-020 | Clear **geometric** zones and low-latency interaction first; realistic kit visuals may be added later **without changing the core Detection/Prediction architecture**. | C | 04, 15, 22 | review (architecture untouched by UI work) | PLANNED |
-| Q21 | REQ-021 | **No depth estimation** in the initial version; 2-D camera coordinates + virtual geometry. Depth considered later only if experiments show necessity. | C | 01, 04 | review (coordinate convention README §7) | PLANNED |
+| Q21 | REQ-021 | **No depth estimation** in the initial version; 2-D camera coordinates + virtual geometry. Depth considered later only if experiments show necessity. | C | 01, 04 | review (coordinate convention README §7) | PLANNED — P01 spec: `architecture.md` §9, ADR-0005, `common.schema.json` point2 (2-D) — TEST-SCHEMA-1 pass 2026-09-20 — gate pending |
 
 ### D — Camera & Computer Vision
 
@@ -80,7 +80,7 @@
 |---|---|---|---|---|---|---|
 | Q31 | REQ-031 | Tip detection = Hand Landmarks (primary reference) + Visual Stick Segmentation → Stick Axis Estimation → Tip Estimation. Implementation modular so Markerless Geometric, Visual Axis Refinement, and marker-based fallback can be **compared**. | F | 03 | benchmark (`TipEstimator` methods vs reference) | PLANNED |
 | Q32 | REQ-032 | Assume a natural grip; allow reasonable variation in grip and stick orientation. | C | 03, 06 | test (03); protocol (06 records grip variation) | PLANNED |
-| Q33 | REQ-033 | Automatically identify left/right hands; **each hand has independent Tracking, Kinematic, and Prediction State**. | F | 01, 03 | review (01 contracts); test (03) | PLANNED |
+| Q33 | REQ-033 | Automatically identify left/right hands; **each hand has independent Tracking, Kinematic, and Prediction State**. | F | 01, 03 | review (01 contracts); test (03) | PLANNED — P01 spec: `architecture.md` §3, §6 (ownership + reset matrix), ADR-0006 — gate pending |
 | Q34 | REQ-034 | Tolerate short tracking interruptions using the available **causal** state when safe; **never use future information**; reset Predictor/Feature History when tracking becomes invalid or stale. | F | 03, 17 | test (causality invariance, README §13; state-machine tests) | PLANNED |
 | Q35 | REQ-035 | On tracking loss of ~100–300 ms: enter safe **Invalid** state; reset history when necessary; re-enable prediction when valid tracking returns; **never fabricate a strike** during loss. | F | 03, 05, 17 | failure-injection test (17); test (03/05) | PLANNED |
 
@@ -125,17 +125,17 @@
 
 | Q# | REQ | Requirement | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|---|
-| Q51 | REQ-051 | Single drummer / single-user interaction only in V1. | C | 01, 03 | review | PLANNED |
-| Q52 | REQ-052 | Runs completely **offline / local**; no Cloud APIs or internet required. | C | 01, 13, 23 | review + test (no network calls; packaged bundle runs offline) | PLANNED |
+| Q51 | REQ-051 | Single drummer / single-user interaction only in V1. | C | 01, 03 | review | PLANNED — P01 spec: `architecture.md` §16 (single LEFT/RIGHT identity; no multi-user state) — gate pending |
+| Q52 | REQ-052 | Runs completely **offline / local**; no Cloud APIs or internet required. | C | 01, 13, 23 | review + test (no network calls; packaged bundle runs offline) | PLANNED — P01 spec: `architecture.md` §16 (no network dependency; local model path + hash) — gate pending |
 | Q53 | REQ-053 | Drum Engine plays **local recorded drum samples**, not runtime synthesis. | F | 04 | test | PLANNED |
 | Q54 | REQ-054 | MIDI not required for core MVP; advanced / future feature. | X | 00 (register) | review | PLANNED |
-| Q55 | REQ-055 | Kick/foot **not in V1** unless scope explicitly expanded; architecture must **not make future kick/foot impossible**. | C | 01, 04 | review (zone registry extensibility) | PLANNED |
+| Q55 | REQ-055 | Kick/foot **not in V1** unless scope explicitly expanded; architecture must **not make future kick/foot impossible**. | C | 01, 04 | review (zone registry extensibility) | PLANNED — P01 spec: `architecture.md` §10, ADR-0011; config schema rejects FOOT (TEST-SCHEMA-1) — gate pending |
 | Q56 | REQ-056 | Changing drum sounds preferably possible in a later UI/config stage; **not a core research requirement**. | F (low) | 14, 20 | review | PLANNED |
 | Q57 | REQ-057 | Calibration Wizard determines camera/playing area and zone positions; not needed in the earliest prototype. | F | 14 | test | PLANNED |
 | Q58 | REQ-058 | Debug / Developer Overlay exposes: tracking state, hand landmarks, stick-tip position, stick velocity, prediction, predicted trajectory, drum zone, Time-to-Impact, commit decisions, timing information. | F | 15 | test + review (all 10 items present) | PLANNED |
 | Q59 | REQ-059 | Final demo: scientific correctness and measurable behaviour have priority over visual polish, but the demo must still look polished. | C | 22 | review | PLANNED |
 | Q60 | REQ-060a | **Never fabricate** recordings, dataset samples, experimental results, accuracy, latency, FPS, or real-stick validation. | C | 00 (checklist), all gates | review (integrity checklist at every gate) | PLANNED |
-| Q60 | REQ-060b | **Never use future frames** in a model that is supposed to be causal. | C | 01 (causality test), 03, 08, 09, 10, 13, 17 | test (future-perturbation invariance, defined Phase 01) | PLANNED |
+| Q60 | REQ-060b | **Never use future frames** in a model that is supposed to be causal. | C | 01 (causality test), 03, 08, 09, 10, 13, 17 | test (future-perturbation invariance, defined Phase 01) | PLANNED — P01 spec: `docs/architecture/causality-tests.md` §2–§3 (TEST-CAUSAL-1/2 defined) — gate pending |
 | Q60 | REQ-060c | **Never claim** prediction guarantees sound before physical impact unless experimentally measured and clearly defined. | C | 18, 21 | review (claims audit) | PLANNED |
 | Q60 | REQ-060d | Preserve the **Target / Measured / Historical / Pending** distinction for all experimental claims. | C | 00 (policy), 21 | review | PLANNED |
 
@@ -179,7 +179,7 @@ Detailed register with re-inclusion rule: [`out-of-scope.md`](out-of-scope.md). 
 | REQ-204 | Multiple users | X | 00, 23 | review | PLANNED |
 | REQ-205 | Full-body tracking | X | 00, 23 | review | PLANNED |
 | REQ-206 | Mandatory depth estimation | X | 00, 23 | review | PLANNED |
-| REQ-207 | Foot/Kick tracking | X | 00, 01 (must stay possible), 23 | review | PLANNED |
+| REQ-207 | Foot/Kick tracking | X | 00, 01 (must stay possible), 23 | review | PLANNED — P01 spec: `architecture.md` §10, ADR-0011 (reserved, not built; OOS-REF tags) — gate pending |
 | REQ-208 | MIDI as a core requirement | X | 00, 23 | review | PLANNED |
 | REQ-209 | Cloud processing | X | 00, 13, 23 | review + test (offline) | PLANNED |
 | REQ-210 | Mandatory visual markers | X | 00, 03, 23 | review | PLANNED |
@@ -192,7 +192,7 @@ Detailed register with re-inclusion rule: [`out-of-scope.md`](out-of-scope.md). 
 | REQ | Priority (verbatim) | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|
 | REQ-301 | Scientific correctness | C | 00, 21 | review (integrity checklist; claims audit) | PLANNED |
-| REQ-302 | Causal processing | C | 01, 03, 08, 09, 10, 13 | test (causality invariance) | PLANNED |
+| REQ-302 | Causal processing | C | 01, 03, 08, 09, 10, 13 | test (causality invariance) | PLANNED — P01 spec: `causality-tests.md` §1–§3; interfaces have no look-ahead (`architecture.md` §11) — gate pending |
 | REQ-303 | Measurable performance | C | 09, 18 | measurement | PLANNED |
 | REQ-304 | Real-time behaviour | C | 13, 16 | measurement (latency budgets) | PLANNED |
 | REQ-305 | Robust Computer Vision | C | 03, 17 | test (failure injection) | PLANNED |

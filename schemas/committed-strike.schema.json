@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/committed-strike.schema.json",
+  "title": "CommittedStrike",
+  "description": "A StrikeCandidate accepted by the per-hand commit policy; a sound is now inevitable unless shadow is true (Phase 01 contract; produced by commit, Phase 05). docs/architecture/contracts.md section 3.8.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "strike_id", "candidate_id", "frame_id", "t_capture", "hand_id", "zone_id", "source", "derivation", "arm", "shadow",
+    "t_commit", "t_impact_target", "intensity_proxy", "gain", "refractory_until", "episode_id", "commit_policy_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "strike_id": { "$ref": "common.schema.json#/$defs/opaque_id" },
+    "candidate_id": { "$ref": "common.schema.json#/$defs/opaque_id", "description": "The StrikeCandidate that was committed." },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id", "description": "Frame at which the commit decision was taken." },
+    "t_capture": { "$ref": "common.schema.json#/$defs/t_mono" },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "zone_id": { "$ref": "common.schema.json#/$defs/zone_id" },
+    "source": { "$ref": "common.schema.json#/$defs/candidate_source" },
+    "derivation": { "$ref": "common.schema.json#/$defs/candidate_derivation", "description": "Copied from the committed StrikeCandidate so results can be filtered/labelled without a join. DIRECT_HEAD never occurs in the live application." },
+    "arm": { "$ref": "common.schema.json#/$defs/arm", "description": "Which arm produced the candidate (README section 9). Written into every CommittedStrike (Phase 13, Task 13.3). Must agree with source: REACTIVE <-> A, RULE <-> B, MODEL <-> C-* (enforced below)." },
+    "shadow": {
+      "type": "boolean",
+      "description": "True when the commit was produced by a shadow arm (logged only, never scheduled to audio; Phase 05 architecture). t_commit then means 'the instant this arm would have committed'. Metrics treat shadow commits exactly like sounding ones."
+    },
+    "t_commit": { "$ref": "common.schema.json#/$defs/t_mono", "description": "Instant the commit policy accepted the candidate (README section 5.2)." },
+    "t_impact_target": {
+      "$ref": "common.schema.json#/$defs/t_mono",
+      "description": "Time the sound is intended to sound: t_impact_pred for anticipatory sources, t_commit ('now') for REACTIVE."
+    },
+    "intensity_proxy": { "type": "number" },
+    "gain": { "type": "number", "minimum": 0.0, "description": "Linear gain derived from intensity_proxy by the configured monotone mapping (Phase 04, Task 04.10)." },
+    "refractory_until": { "$ref": "common.schema.json#/$defs/t_mono", "description": "No further commit for (hand_id, zone_id) before this instant. Persists across tracking resets (reset matrix)." },
+    "episode_id": { "$ref": "common.schema.json#/$defs/opaque_id", "description": "Geometry entry episode (README section 14); at most one commit per episode." },
+    "commit_policy_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "CommitPolicy implementation + config id." }
+  },
+  "allOf": [
+    { "if": { "properties": { "source": { "const": "REACTIVE" } } }, "then": { "properties": { "arm": { "const": "A" }, "derivation": { "const": "GEOMETRY" } } } },
+    { "if": { "properties": { "source": { "const": "RULE" } } }, "then": { "properties": { "arm": { "const": "B" }, "derivation": { "const": "GEOMETRY" } } } },
+    { "if": { "properties": { "source": { "const": "MODEL" } } }, "then": { "properties": { "arm": { "enum": ["C-GBDT", "C-GRU", "C-TCN", "C-MT", "C-TT"] } } } }
+  ]
+}

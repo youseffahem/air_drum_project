@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/track-state.schema.json",
+  "title": "TrackState",
+  "description": "Per-frame, per-hand causal tracking state (Phase 01 contract; produced by tracking, Phase 03). Exactly one TrackState per hand per processed frame, including INVALID/STALE frames. docs/architecture/contracts.md section 3.4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "frame_id", "t_capture", "hand_id", "status", "tracker_id", "tip_method",
+    "tip_filtered", "tip_velocity", "tip_acceleration", "axis_angle", "axis_angular_velocity",
+    "confidence", "frames_since_valid", "last_valid_t", "history_ref", "reset_reason"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "t_capture": { "$ref": "common.schema.json#/$defs/t_mono" },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "status": { "$ref": "common.schema.json#/$defs/track_status" },
+    "tracker_id": {
+      "$ref": "common.schema.json#/$defs/identifier",
+      "description": "Tracker implementation + config id (filter type/params are config, Phase 03)."
+    },
+    "tip_method": {
+      "anyOf": [ { "$ref": "common.schema.json#/$defs/tip_method" }, { "type": "null" } ],
+      "description": "Method of the StickObservation consumed this frame (null when none). Carried so every downstream result can be labelled per integrity item I-7."
+    },
+    "tip_filtered": {
+      "$ref": "common.schema.json#/$defs/point2_or_null",
+      "description": "Filtered tip position, ROI-normalized. Null when status is INVALID or STALE."
+    },
+    "tip_velocity": {
+      "$ref": "common.schema.json#/$defs/vector2_or_null",
+      "description": "ROI-normalized units per second."
+    },
+    "tip_acceleration": {
+      "$ref": "common.schema.json#/$defs/vector2_or_null",
+      "description": "ROI-normalized units per second squared."
+    },
+    "axis_angle": {
+      "type": ["number", "null"],
+      "description": "Stick axis angle in radians, measured from +x towards +y (y-down image frame)."
+    },
+    "axis_angular_velocity": { "type": ["number", "null"], "description": "rad/s." },
+    "confidence": {
+      "$ref": "common.schema.json#/$defs/confidence",
+      "description": "Tracker confidence for this frame (feeds the VALID/DEGRADED decision against c_valid / c_min)."
+    },
+    "frames_since_valid": {
+      "type": "integer", "minimum": 0,
+      "description": "0 when this frame is a fresh VALID observation; counts up during DEGRADED/INVALID."
+    },
+    "last_valid_t": {
+      "$ref": "common.schema.json#/$defs/t_mono_or_null",
+      "description": "t_capture of the most recent VALID observation; null if none since the last reset."
+    },
+    "history_ref": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["n", "oldest_frame_id"],
+      "properties": {
+        "n": { "type": "integer", "minimum": 0, "description": "Number of past TrackStates currently in the causal history window (<= configured N)." },
+        "oldest_frame_id": { "type": ["integer", "null"], "minimum": 0 }
+      },
+      "description": "Metadata about the in-memory causal history window. The window itself is not serialised: it is reconstructible from the stream of TrackState records (Task 01.9). Null after a reset."
+    },
+    "reset_reason": {
+      "type": ["string", "null"],
+      "enum": [null, "GAP_EXCEEDED", "LOW_CONFIDENCE", "STALE", "MANUAL", "ARM_SWITCH", "CONFIG_RELOAD", "SESSION_START"],
+      "description": "Set on the frame in which a reset occurred (reset matrix, architecture.md section 6); null otherwise."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "enum": ["VALID", "DEGRADED"] } } },
+      "then": { "properties": { "tip_filtered": { "type": "array" }, "tip_velocity": { "type": "array" } } }
+    },
+    {
+      "if": { "properties": { "status": { "enum": ["INVALID", "STALE"] } } },
+      "then": { "properties": { "tip_filtered": { "type": "null" }, "tip_velocity": { "type": "null" }, "tip_acceleration": { "type": "null" } } }
+    }
+  ]
+}

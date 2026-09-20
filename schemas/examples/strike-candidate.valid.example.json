@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "candidate_id": "example-session-RIGHT-c0001",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "hand_id": "RIGHT",
+  "zone_id": "snare",
+  "source": "RULE",
+  "derivation": "GEOMETRY",
+  "anticipator_id": "example-anticipator",
+  "t_impact_pred": 12.41,
+  "t_impact_est": null,
+  "tti": 0.064322,
+  "impact_position": [
+    0.64,
+    0.9
+  ],
+  "crossing_velocity": [
+    0.1,
+    1.5
+  ],
+  "strike_probability": 0.7,
+  "intensity_proxy": 1.5,
+  "t_candidate": 12.3605
+}

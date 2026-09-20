@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "frame_id": 120,
+  "t_capture": 12.345678,
+  "hand_id": "RIGHT",
+  "anticipator_id": "example-anticipator",
+  "model_hash": null,
+  "K": 4,
+  "dt_step": 0.0333,
+  "t_offsets_s": null,
+  "positions": [
+    [
+      0.633,
+      0.83
+    ],
+    [
+      0.636,
+      0.88
+    ],
+    [
+      0.639,
+      0.93
+    ],
+    [
+      0.642,
+      0.98
+    ]
+  ],
+  "velocities": [
+    [
+      0.1,
+      1.5
+    ],
+    [
+      0.1,
+      1.5
+    ],
+    [
+      0.1,
+      1.5
+    ],
+    [
+      0.1,
+      1.5
+    ]
+  ],
+  "uncertainty": null,
+  "uncertainty_kind": null,
+  "aux": {
+    "strike_prob_within_H": null,
+    "tti": null,
+    "zone_logits": null,
+    "zone_ids": null,
+    "impact_pos": null,
+    "intensity_proxy": null
+  },
+  "t_inference_done": 12.36
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/direct-prediction.schema.json",
+  "title": "DirectPrediction",
+  "description": "DIAGNOSTIC-ONLY record (added at the Phase 01 gate review, 2026-09-21): direct strike heads of a learned model WITHOUT a predicted trajectory, consumed by the harness's direct-head adapter to build StrikeCandidate(derivation = DIRECT_HEAD). Exists so that Phase 09 Task 09.8 (C-GBDT 'direct' evaluation mode) and Phase 19 AB-NOTRAJ can be represented without faking a trajectory. It is NEVER produced in the live application, never consumed by geometry, and never used by any Arm that is shipped (Phase 13 refuses it). The runtime contract remains trajectory-first (ADR-0007): TrajectoryPrediction is the primary output of every live Anticipator. docs/architecture/contracts.md section 3.11.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "frame_id", "t_capture", "hand_id", "anticipator_id", "model_hash", "diagnostic_mode",
+    "strike_prob_within_H", "horizon_s", "tti", "zone_logits", "zone_ids", "impact_pos", "intensity_proxy", "t_inference_done"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+    "t_capture": { "$ref": "common.schema.json#/$defs/t_mono", "description": "Reference time t_ref: latest frame the model was allowed to see (causal)." },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "anticipator_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "model_hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "Always a learned model (source MODEL); rule-based anticipators have no direct mode." },
+    "diagnostic_mode": {
+      "type": "string",
+      "enum": ["P09_GBDT_DIRECT", "P19_AB_NOTRAJ"],
+      "description": "Which sanctioned diagnostic path produced this record. Any other use is a contract violation."
+    },
+    "strike_prob_within_H": { "$ref": "common.schema.json#/$defs/confidence", "description": "Head (i): probability of a valid impact within horizon_s of t_capture." },
+    "horizon_s": { "$ref": "common.schema.json#/$defs/duration_s", "description": "H used by head (i)." },
+    "tti": { "type": ["number", "null"], "description": "Head (ii): predicted Time-to-Impact in seconds from t_capture; the adapter sets t_impact_pred = t_capture + tti. Null when the model emits no TTI (then no candidate can be built)." },
+    "zone_logits": { "anyOf": [ { "type": "array", "items": { "type": "number" }, "minItems": 1 }, { "type": "null" } ], "description": "Head (iii), aligned with zone_ids." },
+    "zone_ids": { "anyOf": [ { "type": "array", "items": { "$ref": "common.schema.json#/$defs/zone_id" }, "minItems": 1 }, { "type": "null" } ] },
+    "impact_pos": { "$ref": "common.schema.json#/$defs/point2_or_null", "description": "Optional direct impact-position head; the adapter uses the zone's impact-surface midpoint when null (documented in Phase 09)." },
+    "intensity_proxy": { "type": ["number", "null"] },
+    "t_inference_done": { "$ref": "common.schema.json#/$defs/t_mono" }
+  }
+}
