@@ -167,3 +167,85 @@ def test_arms_block_optional_but_validated(validator, config_example):
     assert is_valid(v, cfg)
     cfg["arms"] = {"active": "D", "shadow": []}
     assert not is_valid(v, cfg)
+
+
+# ------------------------------------------------------------ hands block (schema 1.2, Phase 03, ADR-0014)
+
+
+def test_example_declares_schema_1_2_with_hands_block(config_example):
+    assert config_example["meta"]["schema_version"] == "1.2"
+    assert config_example["hands"]["detector"] == "mediapipe-hand-landmarker"
+    assert config_example["hands"]["swap_handedness"] is False
+
+
+def test_hands_block_optional_for_older_documents(validator, config_example):
+    v = validator("config")
+    cfg = copy.deepcopy(config_example)
+    del cfg["hands"]
+    cfg["meta"]["schema_version"] = "1.1"
+    assert is_valid(v, cfg)  # 1.0 / 1.1 documents stay valid (additive minor bump)
+    cfg["meta"]["schema_version"] = "1.3"
+    assert not is_valid(v, cfg)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda h: h.update(detector="openpose"),
+        lambda h: h.update(running_mode="LIVE_STREAM"),
+        lambda h: h.update(num_hands=0),
+        lambda h: h.update(min_hand_detection_confidence=1.5),
+        lambda h: h.update(input="CROP"),
+        lambda h: h.update(swap_handedness="no"),
+        lambda h: h.update(model_complexity=1),   # legacy Solutions knob; absent from the Tasks API
+        lambda h: h.pop("model_asset_id"),
+    ],
+)
+def test_hands_block_rejects_invalid_values(validator, config_example, mutation):
+    v = validator("config")
+    cfg = copy.deepcopy(config_example)
+    mutation(cfg["hands"])
+    assert not is_valid(v, cfg)
+
+
+def test_hands_identity_block_required_and_validated(validator, config_example):
+    """Task 03.2 (ADR-0014 §10): the identity sub-block is part of the hands block."""
+    v = validator("config")
+    cfg = copy.deepcopy(config_example)
+    assert cfg["hands"]["identity"]["mode"] == "TEMPORAL"
+    del cfg["hands"]["identity"]
+    assert not is_valid(v, cfg)
+    cfg = copy.deepcopy(config_example)
+    cfg["hands"]["identity"]["mode"] = "GUESS"
+    assert not is_valid(v, cfg)
+    cfg = copy.deepcopy(config_example)
+    cfg["hands"]["identity"]["gate_distance"] = 0
+    assert not is_valid(v, cfg)
+    cfg = copy.deepcopy(config_example)
+    cfg["hands"]["identity"]["ambiguous_score_cap"] = 1.5
+    assert not is_valid(v, cfg)
+
+
+# ------------------------------------------------------------ stick block (schema 1.2, Phase 03, ADR-0015)
+
+
+def test_stick_block_present_optional_and_validated(validator, config_example):
+    v = validator("config")
+    assert config_example["stick"]["method_id"] == "GEOM"
+    cfg = copy.deepcopy(config_example)
+    del cfg["stick"]
+    assert is_valid(v, cfg)  # optional at the schema level (older documents)
+    for mutate in (
+        lambda st: st.update(method_id="LASER"),
+        lambda st: st["axis"].update(method="LSQ"),
+        lambda st: st["geom"].update(l_prior=0),
+        lambda st: st["marker"].update(hsv_low=[0, 0]),
+        lambda st: st["search_region"].pop("length_factor"),
+        lambda st: st.update(learned_segmentation=True),  # not a schema field (Open Question)
+    ):
+        cfg = copy.deepcopy(config_example)
+        mutate(cfg["stick"])
+        assert not is_valid(v, cfg)
+    cfg = copy.deepcopy(config_example)
+    cfg["stick"]["method_id"] = "MARKER"  # expressible (fallback / benchmark); labelled by the estimator
+    assert is_valid(v, cfg)

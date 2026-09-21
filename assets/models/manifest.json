@@ -1,0 +1,16 @@
+{
+  "schema": "assets-manifest/1",
+  "assets": {
+    "mediapipe-hand-landmarker-float16-v1": {
+      "asset_id": "mediapipe-hand-landmarker-float16-v1",
+      "file": "hand_landmarker.task",
+      "url": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+      "licence": "Apache-2.0 (MediaPipe model card: Hand Landmarker; Google LLC)",
+      "purpose": "Phase 03 Task 03.1 hand-landmark estimator candidate (21 keypoints + handedness).",
+      "sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+      "bytes": 7819105,
+      "pinned_with_mediapipe": "1.0.1",
+      "note": "Downloaded once (docs/environment.md section 7). spacedrums.hands re-checks this hash at load."
+    }
+  }
+}

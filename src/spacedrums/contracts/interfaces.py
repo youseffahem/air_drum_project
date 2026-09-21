@@ -5,16 +5,19 @@ ADR. No interface has a look-ahead argument. Each Protocol is added by the phase
 implements it, so that no Protocol references a record type that does not exist yet:
 
 * Phase 02: ``FrameSource`` (implemented by ``spacedrums.capture.LiveFrameSource``).
-* Phase 03: ``TipEstimator``, ``Tracker``; Phase 04: ``Geometry``, ``AudioScheduler``;
+* Phase 03: ``TipEstimator`` (``spacedrums.stick``), ``Tracker`` (``spacedrums.tracking``);
+  Phase 04: ``Geometry``, ``AudioScheduler``;
   Phase 05: ``Anticipator``, ``CommitPolicy``; Phase 09: ``DirectAnticipator`` (diagnostic only).
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from typing import Protocol, runtime_checkable
 
-from spacedrums.contracts.records import FrameSample
+from spacedrums.contracts.enums import ResetReason, TipMethod
+from spacedrums.contracts.records import FrameSample, HandObservation, StickObservation, TrackState
+from spacedrums.contracts.values import FrameView
 
 
 @runtime_checkable
@@ -30,4 +33,38 @@ class FrameSource(Protocol):
     def __iter__(self) -> Iterator[FrameSample]: ...
 
 
-__all__ = ["FrameSource"]
+@runtime_checkable
+class TipEstimator(Protocol):
+    """architecture.md section 11: pure per-frame function of (frame, hand observation).
+
+    Must return a ``StickObservation`` with ``present=False`` rather than raise when the hand is
+    absent; ``method_id`` is the class attribute (``GEOM`` | ``AXIS_REFINED`` | ``MARKER``); the
+    output is independent of the call order across hands (``TEST-CONFORM-1``).
+    """
+
+    method_id: TipMethod
+
+    def estimate(self, frame_roi: FrameView, hand_obs: HandObservation) -> StickObservation: ...
+
+
+@runtime_checkable
+class Tracker(Protocol):
+    """architecture.md section 11: causal per-hand tracker; one ``update`` per frame per hand.
+
+    ``update`` receives only the current observations and its own state (no look-ahead argument);
+    ``history`` holds the last <= N states, oldest first, all with ``t_capture`` <= the current one
+    (``TEST-CONFORM-2``, ``TEST-CAUSAL-1/2``).
+    """
+
+    tracker_id: str
+
+    def update(self, hand_obs: HandObservation, stick_obs: StickObservation,
+               t_capture: float) -> TrackState: ...
+
+    def reset(self, reason: ResetReason) -> None: ...
+
+    @property
+    def history(self) -> Sequence[TrackState]: ...
+
+
+__all__ = ["FrameSource", "TipEstimator", "Tracker"]

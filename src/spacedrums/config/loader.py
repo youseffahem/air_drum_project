@@ -167,6 +167,20 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
             and cam.get("grab_return_bias_s") is not None:
         # a bias is only meaningful once the mode it was measured in is itself measured
         problems.append("camera_profile.grab_return_bias_s set while native_fps_measured is null")
+    # Phase 03 (ADR-0014): the hands block exists from schema 1.2; a 1.0/1.1 document may not carry it
+    version = str(cfg.get("meta", {}).get("schema_version", ""))
+    for block in ("hands", "stick"):
+        if block in cfg and version in ("1.0", "1.1"):
+            problems.append(f"{block} block requires meta.schema_version >= 1.2 "
+                            f"(document declares {version})")
+    # Phase 03 Task 03.2: an AMBIGUOUS identity may be DEGRADED at most, never VALID (README section 8)
+    ident = cfg.get("hands", {}).get("identity", {})
+    cap = ident.get("ambiguous_score_cap")
+    if cap is not None and "c_min" in tr and "c_valid" in tr and not (tr["c_min"] <= cap < tr["c_valid"]):
+        problems.append(
+            f"hands.identity.ambiguous_score_cap ({cap}) must satisfy tracking.c_min ({tr['c_min']}) <= cap "
+            f"< tracking.c_valid ({tr['c_valid']}) so an ambiguous identity is DEGRADED, not VALID"
+        )
     return problems
 
 

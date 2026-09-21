@@ -1,6 +1,6 @@
 # Space Drums — Data Contract Specification
 
-**Phase:** 01 — Task 01.2 · **Status:** IMPLEMENTED as schemas (machine-readable JSON Schemas exist and their tests pass — `TEST-SCHEMA-1`); every *producer* of these records is PLANNED.
+**Phase:** 01 — Task 01.2 · **Status:** IMPLEMENTED as schemas (machine-readable JSON Schemas exist and their tests pass — `TEST-SCHEMA-1`); producers: `FrameSample` (Phase 02), `HandObservation`, `StickObservation`, `TrackState` (Phase 03) IMPLEMENTED, every other producer PLANNED.
 **Schemas:** [`../../schemas/*.schema.json`](../../schemas/) (records, shared `common.schema.json`), [`../../configs/schema/config.schema.json`](../../configs/schema/config.schema.json) (config). Examples: [`../../schemas/examples/*.valid.example.json`](../../schemas/examples/) — **synthetic placeholders, not data**.
 **Tests:** `tests/contracts/` (pytest) and `scripts/validate_contracts.py` (same checks, standalone). See §5.
 **Related:** [`architecture.md`](architecture.md) §5 (clock), §9 (coordinates), §12 (record/replay); ADR-0004, ADR-0005, ADR-0012.
@@ -77,6 +77,8 @@ Added vs the phase document's field list: `timestamp_source`, `frame_size_px` (n
 
 Two `HandObservation`s are emitted per frame (one per `hand_id`), `present=false` when a hand is not detected. Extra detected hands (a second person, REQ-204/REQ-029) are **not** emitted; Phase 03 decides the rejection rule and logs counts.
 
+*Producer status (Phase 03, Task 03.1, ADR-0014):* class `spacedrums.contracts.HandObservation` and producer `spacedrums.hands.HandLandmarker` IMPLEMENTED. With the pinned MediaPipe Tasks model `landmark_visibility` is always `null` (the estimator provides no per-landmark score — measured, `docs/reports/phase-03-task-03.1-hand-landmarker.md` §2.3). `hand_id` is assigned by `spacedrums.hands.identity` (Task 03.2, ADR-0014 §10): estimator label + continuity to the previous wrist; `handedness_score` is the assigner's combined identity confidence and is capped at `hands.identity.ambiguous_score_cap` (loader-enforced `< tracking.c_valid`) in ambiguous frames, so an uncertain identity can only be `DEGRADED` downstream. Consumers (Tasks 03.7/03.13) must not let `tip_confidence` exceed the hand's `handedness_score`. Mode `RAW` (label only, higher score wins a same-label collision) remains as the measurement baseline. `detector_id` format is fixed in ADR-0014 §4 and carries the identity parameters.
+
 ### 3.3 `StickObservation` — `stick-observation.schema.json` (producer: `TipEstimator` in `stick`, Phase 03)
 
 | Field | Type | Frame | Null? | Meaning |
@@ -90,6 +92,8 @@ Two `HandObservation`s are emitted per frame (one per `hand_id`), `present=false
 | `tip_confidence` | confidence | — | no | Consumed by tracking against `c_valid`/`c_min`. |
 | `axis_confidence` | confidence | — | no | |
 | `stick_length_est` | float ≥ 0 | ROI-norm | yes | Apparent length if estimated. |
+
+*Producer status (Phase 03, Tasks 03.4–03.9, ADR-0015):* class `spacedrums.contracts.StickObservation` and producers `spacedrums.stick.{GeomTipEstimator, AxisRefinedTipEstimator, MarkerTipEstimator}` IMPLEMENTED (`TEST-CONFORM-1`). `stick_length_est` is in ROI-height units (px / roi.h; the ROI-normalized frame is anisotropic). `tip_confidence` is producer-defined and bounded by the hand's `handedness_score`.
 
 ### 3.4 `TrackState` — `track-state.schema.json` (producer: `Tracker` in `tracking`, Phase 03)
 

@@ -86,7 +86,7 @@ Note on the first verification: the venv was created fresh, but the *machine* wa
 ## 7. Conventions all later phases must follow
 
 - **Target-CPU naming:** every latency/FPS measurement names the hardware descriptor id (`HW-xx` from `hardware-inventory.md`) and the thread settings (`torch`, `onnxruntime`, OpenCV `cv2.setNumThreads`). "On the target CPU" without an `HW-xx` id is not a measurement.
-- **No network at runtime:** any model or asset (e.g. the MediaPipe `.task` file) is downloaded once by a documented script, stored under `models/` or `assets/` with a SHA-256 in a manifest, and loaded from disk.
+- **No network at runtime:** any model or asset (e.g. the MediaPipe `.task` file) is downloaded once by a documented script, stored under `models/` or `assets/` with a SHA-256 in a manifest, and loaded from disk. *(Phase 03, ADR-0014)* First instance: `python scripts/fetch_hand_landmarker_model.py` fetches `assets/models/hand_landmarker.task` from the versioned MediaPipe bucket path and pins it in `assets/models/manifest.json`; `--verify` re-hashes without network; `spacedrums.hands` refuses to load a file whose hash differs from the manifest. The binary is **not** git-tracked (MANIFEST-ONLY, Phase 03 gate C-03-5): run the fetch script once per checkout.
 - **Thread pinning in benchmarks:** record `OMP_NUM_THREADS`, `torch.get_num_threads()`, and ORT `intra_op_num_threads` in the run's environment block.
 - **Warnings:** MediaPipe/absl log noise on import is cosmetic; do not suppress warnings globally in project code.
 

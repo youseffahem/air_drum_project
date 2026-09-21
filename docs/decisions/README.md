@@ -19,5 +19,9 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0011](ADR-0011-zone-registry-extensibility.md) | Zone-registry extensibility: open trigger-type enum, generic geometry, hand-agnostic zones | Accepted | 2026-09-20 | 01 |
 | [ADR-0012](ADR-0012-record-contracts-json-schema.md) | Record contracts as versioned JSON Schemas; type-only packages added to the layout | Accepted | 2026-09-20 | 01 |
 | [ADR-0013](ADR-0013-capture-backend-timestamp-policy.md) | Capture backend, timestamp policy, duplicate refusal, config schema 1.1 (HW-01 measurements) | Accepted (backend choice = candidate until Phase 03) | 2026-09-21 | 02 |
+| [ADR-0014](ADR-0014-hand-landmarker-wrapper.md) | Hand-landmark estimator wrapper: MediaPipe Tasks candidate, model-asset pinning (`assets/models/`), config schema 1.2 (`hands` block), raw-label emission rule | Accepted; Decision 8 closed by the owner check; amended by Tasks 03.2 (§10 identity) and 03.3 (§12 grip) — values remain candidates until Tasks 03.10/03.11 complete | 2026-09-21 | 03 |
+| [ADR-0015](ADR-0015-primary-tip-method.md) | Markerless stick pipeline (`stick` block) and primary tip method — **provisional `GEOM`** pending the annotated benchmark (gate C-03-1 PENDING) | Accepted (pipeline) / Provisional (primary method) | 2026-09-21 | 03 |
+| [ADR-0016](ADR-0016-filter-choice.md) | Per-hand causal filter (`kalman_cv` candidate) and README §8 state machine; TEST-CAUSAL-2 `N_eff` declaration rule | Accepted (thresholds = candidates) | 2026-09-21 | 03 |
+| [ADR-0017](ADR-0017-roi-distance.md) | ROI / user distance for data collection: keep 1.0 m, 640×480, exposure −5 at L2; factorial PENDING (gate C-03-3) | Proposed (recommendation) | 2026-09-21 | 03 |
 
-Next free number: **ADR-0014**.
+Next free number: **ADR-0018**.

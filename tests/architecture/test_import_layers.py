@@ -89,7 +89,9 @@ def test_import_linter_contract():
     exe = shutil.which("lint-imports", path=str(Path(sys.executable).parent))
     if exe is None:
         pytest.skip("import-linter not installed in this environment (requirements.lock has it)")
+    # utf-8 decode: with PYTHONIOENCODING=utf-8 in the environment, import-linter (rich) prints a
+    # UTF-8 banner that the Windows console codepage (cp1252) cannot decode (Phase 03 finding).
     res = subprocess.run([exe, "--config", str(ROOT / ".importlinter")], cwd=ROOT,
-                         capture_output=True, text=True, check=False)
+                         capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
     assert res.returncode == 0, res.stdout + res.stderr
     assert "0 broken" in res.stdout

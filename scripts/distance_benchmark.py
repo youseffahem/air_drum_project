@@ -82,8 +82,13 @@ def cmd_capture(args: argparse.Namespace) -> int:
     if last is None:
         print("no frame captured")
         return 2
-    cv2.imwrite(str(d / "frame.png"), last.image_ref.array)
-    cv2.imwrite(str(d / "frame_guide.png"), draw_guide(last.image_ref.array, src.roi))
+    # Phase 02 gate F-2: a locked/unwritable file must not leave a stale frame beside a fresh side-car
+    if not cv2.imwrite(str(d / "frame.png"), last.image_ref.array):
+        print(f"cannot write {d / 'frame.png'} (locked or unwritable); no side-car written")
+        return 3
+    if not cv2.imwrite(str(d / "frame_guide.png"), draw_guide(last.image_ref.array, src.roi)):
+        print(f"cannot write {d / 'frame_guide.png'} (locked or unwritable); no side-car written")
+        return 3
     side = {
         "label": args.label, "distance_m": args.distance_m, "camera_height_m": args.camera_height_m,
         "tilt_deg": args.tilt_deg, "lighting": args.lighting, "note": args.note,

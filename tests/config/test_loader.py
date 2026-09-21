@@ -99,8 +99,12 @@ def test_cross_field_checks(mutate, needle):
 
 
 def test_schema_1_0_documents_remain_valid():
-    cfg = resolve(BASE)  # the Phase 01 example is a 1.0 document without the 1.1 keys
-    assert cfg["meta"]["schema_version"] == "1.0"
+    # The example became a 1.2 document in Phase 03 (hands block, ADR-0014); a 1.0 document is the
+    # same file without that block and without the 1.1 keys.
+    cfg = resolve(BASE)
+    del cfg["hands"]
+    del cfg["stick"]
+    cfg["meta"]["schema_version"] = "1.0"
     assert "pixel_format" not in cfg["camera_profile"]
     validate(cfg)
 
@@ -139,3 +143,37 @@ def test_load_config_needs_input():
 def test_resolved_config_is_json_serialisable():
     cfg = load_config(BASE, CAMERA)
     json.dumps(cfg.data)
+
+
+def test_hands_block_requires_schema_1_2():
+    """ADR-0014 cross-field rule: a 1.0/1.1 document may not carry the hands block."""
+    doc = resolve(BASE)
+    doc["meta"]["schema_version"] = "1.1"
+    with pytest.raises(ConfigError, match="hands block requires meta.schema_version >= 1.2"):
+        validate(doc)
+    doc["meta"]["schema_version"] = "1.2"
+    validate(doc)
+    del doc["hands"]
+    doc["meta"]["schema_version"] = "1.1"
+    with pytest.raises(ConfigError, match="stick block requires"):
+        validate(doc)  # the stick block is a 1.2 block too
+    del doc["stick"]
+    validate(doc)  # older documents without the blocks stay loadable
+
+
+def test_camera_fragment_merge_keeps_hands_block_and_declares_1_2():
+    cfg = load_config(BASE, CAMERA)
+    assert cfg["meta"]["schema_version"] == "1.2"
+    assert cfg["hands"]["running_mode"] in ("VIDEO", "IMAGE")
+
+
+@pytest.mark.parametrize("cap, ok", [(0.3, True), (0.5, True), (0.6, False), (0.2, False), (0.9, False)])
+def test_ambiguous_score_cap_must_map_to_degraded(cap, ok):
+    """Task 03.2 rule: c_min (0.3 in the example) <= cap < c_valid (0.6) so ambiguity is never VALID."""
+    doc = resolve(BASE)
+    doc["hands"]["identity"]["ambiguous_score_cap"] = cap
+    if ok:
+        validate(doc)
+    else:
+        with pytest.raises(ConfigError, match="ambiguous_score_cap"):
+            validate(doc)
