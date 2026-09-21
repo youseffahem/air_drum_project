@@ -31,7 +31,7 @@
 | Q1 | REQ-001 | Software-only virtual drumming: single webcam + CV tracks **ordinary** drumsticks; estimates stick-tip motion; detects or predicts imminent virtual strikes; maps to zones; plays drum sounds in real time. Main contribution is Causal Temporal Strike Anticipation. | F/R | 01, 05, 13, 20 | review (01), system test (05, 13, 20) | PLANNED — P01 spec: `docs/architecture/architecture.md` §1, §4, §11 — gate pending |
 | Q2 | REQ-002 | Allow playing a virtual kit without an electronic kit; research focus: reduce *perceived* Action-to-Sound Latency by predicting an imminent strike before the actual/virtual impact. | R | 10, 18 | measurement (18, external timing) | PLANNED |
 | Q3 | REQ-003 | Primary user: beginners, students, hobbyists, users without a real kit, using ordinary sticks + webcam. | C | 06, 22 | review (protocol difficulty in 06; demo framing in 22) | PLANNED |
-| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED — P01 contribution: `architecture.md` §3 pipeline order — gate pending |
+| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED — P01: `architecture.md` §3; P02 contribution: stand-here guide `src/spacedrums/ui/guide.py` (`TEST-UI-1`, screenshot `docs/figures/phase-02/`) — gate pending |
 | Q5 | REQ-005 | Contribution = causal temporal prediction of strikes from camera-derived hand/stick motion. Must clearly measure **Prediction Lead Time, Timing Error, False Positives**, and the effect of prediction on **Effective System Latency**. | R | 09, 10, 18 | measurement (harness 09; final 18) | PLANNED |
 | Q6 | REQ-006 | Both research project and usable system; research is primary; system must be usable enough to demonstrate real-time virtual drumming. | C | 05, 20, 22 | review + system test | PLANNED |
 
@@ -56,7 +56,7 @@
 | Q16 | REQ-016 | MVP ≈ **4 zones**; V1 target ≈ **7 zones**; exact final arrangement confirmed before implementation (→ ADR-0003). | F | 04, 14 | review (ADR-0003, zone layout config) | PLANNED |
 | Q17 | REQ-017 | Initial kit: Snare, Hi-Hat, Tom 1, Tom 2, Floor Tom, Crash/Ride. Kick requires a separate decision (foot tracking out of V1). | F | 04 | review (zone registry contents) | PLANNED |
 | Q18 | REQ-018 | Drum zones are initially **fixed**. | C | 04, 14 | test (zone geometry deterministic across a session) | PLANNED |
-| Q19 | REQ-019 | User does **not** manually determine position; the system defines and displays the stand-here area directly in the webcam view. | F | 02, 14 | test (02 guide overlay; 14 fit check) | PLANNED |
+| Q19 | REQ-019 | User does **not** manually determine position; the system defines and displays the stand-here area directly in the webcam view. | F | 02, 14 | test (02 guide overlay; 14 fit check) | PLANNED — P02 evidence: `ui/guide.py` + `scripts/show_guide.py` (`TEST-UI-1`); ROI from config, no manual positioning — gate pending |
 | Q20 | REQ-020 | Clear **geometric** zones and low-latency interaction first; realistic kit visuals may be added later **without changing the core Detection/Prediction architecture**. | C | 04, 15, 22 | review (architecture untouched by UI work) | PLANNED |
 | Q21 | REQ-021 | **No depth estimation** in the initial version; 2-D camera coordinates + virtual geometry. Depth considered later only if experiments show necessity. | C | 01, 04 | review (coordinate convention README §7) | PLANNED — P01 spec: `architecture.md` §9, ADR-0005, `common.schema.json` point2 (2-D) — TEST-SCHEMA-1 pass 2026-09-20 — gate pending |
 
@@ -64,12 +64,12 @@
 
 | Q# | REQ | Requirement | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|---|
-| Q22 | REQ-022 | Initially the laptop's normal webcam; later upgrade to a stronger external camera or iPhone camera possible. | C | 02 | review (camera profile names the device) | PLANNED |
-| Q23 | REQ-023 | Baseline **30 FPS**; target **true 60 FPS** if camera + computer reliably support it. **Fake/interpolated FPS must never be presented as native FPS.** | C/R | 02, 16 | measurement (native FPS, 02; end-to-end 60 FPS attempt, 16) | PLANNED |
-| Q24 | REQ-024 | Camera fixed (tripod or fixed position) for consistent geometry and tracking. | C | 02, 06 | review (placement in camera profile / session metadata) | PLANNED |
-| Q25 | REQ-025 | User–camera distance determined by benchmarking; FOV must cover both hands and stick paths without excessive tracking-resolution loss. | R | 02, 03 | benchmark | PLANNED |
-| Q26 | REQ-026 | Both hands + enough surrounding space visible; full-body tracking **not** required; kick/foot later if needed. | C | 02 | review (ROI definition) | PLANNED |
-| Q27 | REQ-027 | Support normal indoor lighting; test under **multiple realistic lighting conditions**, not lab lighting. | C/R | 02, 06, 17, 18 | measurement (lighting conditions recorded per session; robustness tests) | PLANNED |
+| Q22 | REQ-022 | Initially the laptop's normal webcam; later upgrade to a stronger external camera or iPhone camera possible. | C | 02 | review (camera profile names the device) | PLANNED — P02 evidence: `docs/camera-profile-hw01-integrated-webcam.md` names the device/driver/backend; upgrade path §9 — gate pending |
+| Q23 | REQ-023 | Baseline **30 FPS**; target **true 60 FPS** if camera + computer reliably support it. **Fake/interpolated FPS must never be presented as native FPS.** | C/R | 02, 16 | measurement (native FPS, 02; end-to-end 60 FPS attempt, 16) | PLANNED — P02 evidence: native FPS MEASURED per mode (camera profile §3, runs `p02-fps-*`); 60 FPS attempt measured as not delivered on HW-01; duplicate refusal (ADR-0013) — gate pending |
+| Q24 | REQ-024 | Camera fixed (tripod or fixed position) for consistent geometry and tracking. | C | 02, 06 | review (placement in camera profile / session metadata) | PLANNED — P02 evidence: placement recorded in camera profile §7; tripod still an Open Question (`hardware-inventory.md`) — gate pending |
+| Q25 | REQ-025 | User–camera distance determined by benchmarking; FOV must cover both hands and stick paths without excessive tracking-resolution loss. | R | 02, 03 | benchmark | PLANNED — P02: protocol `docs/protocols/camera-distance-benchmark.md` + `scripts/distance_benchmark.py`; visibility table PENDING (needs a person); tracking part Phase 03 — gate pending |
+| Q26 | REQ-026 | Both hands + enough surrounding space visible; full-body tracking **not** required; kick/foot later if needed. | C | 02 | review (ROI definition) | PLANNED — P02 evidence: fixed ROI `configs/camera/hw01-integrated-webcam.candidate.yaml` `roi.px` (candidate) + guide band — gate pending |
+| Q27 | REQ-027 | Support normal indoor lighting; test under **multiple realistic lighting conditions**, not lab lighting. | C/R | 02, 06, 17, 18 | measurement (lighting conditions recorded per session; robustness tests) | PLANNED — P02: `docs/protocols/lighting-checklist.md` (L1–L5), exposure procedure; low-light frame-rate cap MEASURED (camera profile §5) — gate pending |
 | Q28 | REQ-028 | Background need not be controlled; clutter and occlusion considered during evaluation. | C | 06, 17, 18 | measurement (background variation in dataset; failure injection) | PLANNED |
 | Q29 | REQ-029 | Preferably stable with people/objects in background; multi-person interaction **out of scope**; testing includes realistic background variation. | F | 03, 17 | test (17 background-person injection) | PLANNED |
 | Q30 | REQ-030 | Ordinary drumstick colours supported (markerless); coloured tape only fallback/benchmark. | C | 03 | benchmark | PLANNED |
@@ -147,8 +147,8 @@ Source: `project-discovery.md` → "Confirmed Core Architecture" and "Core Resea
 
 | REQ | Pipeline stage (verbatim) | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|
-| REQ-101 | Webcam | F | 02 | test | PLANNED |
-| REQ-102 | Fixed Playing ROI | F | 02 | test | PLANNED |
+| REQ-101 | Webcam | F | 02 | test | PLANNED — P02 evidence: `spacedrums.capture.LiveFrameSource` (`TEST-CAPTURE-1…5`, `TEST-CONFORM-7` live case) — gate pending |
+| REQ-102 | Fixed Playing ROI | F | 02 | test | PLANNED — P02 evidence: `capture/roi.py` px<->norm helper + crop (`TEST-CAPTURE-1`) — gate pending |
 | REQ-103 | Hand Detection / Hand Landmarks | F | 03 | test | PLANNED |
 | REQ-104 | Markerless Visual Stick Detection / Segmentation | F | 03 | benchmark | PLANNED |
 | REQ-105 | Stick Axis Estimation | F | 03 | benchmark | PLANNED |

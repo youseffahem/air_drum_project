@@ -1,0 +1,41 @@
+# Space Drums — camera profile FRAGMENT for HW-01's integrated webcam (Phase 02, Task 02.10).
+#
+# A fragment carries `meta` plus the blocks it owns (`camera_profile`, `roi`); the loader
+# (spacedrums.config) merges it onto a base document (configs/example.candidate.yaml) to form the
+# resolved config that every run validates, hashes and snapshots (ADR-0010).
+#
+# STATUS: candidate. Values marked `# candidate` are choices, not results. Values marked
+# `# MEASURED` cite the run_id that produced them (docs/camera-profile-hw01-integrated-webcam.md).
+# `native_fps_measured` / `grab_return_bias_s` can only hold a number together with a run_id
+# (schema-enforced, integrity I-5).
+
+meta:
+  schema_version: "1.1"        # config schema 1.1 (ADR-0013): pixel_format, grab_return_bias_s
+  created: "2026-09-21"
+  phase: "02"
+  description: "HW-01 integrated webcam (USB 0C45:6717, Microsoft UVC driver 10.0.22621.3672). Baseline mode candidate for Phase 03; see docs/camera-profile-hw01-integrated-webcam.md."
+  supersedes: null
+  status: candidate
+
+camera_profile:
+  profile_id: hw01-integrated-webcam-v0
+  device:
+    index: 0                   # inspected: the only camera index that opens (scripts/enumerate_cameras.py)
+    name: "Integrated Webcam"  # inspected (Windows PnP)
+    backend: DSHOW             # candidate, chosen from the Phase 02 backend comparison (camera profile section 4)
+  resolution_px: [640, 480]    # candidate baseline (the only resolution both backends deliver at ~30 FPS uncompressed)
+  requested_fps: 30            # REQUESTED mode (Q23 baseline). Delivered FPS lives in native_fps_measured only.
+  pixel_format: null           # backend default (YUY2 on DSHOW at 640x480); MJPG is not honoured by DSHOW on HW-01
+  exposure:
+    mode: MANUAL               # candidate: auto-exposure caps the sensor at ~10 FPS in dim light (camera profile section 5)
+    value: -6                  # candidate: DirectShow log2 scale, 2^-6 s = 15.6 ms; per-lighting values in the profile
+  timestamp_source: GRAB_RETURN  # DSHOW exposes no driver timestamp; stamp taken after the blocking retrieve()
+  grab_return_bias_s: null     # MUST stay null until Task 02.8 measures it (then {value_s, run_id, method})
+  native_fps_measured: null    # MUST stay null until a Task 02.4 run is cited (then {value_fps, run_id, method})
+  queue:
+    max_frames: 2              # candidate (Task 02.3: 1-2 frames)
+    drop_policy: DROP_OLDEST
+    stall_factor: 2.0          # candidate
+
+roi:
+  px: [40, 20, 560, 440]       # candidate: 640x480 frame minus a 40/20 px margin; Task 02.7 + Phase 03 Task 03.11 decide

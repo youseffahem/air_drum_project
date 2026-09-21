@@ -1,5 +1,5 @@
 # spacedrums.timing
 
-**Status:** PLANNED — package added by Phase 01 (ADR-0004, ADR-0012); no code yet. Layer L0: imports only `contracts`.
+**Status:** clock IMPLEMENTED (Phase 02; tests in `tests/timing/`). `TimingRecord` collector: Phase 05. Layer L0: imports only `contracts`.
 
-Will hold: the single clock accessor `now() -> float` (seconds on `t_mono`; concrete function identified by `clock_id`), and the `TimingRecord` collector (docs/architecture/architecture.md section 5). No other module may call `time.*` for timestamps. First code: Phase 02 (clock); full records: Phase 05.
+`now()` is the single `t_mono` accessor (ADR-0004); `CLOCK_ID = "perf_counter"` — confirmed on HW-01 as `QueryPerformanceCounter()` (resolution 1e-7 s, monotonic, not adjustable; ADR-0013). `thread_cpu_seconds()`, `process_cpu_seconds()`, `sleep_s()` and the wall-clock helpers for provenance fields live here so that `time`/`datetime` are imported in exactly one module; `tests/timing/test_clock.py` fails if any other module calls them.

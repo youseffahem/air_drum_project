@@ -1,16 +1,40 @@
-# Space Drums — tool configuration only (Phase 01).
+# Space Drums — package metadata and tool configuration.
 #
-# Deliberately NO [project] table and NO build backend yet: src/spacedrums/ contains no
-# code in Phase 01 (docs/repo-layout.md section 4). Package metadata and the build backend
-# arrive with the first module implementation (Phase 02) and are recorded there.
-# Dependencies live in requirements.in / requirements.lock (docs/environment.md).
+# Phase 01 kept this file to tool configuration only. Phase 02 adds the [project] table and the
+# build backend together with the first module code (docs/repo-layout.md section 4). Runtime
+# dependencies are pinned in requirements.lock (docs/environment.md); the list below is the loose
+# intent for the package itself and mirrors requirements.in.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spacedrums"
+version = "0.2.0"
+description = "Space Drums: causal temporal strike anticipation for webcam air drumming (graduation project)"
+readme = "src/spacedrums/README.md"
+requires-python = ">=3.11,<3.12"
+license = { text = "Proprietary - graduation project; see repository" }
+dependencies = [
+    "numpy>=1.26,<3",
+    "opencv-python>=4.9",
+    "PyYAML>=6.0",
+    "jsonschema>=4.21",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["spacedrums*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
-# tests/contracts/ imports its own conftest helpers; rootdir-relative import mode keeps
-# test modules importable without installing anything.
-pythonpath = ["tests/contracts"]
+markers = [
+    "hardware: needs the development webcam (skipped unless SPACEDRUMS_HW_TESTS=1)",
+]
+# src/ so tests run without installing; tests/contracts keeps its conftest helpers importable.
+pythonpath = ["src", "tests/contracts"]
 
 [tool.ruff]
 line-length = 110

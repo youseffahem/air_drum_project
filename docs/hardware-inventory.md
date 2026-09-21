@@ -16,7 +16,7 @@ Every MEASURED value anywhere in the project cites a descriptor id from this fil
 | OS build | Windows 11 Pro, version 10.0.22621 (build 22621) | 2026-09-20 | `Win32_OperatingSystem` |
 | GPU(s) (record only; project is CPU-first, GPU not used) | Intel HD Graphics 630 (iGPU); NVIDIA Quadro M620 (dGPU); SuperDisplay Virtual Adapter (virtual) | 2026-09-20 | `Win32_VideoController` |
 | Python used for HW-01 runs | CPython 3.11.9 in `.venv` (see `environment.md`) | 2026-09-20 | `env_smoke.py` |
-| Power profile during benchmarks | **To be recorded per run** (plugged-in vs battery, Windows power mode) — affects clocks | — | — |
+| Power profile during benchmarks | **Recorded per run** in `run.json` → `hardware.power_online` / `hardware.power_scheme` (Phase 02 runs: plugged in, scheme *Balanced*) | 2026-09-21 | `scripts/_runlog.py` |
 | Thermal note | Laptop; sustained CPU load may throttle. Phase 16 must record run duration and check for throttling. | — | — |
 
 ## Integrated webcam (belongs to HW-01)
@@ -25,10 +25,10 @@ Every MEASURED value anywhere in the project cites a descriptor id from this fil
 |---|---|---|---|
 | Device name | "Integrated Webcam" | 2026-09-20 | `Get-PnpDevice` (class Camera) |
 | USB VID:PID | `0C45:6717` (Sonix/Microdia controller, common in Dell integrated cameras) | 2026-09-20 | PnP instance id |
-| Driver / version | **not yet inspected** — record from Device Manager before Phase 02 | — | — |
-| Advertised resolutions / FPS modes | **not yet inspected** — Phase 02 enumerates modes via the capture backend and records them as *advertised by driver*; measured FPS is separate | — | — |
-| Physical placement | Bezel above display; height/angle depend on laptop position → Phase 02 camera profile records placement | — | — |
-| Expectation (not a measurement) | Typical Dell integrated cameras of this generation advertise 720p @ 30 FPS. **60 FPS native is unlikely from this device**; the Q23 60-FPS target probably needs an external camera. To be confirmed by Phase 02 measurement. | — | — |
+| Driver / version | Microsoft inbox USB Video Class driver, version 10.0.22621.3672 (driver date reported as 2006-06-21, the generic inbox date); provider Microsoft; instance `USB\VID_0C45&PID_6717&MI_00&276D6A5F&0&0000` | 2026-09-21 | `Get-PnpDeviceProperty` (DEVPKEY_Device_DriverVersion / DriverDate / DriverProvider) |
+| Advertised resolutions / FPS modes | *Inspected via OpenCV 5.0 (MSMF, DSHOW), run `20260921-0300-p02-enumerate-cameras`:* negotiated sizes 640×480, 848×480, 960×540, 1280×720 (a 1920×1080 request falls back to 1280×720); the driver's `CAP_PROP_FPS` claims 30 (MSMF always) or echoes the request (DSHOW: 30 / 60); DSHOW negotiates only uncompressed YUY2 (a MJPG request is ignored), MSMF reports subtype index 22 and decodes internally. **Advertised, not measured** — the delivered rates are in `camera-profile-hw01-integrated-webcam.md` §3 (no mode delivers 60 FPS; 1280×720 delivers ~10 FPS on DSHOW and ~29 FPS on MSMF). | 2026-09-21 | `scripts/enumerate_cameras.py` |
+| Physical placement | Bezel above the display; during the Phase 02 runs the laptop stood on a desk with the lid at its usual working angle — lens height above the floor and tilt were **not measured** (no person in the room to hold a tape measure); recorded as PENDING in the camera profile §7, to be filled with the distance benchmark | 2026-09-21 | camera profile §7 |
+| Expectation (not a measurement) | ~~Typical Dell integrated cameras of this generation advertise 720p @ 30 FPS. 60 FPS native is unlikely from this device.~~ **Confirmed by Phase 02 measurement (2026-09-21, runs `p02-fps-*`):** no mode delivers 60 FPS on HW-01; the Q23 60-FPS target needs an external camera (HW-02, not inventoried). | 2026-09-21 | camera profile §3 |
 
 ## Audio (belongs to HW-01)
 

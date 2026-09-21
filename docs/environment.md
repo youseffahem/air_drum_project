@@ -35,6 +35,7 @@ Versions are what `pip` resolved on **2026-09-20** into a clean `venv` from `req
 | JSON schemas | `jsonschema` | 4.26.0 | MIT | yes | Used for `schemas/experiment-log.schema.json`. | 00 (this phase) |
 | Tests | `pytest` | 9.1.1 | MIT | yes | — | all |
 | Lint / format | `ruff` | 0.16.8 | MIT | yes | dev-only | all |
+| Import-layer linting *(added Phase 02)* | `import-linter` (`lint-imports`) | 2.15 (+ `grimp` 3.17, `click`, `rich`, `markdown-it-py`, `mdurl`) | BSD-2-Clause | yes | dev-only; runs the `.importlinter` contract in `tests/architecture/` (architecture.md section 2.4; Phase 01 follow-up F-3) | 02+ |
 
 Not yet chosen (deliberately): plotting library for thesis figures (Phase 21 may pick `matplotlib`); UI toolkit beyond OpenCV windows (`Pending Architecture Decision`, Phase 15); experiment tracker beyond file manifests (`Pending Architecture Decision`, see `reproducibility-policy.md` §7).
 
@@ -54,8 +55,10 @@ Not yet chosen (deliberately): plotting library for thesis figures (Phase 21 may
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r requirements.lock
+.\.venv\Scripts\python.exe -m pip install -e . --no-deps   # (Phase 02) the spacedrums package itself, editable
 # 3. Verify:
 .\.venv\Scripts\python.exe scripts\env_smoke.py     # must print RESULT: PASS
+.\.venv\Scripts\python.exe -m pytest                 # (Phase 02) all suites must pass
 ```
 
 Linux/macOS: same steps with `python3.11 -m venv .venv` and `.venv/bin/python`. **Not verified** — see §8.
@@ -75,6 +78,7 @@ Rule: experiment-log records carry `environment.lock_hash`; two runs are only co
 | Date | Machine | Python | Lock SHA-256 | Smoke result | Verified by |
 |---|---|---|---|---|---|
 | 2026-09-20 | HW-01 (dev laptop, see `hardware-inventory.md`) | 3.11.9 | `f92a60c6dfcf036ddf2e28efcc2dd0aa68f8f57f1c9d95e82f87c1fe6aae86a8` | PASS (13/13 imports; schema accept + reject) | Claude (assistant), clean `venv` on the dev machine |
+| 2026-09-21 | HW-01 | 3.11.9 | `1d6191320186c79f6221fb1238b1840f3dfb22f3a791ef5d9b579259e01c1eaa` | PASS (`env_smoke.py`; `pytest` all suites) | Claude (assistant), Phase 02: lock regenerated after `pip install import-linter` into the **existing** venv + `pip freeze --exclude-editable` (not from a deleted/recreated venv — §5 step 2 was not repeated; every previously pinned version is byte-identical, only the six import-linter packages were added). A clean regeneration remains part of the pending clean-machine row. |
 | *pending* | second machine or clean VM | — | — | — | **Checklist item, not assumed** — required before any VALIDATED status (Acceptance Criterion 2 is met on the dev machine only). |
 
 Note on the first verification: the venv was created fresh, but the *machine* was not clean (other Python versions and tools are installed). A true clean-machine verification is the pending row above.

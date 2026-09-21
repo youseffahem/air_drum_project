@@ -18,5 +18,6 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0010](ADR-0010-configuration-schema.md) | Configuration: one schema-validated resolved document; candidate vs frozen files | Accepted | 2026-09-20 | 01 |
 | [ADR-0011](ADR-0011-zone-registry-extensibility.md) | Zone-registry extensibility: open trigger-type enum, generic geometry, hand-agnostic zones | Accepted | 2026-09-20 | 01 |
 | [ADR-0012](ADR-0012-record-contracts-json-schema.md) | Record contracts as versioned JSON Schemas; type-only packages added to the layout | Accepted | 2026-09-20 | 01 |
+| [ADR-0013](ADR-0013-capture-backend-timestamp-policy.md) | Capture backend, timestamp policy, duplicate refusal, config schema 1.1 (HW-01 measurements) | Accepted (backend choice = candidate until Phase 03) | 2026-09-21 | 02 |
 
-Next free number: **ADR-0013**.
+Next free number: **ADR-0014**.

@@ -1,0 +1,55 @@
+# Space Drums allowed-dependency layers (docs/architecture/architecture.md section 2.2 / 2.4).
+# Enforced by import-linter (`lint-imports`) in tests/architecture/test_import_layers.py from
+# Phase 02 on; a violation fails the gate (integrity item I-2). Layers in parentheses are
+# optional: the package does not exist yet and the contract needs no edit when its phase adds it.
+# The forbidden-import contracts for not-yet-existing packages (prediction -> geometry,
+# commit -> perception) are added by the phase that creates the source package (05), because
+# import-linter cannot reference a module that does not exist.
+
+[importlinter]
+root_package = spacedrums
+
+[importlinter:contract:layers]
+name = Space Drums pipeline layers
+type = layers
+layers =
+    (spacedrums.app)
+    spacedrums.ui | (spacedrums.eval) | (spacedrums.data) | (spacedrums.calib)
+    (spacedrums.commit) | (spacedrums.audio)
+    (spacedrums.prediction)
+    (spacedrums.features) | (spacedrums.geometry)
+    (spacedrums.tracking)
+    (spacedrums.stick)
+    (spacedrums.hands)
+    spacedrums.capture
+    spacedrums.timing | spacedrums.config
+    spacedrums.contracts
+
+[importlinter:contract:contracts-is-leaf]
+name = contracts imports nothing else in spacedrums
+type = forbidden
+source_modules =
+    spacedrums.contracts
+forbidden_modules =
+    spacedrums.timing
+    spacedrums.config
+    spacedrums.capture
+    spacedrums.ui
+
+[importlinter:contract:l0-imports-only-contracts]
+name = timing and config import only contracts
+type = forbidden
+source_modules =
+    spacedrums.timing
+    spacedrums.config
+forbidden_modules =
+    spacedrums.capture
+    spacedrums.ui
+
+[importlinter:contract:capture-knows-nothing-downstream]
+name = capture imports only L0
+type = forbidden
+source_modules =
+    spacedrums.capture
+forbidden_modules =
+    spacedrums.ui

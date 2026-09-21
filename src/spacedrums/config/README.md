@@ -1,5 +1,5 @@
 # spacedrums.config
 
-**Status:** PLANNED — package added by Phase 01 (ADR-0010, ADR-0012); no code yet. Layer L0: imports only `contracts`.
+**Status:** IMPLEMENTED (Phase 02; tests in `tests/config/`). Layer L0: imports only `contracts`.
 
-Will hold: loading of YAML config files, resolution into one document, validation against `configs/schema/config.schema.json` before any computation, cross-field checks listed in the schema descriptions (e.g. `c_min <= c_valid`), canonical-JSON hashing into `config_hash` (docs/reproducibility-policy.md section 3), and writing `config.resolved.yaml`. First code: Phase 02.
+`load_config(*yaml_paths, overrides=None)` deep-merges files in order (fragments such as `configs/camera/<device>.candidate.yaml` onto a base), validates the resolved document against `configs/schema/config.schema.json` (schema 1.1) plus the cross-field checks the schema descriptions promise (`c_min <= c_valid`, ROI inside the resolution, exposure mode/value consistency, measured values only with provenance), and returns `ResolvedConfig(data, config_hash, sources)`. `config_hash` = `sha256:` over canonical JSON (sorted keys, no whitespace, floats via repr, NaN/Inf forbidden — docs/reproducibility-policy.md section 3). `write_resolved` writes the `config.resolved.yaml` snapshot; `validate_blocks` checks a fragment on its own.

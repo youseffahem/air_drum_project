@@ -30,3 +30,4 @@ jsonschema>=4.21
 # --- dev / test ---
 pytest>=8.0
 ruff>=0.4
+import-linter>=2.0     # Phase 02: enforces docs/architecture/architecture.md section 2.2 (.importlinter)

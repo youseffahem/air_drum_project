@@ -1,8 +1,10 @@
 # Repository Layout & Naming Conventions
 
-**Phase:** 00 — Task 00.4 · **Status:** IMPLEMENTED (skeleton directories with README stubs exist; no package code)
+**Phase:** 00 — Task 00.4 · **Status:** IMPLEMENTED (skeleton directories with README stubs; first package code since Phase 02)
 **Depends on:** Task 00.3 ([`environment.md`](environment.md)). Phase 01 may amend this layout by ADR (Phase 00 risk: "over-specifying before contracts exist" — layout is deliberately minimal).
 
+> **Amended by Phase 02 (2026-09-21, [ADR-0013](decisions/ADR-0013-capture-backend-timestamp-policy.md)):** first module code in `src/spacedrums/{contracts,timing,config,capture,ui}/`; `pyproject.toml` gains the `[project]` table + setuptools backend (editable install); `.importlinter` at the root; `configs/camera/` (camera fragments); `docs/protocols/`, `docs/figures/phase-02/`, `docs/camera-profile-<device>.md`; `scripts/_runlog.py` + five measurement scripts; `tests/{timing,config,capture,ui,architecture,scripts}/`; `data/dev-captures/` for developer-only captures (git-ignored). Marked *(P02)* below.
+>
 > **Amended by Phase 01 (2026-09-20, [ADR-0010](decisions/ADR-0010-configuration-schema.md), [ADR-0012](decisions/ADR-0012-record-contracts-json-schema.md)):** added `docs/architecture/`, `src/spacedrums/{contracts,timing,config}/` (type-only layer L0), `src/spacedrums/app/` (composition root, created by Phase 05), `tests/contracts/`, `scripts/validate_contracts.py`, `configs/example.candidate.yaml`, `configs/schema/config.schema.json`, twelve record schemas under `schemas/`, and a tool-configuration-only `pyproject.toml`. Config naming gains the `*.candidate.yaml` development form (§3.1). The amended items are marked *(P01)* below.
 
 ## 1. Top-level layout
@@ -17,6 +19,9 @@ air_drum_project/
 │   ├── ethics/                   # information-sheet.md, consent-form.md, ethics-approval-note.md
 │   ├── gates/                    # gate-procedure.md, gate-record-template.md, phase-XX-gate.md
 │   ├── architecture/             # (P01) architecture.md, contracts.md, causality-tests.md
+│   ├── protocols/                # (P02) lighting-checklist, camera-distance-benchmark, capture-latency-flash-method, exposure-blur-procedure
+│   ├── figures/phase-02/         # (P02) guide screenshot and other evidence images
+│   ├── camera-profile-<device>.md  # (P02) one per camera (hw01-integrated-webcam)
 │   ├── environment.md
 │   ├── repo-layout.md            # this file
 │   ├── reproducibility-policy.md
@@ -24,19 +29,22 @@ air_drum_project/
 │   └── hardware-inventory.md
 ├── schemas/                      # JSON Schemas: experiment log (P00); common + 12 record contracts (P01); later: session metadata, labels
 │   └── examples/                 # SYNTHETIC example records used by schema tests
-├── configs/                      # versioned YAML configs; (P01) example.candidate.yaml
-│   └── schema/                   # (P01) config.schema.json
-├── src/spacedrums/               # the Python package (empty stubs until Phase 02)
+├── configs/                      # versioned YAML configs; (P01) example.candidate.yaml (base document)
+│   ├── schema/                   # (P01) config.schema.json (1.1 since P02)
+│   └── camera/                   # (P02) camera fragments: <device>.candidate.yaml
+├── src/spacedrums/               # the Python package (first code in Phase 02: contracts, timing, config, capture, ui)
 │   ├── contracts/  timing/  config/          # (P01) layer L0: records, interfaces, clock, config loader
 │   ├── capture/  hands/  stick/  tracking/  features/  geometry/
 │   ├── prediction/  commit/  audio/  ui/  eval/  data/  calib/
 │   └── app/                                  # (P01, created in P05) composition root
 ├── tests/                        # pytest suites, mirrored by subpackage from Phase 02 on
-│   └── contracts/                # (P01) TEST-SCHEMA-1
-├── scripts/                      # one-off tools: env_smoke.py (P00), validate_contracts.py (P01)
+│   ├── contracts/                # (P01) TEST-SCHEMA-1 (+ P02 record classes)
+│   └── timing/ config/ capture/ ui/ architecture/ scripts/   # (P02)
+├── scripts/                      # one-off tools: env_smoke.py (P00), validate_contracts.py (P01), (P02) _runlog.py + measurement scripts
 ├── experiments/                  # run directories (git-ignored except README.md)
-├── data/                         # datasets & recordings (git-ignored except README.md; manifest-tracked)
-├── pyproject.toml                # (P01) tool configuration only (pytest, ruff); [project] arrives with Phase 02 code
+├── data/                         # datasets & recordings (git-ignored except README.md; manifest-tracked); (P02) dev-captures/ for developer-only captures
+├── pyproject.toml                # (P01) tool configuration; (P02) [project] table + setuptools backend
+├── .importlinter                 # (P02) allowed-dependency layers contract (architecture.md section 2.4)
 ├── requirements.in / requirements.lock
 ├── .gitignore
 └── .venv/                        # local virtual environment (git-ignored)
@@ -77,6 +85,7 @@ The **canonical timing/event/metric definitions live in `phases/README.md` §5�
 - `v<N>`: integer version, bumped on **any** change to values or keys. Old versions are never edited; they stay for reproducibility.
 - Examples: `configs/zones.mvp4.v1.yaml`, `configs/capture.laptopcam.v2.yaml`, `configs/commit.default.v1.yaml`.
 - Every config file carries a `meta:` block: `schema_version`, `created`, `phase`, `description`, `supersedes` (previous file or `null`), and *(P01)* `status: frozen | candidate`.
+- *(P02, ADR-0013)* A config file may be a **fragment** carrying `meta` plus the blocks it owns (e.g. `configs/camera/<device>.candidate.yaml` with `camera_profile` + `roi`); the loader merges fragments onto a base document in order and validates the resolved whole.
 - *(P01, ADR-0010)* Development files may be named `<name>.candidate.yaml` with `meta.status: candidate`; they are never cited by a gate record or a result. Freezing copies them to a versioned name with `meta.status: frozen` and `supersedes` set. `configs/example.candidate.yaml` is the schema example / test fixture only.
 - A run stores its **fully resolved** config (all defaults expanded, all includes merged) as `config.resolved.yaml` in the run directory, and its canonical SHA-256 as `config_hash` (see `reproducibility-policy.md` §3). The resolved document validates against `configs/schema/config.schema.json` *(P01)*.
 
@@ -125,7 +134,7 @@ The **canonical timing/event/metric definitions live in `phases/README.md` §5�
 
 ## 4. What is *not* in the layout yet
 
-- ~~No `pyproject.toml` / package metadata: created in Phase 01 together with the first module contracts (keeping Phase 00 free of code).~~ *(P01)* `pyproject.toml` exists with tool configuration only; the `[project]` table and build backend arrive with the first module code (Phase 02).
+- ~~No `pyproject.toml` / package metadata: created in Phase 01 together with the first module contracts (keeping Phase 00 free of code).~~ *(P01)* tool configuration only. *(P02)* `[project]` table and setuptools backend present; `pip install -e . --no-deps`.
 - No `models/`, `assets/`, `thesis/`, `release/` directories: created by the phases that own them.
 - ~~No `tests/` content: the first tests arrive with Phase 01's contract tests.~~ *(P01)* `tests/contracts/` exists (`TEST-SCHEMA-1`); per-subpackage tests arrive with Phase 02+.
-- No `.importlinter` contract yet: committed with the first module in Phase 02 (`docs/architecture/architecture.md` §2.4).
+- ~~No `.importlinter` contract yet: committed with the first module in Phase 02 (`docs/architecture/architecture.md` §2.4).~~ *(P02)* present; layers of packages that do not exist yet are marked optional in the contract.
