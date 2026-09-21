@@ -61,4 +61,4 @@ If a participant withdraws, **all** files of that participant are deleted by the
 | `q_seg`, `q_sess` values | To Be Experimentally Determined (pilot distribution) |
 | FPS tolerances, drop / stall limits | candidates; pilot decides |
 | Sync residual tolerance | Pending Benchmark (pilot, Task 06.6) |
-| Policy applied to a real session | PENDING — applied so far to SYNTHETIC sessions (`tests/data/test_validation.py`, run `20260921-2351-p06-record-synthetic`) and to the DEV CAPTURE ingest session (`20260921-2352-p06-record-devcapture`: 9/20 core takes excluded by `LOW_TRACKING_VALIDITY` because the developer capture has one hand swinging, which is expected and not a protocol session) |
+| Policy applied to a real session | PENDING — applied so far to SYNTHETIC sessions (`tests/data/test_validation.py`, run `20260922-0040-p06-record-synthetic`) and to the DEV CAPTURE ingest session (`20260922-0041-p06-record-devcapture`: 9/20 core takes excluded by `LOW_TRACKING_VALIDITY` because the developer capture has one hand swinging, which is expected and not a protocol session) |
