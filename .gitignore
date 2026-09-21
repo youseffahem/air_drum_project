@@ -30,3 +30,8 @@ Thumbs.db
 .idea/
 .vscode/
 .kilocode/
+
+# --- Model assets (Phase 03 gate C-03-5: MANIFEST-ONLY) ---
+# The pinned MediaPipe task file is re-fetched by scripts/fetch_hand_landmarker_model.py; only the
+# manifest (asset id, versioned URL, SHA-256) is tracked. assets/samples/ (Phase 04) decides separately.
+assets/models/*.task

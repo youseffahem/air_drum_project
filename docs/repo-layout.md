@@ -3,6 +3,8 @@
 **Phase:** 00 — Task 00.4 · **Status:** IMPLEMENTED (skeleton directories with README stubs; first package code since Phase 02)
 **Depends on:** Task 00.3 ([`environment.md`](environment.md)). Phase 01 may amend this layout by ADR (Phase 00 risk: "over-specifying before contracts exist" — layout is deliberately minimal).
 
+> **Amended by Phase 03 (2026-09-21, [ADR-0014](decisions/ADR-0014-hand-landmarker-wrapper.md), [ADR-0015](decisions/ADR-0015-primary-tip-method.md), [ADR-0016](decisions/ADR-0016-filter-choice.md)):** module code in `src/spacedrums/{hands,stick,tracking}/` and `ui/overlay.py`; `tools/annotate_tip.py` (the phase document's annotation tool; `tools/` created); `scripts/benchmark_tip_methods.py`, `scripts/measure_stage_latency.py`; `tests/{hands,stick,tracking}/`; `data/dev-annotations/` (git-ignored, developer annotations); `docs/decisions/ADR-0015…0017`; first `hands` code in `src/spacedrums/hands/`; `assets/models/` (pinned MediaPipe task file + `manifest.json` with SHA-256, fetched once by `scripts/fetch_hand_landmarker_model.py`); `scripts/_devcapture.py` (dev-capture replay reader, script helper) + `scripts/hands_landmark_check.py`; `tests/hands/`; `docs/reports/` (task evidence notes and, later, the phase benchmark reports). Config schema 1.2. Marked *(P03)* below.
+>
 > **Amended by Phase 02 (2026-09-21, [ADR-0013](decisions/ADR-0013-capture-backend-timestamp-policy.md)):** first module code in `src/spacedrums/{contracts,timing,config,capture,ui}/`; `pyproject.toml` gains the `[project]` table + setuptools backend (editable install); `.importlinter` at the root; `configs/camera/` (camera fragments); `docs/protocols/`, `docs/figures/phase-02/`, `docs/camera-profile-<device>.md`; `scripts/_runlog.py` + five measurement scripts; `tests/{timing,config,capture,ui,architecture,scripts}/`; `data/dev-captures/` for developer-only captures (git-ignored). Marked *(P02)* below.
 >
 > **Amended by Phase 01 (2026-09-20, [ADR-0010](decisions/ADR-0010-configuration-schema.md), [ADR-0012](decisions/ADR-0012-record-contracts-json-schema.md)):** added `docs/architecture/`, `src/spacedrums/{contracts,timing,config}/` (type-only layer L0), `src/spacedrums/app/` (composition root, created by Phase 05), `tests/contracts/`, `scripts/validate_contracts.py`, `configs/example.candidate.yaml`, `configs/schema/config.schema.json`, twelve record schemas under `schemas/`, and a tool-configuration-only `pyproject.toml`. Config naming gains the `*.candidate.yaml` development form (§3.1). The amended items are marked *(P01)* below.
@@ -34,13 +36,15 @@ air_drum_project/
 │   └── camera/                   # (P02) camera fragments: <device>.candidate.yaml
 ├── src/spacedrums/               # the Python package (first code in Phase 02: contracts, timing, config, capture, ui)
 │   ├── contracts/  timing/  config/          # (P01) layer L0: records, interfaces, clock, config loader
-│   ├── capture/  hands/  stick/  tracking/  features/  geometry/
+│   ├── capture/  hands/ (P03: first code)  stick/  tracking/  features/  geometry/
 │   ├── prediction/  commit/  audio/  ui/  eval/  data/  calib/
 │   └── app/                                  # (P01, created in P05) composition root
 ├── tests/                        # pytest suites, mirrored by subpackage from Phase 02 on
 │   ├── contracts/                # (P01) TEST-SCHEMA-1 (+ P02 record classes)
 │   └── timing/ config/ capture/ ui/ architecture/ scripts/   # (P02)
-├── scripts/                      # one-off tools: env_smoke.py (P00), validate_contracts.py (P01), (P02) _runlog.py + measurement scripts
+├── scripts/                      # one-off tools: env_smoke.py (P00), validate_contracts.py (P01), (P02) _runlog.py + measurement scripts, (P03) benchmark/latency scripts
+├── tools/                        # (P03) interactive developer tools: annotate_tip.py (manual tip reference for Task 03.10)
+├── assets/                       # (P03) models/ (pinned MediaPipe task file + manifest); (P04) samples/
 ├── experiments/                  # run directories (git-ignored except README.md)
 ├── data/                         # datasets & recordings (git-ignored except README.md; manifest-tracked); (P02) dev-captures/ for developer-only captures
 ├── pyproject.toml                # (P01) tool configuration; (P02) [project] table + setuptools backend
@@ -50,7 +54,7 @@ air_drum_project/
 └── .venv/                        # local virtual environment (git-ignored)
 ```
 
-Later phases add, without changing the above: `models/` (exported model artefacts + manifest, Phase 10/13), `assets/` (drum samples, MediaPipe task files, licences — Phase 04/03), `thesis/` (Phase 21), `release/` (Phase 23). Each addition is announced in the phase document's *Artifacts Produced* section.
+Later phases add, without changing the above: `models/` (exported model artefacts + manifest, Phase 10/13), `assets/` (drum samples, MediaPipe task files, licences — Phase 04/03; *(P03)* `assets/models/{hand_landmarker.task, manifest.json}` exists, ADR-0014), `thesis/` (Phase 21), `release/` (Phase 23). Each addition is announced in the phase document's *Artifacts Produced* section.
 
 ## 2. Package → pipeline stage mapping
 
@@ -60,7 +64,7 @@ Later phases add, without changing the above: `models/` (exported model artefact
 | `timing/` *(P01)* | Single `t_mono` clock accessor, `TimingRecord` collector (ADR-0004) | 01 (spec), 02, 05 |
 | `config/` *(P01)* | Schema-validated config loading, resolution, `config_hash` (ADR-0010) | 01 (schema), 02 (loader) |
 | `capture/` | Webcam, fixed playing ROI, timestamp mapping to `t_mono` | 02 |
-| `hands/` | Hand detection / landmarks, handedness | 03 |
+| `hands/` | Hand detection / landmarks, handedness *(P03 Task 03.1: estimator wrapper, coordinate boundary, model-asset check)* | 03 |
 | `stick/` | Stick detection/segmentation, axis estimation, `TipEstimator` (`GEOM`, `AXIS_REFINED`, `MARKER`) | 03 |
 | `tracking/` | Causal per-hand temporal tracker, README §8 state machine | 03 |
 | `features/` | Causal kinematic feature schema (offline = online code path) | 08 (13 parity) |

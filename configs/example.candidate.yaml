@@ -9,7 +9,7 @@
 # Frame-period arithmetic used for candidates: 1/30 s ≈ 0.0333 s (arithmetic, not a measurement).
 
 meta:
-  schema_version: "1.0"
+  schema_version: "1.2"         # 1.2 (Phase 03, ADR-0014): adds the optional `hands` block below
   created: "2026-09-20"
   phase: "01"
   description: "Schema example only. All values are placeholders/candidates; not a runnable profile."
@@ -36,6 +36,75 @@ camera_profile:
 
 roi:
   px: [160, 40, 960, 640]       # candidate; Phase 02 distance benchmark decides
+
+hands:                          # (schema 1.2, Phase 03 Task 03.1, ADR-0014) hand-landmark estimator; all candidates
+  detector: mediapipe-hand-landmarker
+  model_asset_id: mediapipe-hand-landmarker-float16-v1   # assets/models/manifest.json (fetch script pins the SHA-256)
+  running_mode: VIDEO           # candidate: VIDEO (estimator carries its hand ROI causally) vs IMAGE (per frame)
+  num_hands: 2                  # candidate; only LEFT/RIGHT are ever emitted
+  min_hand_detection_confidence: 0.5   # candidate (estimator default)
+  min_hand_presence_confidence: 0.5    # candidate (estimator default)
+  min_tracking_confidence: 0.5         # candidate (estimator default; VIDEO mode only)
+  input: ROI                    # the fixed ROI crop is what the estimator sees (Phase 02 ROI policy)
+  swap_handedness: false        # DECIDED 2026-09-21 (owner check, HW-01 image not mirrored): estimator label = anatomical hand
+  identity:                     # (Task 03.2) LEFT/RIGHT identity assignment; all candidates
+    mode: TEMPORAL              # RAW = estimator label only (03.1 baseline); TEMPORAL = label + wrist continuity
+    gate_distance: 0.15         # candidate: ROI-normalized wrist displacement per frame accepted as continuity
+    max_gap_s: 0.25             # candidate: continuity memory (~7 frames at 30 FPS, arithmetic)
+    w_label: 0.5                # candidate: label weight; continuity weight = 1 - w_label
+    ambiguity_margin: 0.15      # candidate: best-vs-second assignment margin below which both hands are AMBIGUOUS
+    ambiguous_score_cap: 0.5    # candidate: must satisfy tracking.c_min (0.3) <= cap < tracking.c_valid (0.6) -> DEGRADED at most
+  grip:                         # (Task 03.3) grip reference point / direction prior; all candidates
+    point_weights: { index_mcp: 0.4, thumb_ip: 0.2, thumb_tip: 0.2, middle_mcp: 0.2 }   # candidate fulcrum estimate
+    direction: KNUCKLE_ROW      # candidate chosen on dev-capture overlays (alternatives: WRIST_TO_GRIP, INDEX_MCP_TO_PIP)
+    min_direction_span: 0.005   # candidate: ROI-normalized; shorter baseline -> no direction prior
+
+stick:                          # (schema 1.2, Phase 03 Tasks 03.4-03.9, ADR-0015) markerless stick pipeline; all candidates
+  method_id: GEOM               # live method; MARKER = fallback/benchmark ONLY (logs a warning; REQ-211)
+  search_region:
+    length_factor: 4.0          # candidate: x hand span forward along the grip direction prior
+    width_factor: 1.2           # candidate: x hand span
+    back_factor: 0.5            # candidate: x hand span behind the grip point
+    min_span_px: 8.0            # candidate
+  segment:
+    blur_ksize: 3               # candidate
+    canny_low: 40.0             # candidate
+    canny_high: 120.0           # candidate
+    close_ksize: 3              # candidate (dev sweep on exp-5: 3 > 1 for axis-found rate)
+    min_component_px: 25        # candidate
+    min_elongation: 2.0         # candidate (dev sweep on exp-5: 2.0 > 3.0)
+    angle_tol_rad: 0.7          # candidate
+    max_components: 4           # candidate
+  axis:
+    method: RANSAC              # candidate (dev sweep on exp-5: RANSAC >= PCA > HOUGH on axis-found rate)
+    grip_tolerance_factor: 0.6  # candidate: x hand span
+    inlier_dist_px: 2.0         # candidate: floor of the inlier band
+    inlier_dist_factor: 0.3     # candidate: x hand span (both stick edges)
+    min_inliers: 20             # candidate
+    ransac_iters: 64            # candidate
+    seed: 0                     # deterministic per call
+    support_gap_factor: 0.5     # candidate: x hand span
+    hough_threshold: 15         # candidate (HOUGH only)
+    hough_min_len_px: 15.0      # candidate (HOUGH only)
+    hough_max_gap_px: 6.0       # candidate (HOUGH only)
+  geom:
+    l_prior: 0.27               # candidate: ROI-HEIGHT units; Phase 02 d100: 120 px / 440 px (protocol table)
+    no_axis_confidence_factor: 0.4   # candidate
+    refine_online: false        # pure per-frame estimator (TipEstimator Protocol); true = causal running L
+    refine_alpha: 0.05          # candidate
+    refine_min_axis_confidence: 0.7  # candidate
+    refine_support_range: [0.6, 1.4]  # candidate
+  axis_refined:
+    max_deviation_factor: 0.35  # candidate: x L
+    min_support_factor: 0.5     # candidate: x L
+    fallback_confidence_factor: 0.6  # candidate
+  marker:                       # FALLBACK / BENCHMARK ONLY; placeholder range for a green band, NOT calibrated
+    hsv_low: [35, 80, 80]
+    hsv_high: [85, 255, 255]
+    min_area_px: 12
+    search: SEARCH_REGION
+    axis_consistency_px: 12.0
+    reference_area_px: 120
 
 zones:                          # MVP set per ADR-0003; positions are candidates (Phase 04/05/14)
   - zone_id: hihat
@@ -82,8 +151,16 @@ tracking:
   age_max_s: 0.5                # candidate (README §8 age_max)
   history_n: 16                 # candidate (README §14 history window N; TEST-CAUSAL-2 window)
   filter:
-    type: example-filter        # Pending Benchmark (Phase 03): filter family not chosen here
-    params: {}
+    type: kalman_cv             # candidate (Task 03.12 synthetic benchmark, ADR-0016); alpha_beta | kalman_cv | kalman_ca
+    params:                     # all candidates; validated by spacedrums.tracking.filter
+      q: 5.0                    # process noise intensity
+      r_base: 0.0001            # measurement variance at confidence 1 (scaled by 1 / confidence)
+      c_floor: 0.2              # confidence floor for the noise scaling
+      bridge_decay: 0.7         # DEGRADED bridge confidence multiplier per predicted frame (state machine)
+      acquire_on_degraded: false  # a DEGRADED-level observation does not re-acquire from INVALID/STALE
+      angle_alpha: 0.6          # scalar axis-angle filter
+      angle_beta: 0.3
+      causal_tolerance: 0.000001  # TEST-CAUSAL-2 declared tolerance (ROI-normalized units)
 
 anticipator:
   type: rule

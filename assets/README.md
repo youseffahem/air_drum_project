@@ -1,0 +1,6 @@
+# assets/
+
+Binary assets loaded from disk at runtime (docs/environment.md §7: no network at runtime). Created by Phase 03 (ADR-0014); Phase 04 adds `samples/` (drum samples + licences).
+
+- `models/manifest.json` — every model file with `asset_id`, file name, source URL (versioned, never `latest`), SHA-256, size, licence and the library version that pinned it. **Always tracked.**
+- `models/hand_landmarker.task` — MediaPipe Hand Landmarker (float16, v1, Apache-2.0), 7.8 MB, fetched once by `python scripts/fetch_hand_landmarker_model.py`; `--verify` re-hashes offline. **MANIFEST-ONLY** (owner decision, Phase 03 gate C-03-5): the binary is git-ignored (`assets/models/*.task`); after a fresh checkout run the fetch script once. The loader (`spacedrums.hands.model_asset`) refuses a file whose hash differs from the manifest.

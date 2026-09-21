@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+**PASS-WITH-CONDITIONS** (owner approval 2026-09-21; `docs/gates/phase-03-gate.md` §8: C-03-1/2/3 PENDING, C-03-4 PENDING until clean-tree reruns, C-03-5 closed MANIFEST-ONLY; no participant recordings required). IMPLEMENTED (all 15 tasks have code + tests) with MEASURED development evidence on the Phase 02 developer captures; person-dependent evidence PENDING (tip error vs annotated reference, distance × lighting factorial, deliberate-crossing swap rate); gate record `docs/gates/phase-03-gate.md`. Task history: Task 03.1 IMPLEMENTED (evidence MEASURED on development runs; owner handedness check closed; `docs/reports/phase-03-task-03.1-hand-landmarker.md`, ADR-0014). Task 03.2 IMPLEMENTED (swap-rate machinery MEASURED on existing captures; deliberate-crossing measurement PENDING a developer capture; `docs/reports/phase-03-task-03.2-identity.md`, ADR-0014 §10). Tasks 03.3–03.15 Planned.
 
 ## Purpose
 

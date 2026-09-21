@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://spacedrums.local/schemas/config.schema.json",
   "title": "Space Drums resolved configuration",
-  "description": "Top-level configuration schema (Phase 01, Task 01.7; ADR-0010). Validated at load, before any computation; the resolved document is hashed into config_hash (docs/reproducibility-policy.md section 3). Every numeric value is TUNABLE and is a candidate until a phase freezes it by evidence; nothing in a config is a result. Units: seconds (_s), pixels (_px), ROI-normalized coordinates (ADR-0005), Hz, frames. Version 1.1 (Phase 02, ADR-0013): adds the optional, nullable camera_profile.pixel_format and camera_profile.grab_return_bias_s; 1.0 documents remain valid and are read as pixel_format = null, grab_return_bias_s = null.",
+  "description": "Top-level configuration schema (Phase 01, Task 01.7; ADR-0010). Validated at load, before any computation; the resolved document is hashed into config_hash (docs/reproducibility-policy.md section 3). Every numeric value is TUNABLE and is a candidate until a phase freezes it by evidence; nothing in a config is a result. Units: seconds (_s), pixels (_px), ROI-normalized coordinates (ADR-0005), Hz, frames. Version 1.1 (Phase 02, ADR-0013): adds the optional, nullable camera_profile.pixel_format and camera_profile.grab_return_bias_s; 1.0 documents remain valid and are read as pixel_format = null, grab_return_bias_s = null. Version 1.2 (Phase 03, ADR-0014/ADR-0015): adds the optional top-level hands block (hand-landmark estimator, identity, grip parameters) and the optional top-level stick block (search region, segmentation, axis, tip methods); 1.0/1.1 documents remain valid and have neither block (the hands/stick modules then refuse to start, they never guess defaults).",
   "type": "object",
   "additionalProperties": false,
   "required": ["meta", "camera_profile", "roi", "zones", "tracking", "anticipator", "commit", "audio", "debug"],
@@ -12,7 +12,7 @@
       "additionalProperties": false,
       "required": ["schema_version", "created", "phase", "description", "supersedes", "status"],
       "properties": {
-        "schema_version": { "type": "string", "enum": ["1.0", "1.1"], "description": "1.0 (Phase 01) or 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
+        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s) or 1.2 (Phase 03, ADR-0014: hands block). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
         "created": { "type": "string", "format": "date" },
         "phase": { "type": "string", "pattern": "^[0-2][0-9]$" },
         "description": { "type": "string", "minLength": 1 },
@@ -87,6 +87,152 @@
       "properties": {
         "px": { "$ref": "common.schema.json#/$defs/rect_px", "description": "Fixed playing ROI in full-frame pixels; origin of ROI-normalized coordinates (ADR-0005). Candidate until the Phase 02 distance benchmark." }
       }
+    },
+
+    "hands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detector", "model_asset_id", "running_mode", "num_hands", "min_hand_detection_confidence", "min_hand_presence_confidence", "min_tracking_confidence", "input", "swap_handedness", "identity", "grip"],
+      "properties": {
+        "detector": { "type": "string", "enum": ["mediapipe-hand-landmarker"], "description": "Estimator family (Phase 03, Task 03.1 candidate: MediaPipe Tasks Hand Landmarker). A second family is added here by enum extension + ADR." },
+        "model_asset_id": { "type": "string", "minLength": 1, "description": "Key in assets/models/manifest.json (file + SHA-256; docs/environment.md section 7). Selects the model file; the Tasks API exposes no separate complexity knob, so this IS the model-complexity parameter. The hash is re-verified at load and embedded in HandObservation.detector_id." },
+        "running_mode": { "type": "string", "enum": ["VIDEO", "IMAGE"], "description": "VIDEO: the estimator carries its hand ROI from previous frames (causal; timestamps derived from t_capture). IMAGE: every frame independent. Candidate; decided by Tasks 03.11/03.14." },
+        "num_hands": { "type": "integer", "minimum": 1, "maximum": 4, "description": "Max hands the estimator may return. Only LEFT/RIGHT are ever emitted (contracts.md section 3.2); extra detections are counted, not emitted." },
+        "min_hand_detection_confidence": { "$ref": "common.schema.json#/$defs/confidence", "description": "Palm-detector threshold (tunable candidate)." },
+        "min_hand_presence_confidence": { "$ref": "common.schema.json#/$defs/confidence", "description": "Landmark-model presence threshold (tunable candidate)." },
+        "min_tracking_confidence": { "$ref": "common.schema.json#/$defs/confidence", "description": "VIDEO-mode inter-frame tracking threshold (tunable candidate; ignored in IMAGE mode)." },
+        "input": { "type": "string", "enum": ["ROI", "FULL"], "description": "Pixels handed to the estimator: the fixed ROI crop (Phase 02 ROI policy, default) or the full frame. Either way HandObservation coordinates are ROI-normalized (ADR-0005; spacedrums.hands.coords)." },
+        "swap_handedness": { "type": "boolean", "description": "false: the estimator's Left/Right label is the hand_id. true: swapped. Which one matches the person's anatomical hand on a given camera path (mirrored or not) is a person-dependent check (Task 03.1 evidence note; HW-01 decided false on 2026-09-21: image not mirrored); stable identity over time is Task 03.2 (identity)." },
+        "identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "gate_distance", "max_gap_s", "w_label", "ambiguity_margin", "ambiguous_score_cap"],
+          "properties": {
+            "mode": { "type": "string", "enum": ["RAW", "TEMPORAL"], "description": "RAW: estimator label only (Task 03.1 baseline; same-label collision keeps the higher score). TEMPORAL: label + continuity to the previous wrist position (Task 03.2)." },
+            "gate_distance": { "type": "number", "exclusiveMinimum": 0, "description": "ROI-normalized wrist displacement within which a detection is continuous with a hand's previous wrist (tunable candidate)." },
+            "max_gap_s": { "type": "number", "exclusiveMinimum": 0, "description": "A previous wrist older than this (seconds on t_mono) carries no continuity information; labels alone decide after a longer gap (tunable candidate)." },
+            "w_label": { "$ref": "common.schema.json#/$defs/confidence", "description": "Weight of the estimator label term in the combined identity score; the continuity term weighs 1 - w_label (tunable candidate)." },
+            "ambiguity_margin": { "$ref": "common.schema.json#/$defs/confidence", "description": "If the best assignment beats the second-best by less than this, the frame is AMBIGUOUS: no guess, both hands' handedness_score capped (tunable candidate)." },
+            "ambiguous_score_cap": { "$ref": "common.schema.json#/$defs/confidence", "description": "handedness_score cap applied to every hand in an AMBIGUOUS frame. Loader check: tracking.c_min <= cap < tracking.c_valid, so an ambiguous identity can at most be DEGRADED, never VALID (README section 8, Q33)." }
+          },
+          "description": "(1.2, Phase 03 Task 03.2, ADR-0014 amendment) LEFT/RIGHT identity assignment parameters."
+        },
+        "grip": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["point_weights", "direction", "min_direction_span"],
+          "properties": {
+            "point_weights": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "wrist": { "type": "number", "minimum": 0 },
+                "thumb_ip": { "type": "number", "minimum": 0 },
+                "thumb_tip": { "type": "number", "minimum": 0 },
+                "index_mcp": { "type": "number", "minimum": 0 },
+                "index_pip": { "type": "number", "minimum": 0 },
+                "middle_mcp": { "type": "number", "minimum": 0 }
+              },
+              "description": "Grip point = weighted mean of the named landmarks (MediaPipe ordering; weights normalised to sum 1). Task 03.3 candidate: index_mcp 0.4, thumb_ip 0.2, thumb_tip 0.2, middle_mcp 0.2."
+            },
+            "direction": { "type": "string", "enum": ["KNUCKLE_ROW", "WRIST_TO_GRIP", "INDEX_MCP_TO_PIP"], "description": "Grip direction prior, pointing from the hand towards the stick tip. KNUCKLE_ROW (default candidate, Task 03.3 overlay evidence): pinky MCP -> index MCP, along the knuckle row the stick lies on in a fist. WRIST_TO_GRIP / INDEX_MCP_TO_PIP: the phase document's finger-direction candidates, kept selectable." },
+            "min_direction_span": { "type": "number", "exclusiveMinimum": 0, "description": "ROI-normalized minimum baseline length below which no direction prior is produced (degenerate hand pose)." }
+          },
+          "description": "(1.2, Phase 03 Task 03.3, ADR-0014 amendment) grip reference point / direction prior anchoring the stick search region and the GEOM tip (spacedrums.hands.grip)."
+        }
+      },
+      "description": "(1.2, ADR-0014) Hand-landmark estimator parameters consumed by spacedrums.hands (Phase 03, Task 03.1). Optional at the schema level so 1.0/1.1 documents stay valid; required by the hands module itself."
+    },
+
+    "stick": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method_id", "search_region", "segment", "axis", "geom", "axis_refined", "marker"],
+      "properties": {
+        "method_id": { "$ref": "common.schema.json#/$defs/tip_method", "description": "Tip-estimation method the live pipeline runs (README section 14). GEOM / AXIS_REFINED are markerless; MARKER is the fallback / benchmark condition only: the estimator logs a WARNING and every record/overlay carries the label (REQ-211, integrity I-7)." },
+        "search_region": {
+          "type": "object", "additionalProperties": false,
+          "required": ["length_factor", "width_factor", "back_factor", "min_span_px"],
+          "properties": {
+            "length_factor": { "type": "number", "exclusiveMinimum": 0, "description": "x hand span, forward along the grip direction prior (tunable candidate)." },
+            "width_factor": { "type": "number", "exclusiveMinimum": 0, "description": "x hand span, total width (tunable candidate)." },
+            "back_factor": { "type": "number", "minimum": 0, "description": "x hand span, backwards from the grip point (tunable candidate)." },
+            "min_span_px": { "type": "number", "exclusiveMinimum": 0, "description": "Below this hand span (px) no region is computed." }
+          },
+          "description": "(Task 03.4) hand-anchored rotated search rectangle, scaled by the hand span (spacedrums.stick.search_region)."
+        },
+        "segment": {
+          "type": "object", "additionalProperties": false,
+          "required": ["blur_ksize", "canny_low", "canny_high", "close_ksize", "min_component_px", "min_elongation", "angle_tol_rad", "max_components"],
+          "properties": {
+            "blur_ksize": { "type": "integer", "minimum": 1 },
+            "canny_low": { "type": "number", "exclusiveMinimum": 0 },
+            "canny_high": { "type": "number", "exclusiveMinimum": 0 },
+            "close_ksize": { "type": "integer", "minimum": 1 },
+            "min_component_px": { "type": "integer", "minimum": 1 },
+            "min_elongation": { "type": "number", "minimum": 1 },
+            "angle_tol_rad": { "type": "number", "exclusiveMinimum": 0 },
+            "max_components": { "type": "integer", "minimum": 1 }
+          },
+          "description": "(Task 03.5) classical stick pixel-candidate extraction: Canny edges -> closing -> elongated, orientation-consistent components (spacedrums.stick.segment). All tunable candidates."
+        },
+        "axis": {
+          "type": "object", "additionalProperties": false,
+          "required": ["method", "grip_tolerance_factor", "inlier_dist_px", "inlier_dist_factor", "min_inliers", "ransac_iters", "seed", "support_gap_factor", "hough_threshold", "hough_min_len_px", "hough_max_gap_px"],
+          "properties": {
+            "method": { "type": "string", "enum": ["PCA", "RANSAC", "HOUGH"], "description": "Line-fit candidate (Pending Benchmark -> ADR-0015)." },
+            "grip_tolerance_factor": { "type": "number", "exclusiveMinimum": 0, "description": "x hand span: the fitted line must pass within this distance of the grip point." },
+            "inlier_dist_px": { "type": "number", "exclusiveMinimum": 0, "description": "Inlier band floor (px)." },
+            "inlier_dist_factor": { "type": "number", "minimum": 0, "description": "x hand span: inlier band (covers both stick edges)." },
+            "min_inliers": { "type": "integer", "minimum": 2 },
+            "ransac_iters": { "type": "integer", "minimum": 1 },
+            "seed": { "type": "integer", "minimum": 0, "description": "RANSAC generator seed, re-applied every call (deterministic output)." },
+            "support_gap_factor": { "type": "number", "exclusiveMinimum": 0, "description": "x hand span: a gap along the axis longer than this ends the connected support." },
+            "hough_threshold": { "type": "integer", "minimum": 1 },
+            "hough_min_len_px": { "type": "number", "exclusiveMinimum": 0 },
+            "hough_max_gap_px": { "type": "number", "minimum": 0 }
+          },
+          "description": "(Task 03.6) stick axis fit constrained to the grip (spacedrums.stick.axis). All tunable candidates."
+        },
+        "geom": {
+          "type": "object", "additionalProperties": false,
+          "required": ["l_prior", "no_axis_confidence_factor", "refine_online", "refine_alpha", "refine_min_axis_confidence", "refine_support_range"],
+          "properties": {
+            "l_prior": { "type": "number", "exclusiveMinimum": 0, "description": "Apparent stick length prior in ROI-HEIGHT units (px / roi.h). Initial candidate from the Phase 02 distance benchmark (120 px / 440 px at 1.0 m); per-user calibration is a Phase 14 question." },
+            "no_axis_confidence_factor": { "$ref": "common.schema.json#/$defs/confidence" },
+            "refine_online": { "type": "boolean", "description": "Causal per-hand running estimate of L from the axis support (default false: pure per-frame estimator)." },
+            "refine_alpha": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+            "refine_min_axis_confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+            "refine_support_range": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "minItems": 2, "maxItems": 2 }
+          },
+          "description": "(Task 03.7) GEOM tip = grip + L * axis_dir (spacedrums.stick.tip_geom)."
+        },
+        "axis_refined": {
+          "type": "object", "additionalProperties": false,
+          "required": ["max_deviation_factor", "min_support_factor", "fallback_confidence_factor"],
+          "properties": {
+            "max_deviation_factor": { "type": "number", "exclusiveMinimum": 0, "description": "x L: reject the support endpoint farther than this from the GEOM tip (fall back to GEOM)." },
+            "min_support_factor": { "type": "number", "exclusiveMinimum": 0, "description": "x L: shorter support = truncated stick -> fall back." },
+            "fallback_confidence_factor": { "$ref": "common.schema.json#/$defs/confidence" }
+          },
+          "description": "(Task 03.8) AXIS_REFINED tip gating (spacedrums.stick.tip_axis_refined)."
+        },
+        "marker": {
+          "type": "object", "additionalProperties": false,
+          "required": ["hsv_low", "hsv_high", "min_area_px", "search", "axis_consistency_px", "reference_area_px"],
+          "properties": {
+            "hsv_low": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 }, "minItems": 3, "maxItems": 3 },
+            "hsv_high": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 255 }, "minItems": 3, "maxItems": 3 },
+            "min_area_px": { "type": "integer", "minimum": 1 },
+            "search": { "type": "string", "enum": ["SEARCH_REGION", "ROI"] },
+            "axis_consistency_px": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+            "reference_area_px": { "type": "integer", "minimum": 1 }
+          },
+          "description": "(Task 03.9) MARKER colour range and blob rules. FALLBACK / BENCHMARK CONDITION ONLY (REQ-009, REQ-211); the range must be calibrated per tape and lighting - the example values are placeholders, not a calibration."
+        }
+      },
+      "description": "(1.2, Phase 03 Tasks 03.4-03.9, ADR-0015) markerless stick detection, axis and tip estimation (spacedrums.stick). Optional at the schema level so 1.0/1.1 documents stay valid; required by the stick module."
     },
 
     "zones": {
