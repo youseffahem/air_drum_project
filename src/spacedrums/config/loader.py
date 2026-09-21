@@ -181,6 +181,50 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
             f"hands.identity.ambiguous_score_cap ({cap}) must satisfy tracking.c_min ({tr['c_min']}) <= cap "
             f"< tracking.c_valid ({tr['c_valid']}) so an ambiguous identity is DEGRADED, not VALID"
         )
+    # Phase 04: config is L0 and may not import geometry, so repeat the small declarative
+    # boundary checks here. Geometry performs the authoritative object-level validation again.
+    zones = cfg.get("zones", [])
+    ids = [zone.get("zone_id") for zone in zones]
+    if len(ids) != len(set(ids)):
+        problems.append("zones[].zone_id values must be unique")
+
+    def point_on_segment(point: list[float], a: list[float], b: list[float]) -> bool:
+        cross = (point[0] - a[0]) * (b[1] - a[1]) - (point[1] - a[1]) * (b[0] - a[0])
+        return abs(cross) <= 1e-6 and min(a[0], b[0]) - 1e-6 <= point[0] <= max(a[0], b[0]) + 1e-6 \
+            and min(a[1], b[1]) - 1e-6 <= point[1] <= max(a[1], b[1]) + 1e-6
+
+    def polygon_boundary(point: list[float], points: list[list[float]]) -> bool:
+        return any(point_on_segment(point, a, b)
+                   for a, b in zip(points, points[1:] + points[:1], strict=True))
+
+    for zone in zones:
+        zid = zone.get("zone_id", "?")
+        normal = zone.get("inward_normal", (0.0, 0.0))
+        if abs(math.hypot(*normal) - 1.0) > 1e-3:
+            problems.append(f"zone {zid}: inward_normal must be unit length")
+        shape, surface = zone.get("shape", {}), zone.get("impact_surface", {})
+        boundary_ok = False
+        if shape.get("type") == "ELLIPSE" and surface.get("type") == "ARC":
+            boundary_ok = all(abs(float(shape[key]) - float(surface[key])) <= 1e-9
+                              for key in ("rx", "ry", "angle_rad")) \
+                and all(abs(float(a) - float(b)) <= 1e-9
+                        for a, b in zip(shape["center"], surface["center"], strict=True))
+        elif shape.get("type") == "POLYGON" and surface.get("type") == "SEGMENT":
+            midpoint = [(surface["p0"][i] + surface["p1"][i]) / 2 for i in range(2)]
+            boundary_ok = all(polygon_boundary(p, shape["points"])
+                              for p in (surface["p0"], midpoint, surface["p1"]))
+        if not boundary_ok:
+            problems.append(f"zone {zid}: impact_surface must lie on the shape boundary")
+        allowed = zone.get("allowed_hands", ["LEFT", "RIGHT"])
+        if set(allowed) != {"LEFT", "RIGHT"}:
+            problems.append(f"zone {zid}: V1 zones must remain hand-agnostic without a new ADR")
+
+    for curve in cfg.get("audio", {}).get("gain", {}).get("curves", []):
+        cid = curve.get("gain_curve_id", "?")
+        if curve.get("proxy_max", 0) <= curve.get("proxy_min", 0):
+            problems.append(f"gain curve {cid}: proxy_min must be < proxy_max")
+        if curve.get("gain_max", 0) < curve.get("gain_min", 0):
+            problems.append(f"gain curve {cid}: gain_min must be <= gain_max")
     return problems
 
 

@@ -1,7 +1,9 @@
-# spacedrums.audio
+# Audio
 
-**Status:** PLANNED - empty stub, no code (Phase 00, Task 00.4).
+**Status:** IMPLEMENTED (Phase 04); physical output latency is **PENDING** — no accepted
+post-DAC measurement exists; microphone and Stereo Mix attempts were rejected (see
+`docs/audio-profile-hw01-realtek.md`).
 
-Drum engine, local sample bank, time-targeted scheduling, output-latency measurement. Owner: Phase 04.
-
-See docs/repo-layout.md section 2 for the pipeline-stage mapping. Code may only be added by the owning phase.
+Local WAV sample bank, monotone kinematic-proxy-to-gain mapping, device-clock regression,
+sample-offset callback mixing with polyphony and late-event accounting, and time-targeted
+scheduling against the Phase 01 `AudioEvent` contract.

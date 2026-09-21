@@ -14,6 +14,8 @@ from conftest import is_valid
 
 from spacedrums.contracts import (
     N_HAND_LANDMARKS,
+    AudioEvent,
+    CommittedStrike,
     FrameSample,
     HandId,
     HandObservation,
@@ -21,16 +23,23 @@ from spacedrums.contracts import (
     ImageRef,
     ImageRefKind,
     TimestampSource,
+    TrajectoryAux,
+    TrajectoryPrediction,
 )
 from spacedrums.contracts import schema as contract_schema
 
 
 def _sample(**overrides):
     base = dict(
-        frame_id=7, t_capture=10.0, t_frame_available=10.002, timestamp_source="GRAB_RETURN",
-        frame_size_px=(640, 480), roi_px=(40, 20, 560, 440),
+        frame_id=7,
+        t_capture=10.0,
+        t_frame_available=10.002,
+        timestamp_source="GRAB_RETURN",
+        frame_size_px=(640, 480),
+        roi_px=(40, 20, 560, 440),
         image_ref=ImageRef.memory(np.zeros((480, 640, 3), np.uint8)),
-        camera_profile_id="hw01-integrated-webcam-v0", dropped_since_last=0,
+        camera_profile_id="hw01-integrated-webcam-v0",
+        dropped_since_last=0,
     )
     base.update(overrides)
     return FrameSample(**base)
@@ -102,10 +111,14 @@ def test_frame_sample_is_frozen_and_serialisable():
 
 def _hand(**overrides):
     base = dict(
-        frame_id=120, t_capture=12.345678, hand_id="RIGHT", present=True,
+        frame_id=120,
+        t_capture=12.345678,
+        hand_id="RIGHT",
+        present=True,
         detector_id="test-hand-landmarker",
         landmarks=tuple((0.4 + 0.01 * i, 0.5 + 0.005 * i) for i in range(N_HAND_LANDMARKS)),
-        landmark_visibility=None, handedness_score=0.95,
+        landmark_visibility=None,
+        handedness_score=0.95,
         bbox=(0.38, 0.48, 0.25, 0.2),
     )
     base.update(overrides)
@@ -144,16 +157,16 @@ def test_hand_observation_with_visibility_validates(validator):
 @pytest.mark.parametrize(
     "bad",
     [
-        {"landmarks": None},                                   # present without landmarks
+        {"landmarks": None},  # present without landmarks
         {"bbox": None},
         {"handedness_score": None},
         {"handedness_score": 1.2},
-        {"landmarks": tuple((0.1, 0.2) for _ in range(20))},   # 20 points
+        {"landmarks": tuple((0.1, 0.2) for _ in range(20))},  # 20 points
         {"landmarks": tuple((0.1, 0.2, 0.3) for _ in range(21))},  # 3-component points
         {"landmark_visibility": tuple([0.5] * 20)},
         {"landmark_visibility": tuple([1.5] * 21)},
         {"bbox": (0.1, 0.2, 0.3)},
-        {"hand_id": "LEFT_FOOT"},                              # OOS-REF:REQ-207 reserved, not a member
+        {"hand_id": "LEFT_FOOT"},  # OOS-REF:REQ-207 reserved, not a member
         {"frame_id": -1},
         {"detector_id": ""},
     ],
@@ -167,9 +180,17 @@ def test_hand_observation_absent_must_be_all_null():
     with pytest.raises(ValueError):
         _hand(present=False)  # landmarks etc. still set
     with pytest.raises(ValueError):
-        HandObservation(frame_id=1, t_capture=0.0, hand_id="LEFT", present=False, detector_id="d",
-                        landmarks=None, landmark_visibility=tuple([0.5] * 21), handedness_score=None,
-                        bbox=None)
+        HandObservation(
+            frame_id=1,
+            t_capture=0.0,
+            hand_id="LEFT",
+            present=False,
+            detector_id="d",
+            landmarks=None,
+            landmark_visibility=tuple([0.5] * 21),
+            handedness_score=None,
+            bbox=None,
+        )
 
 
 def test_hand_observation_is_frozen_and_serialisable():
@@ -179,3 +200,38 @@ def test_hand_observation_is_frozen_and_serialisable():
     d = h.to_dict()
     assert all(not isinstance(v, np.ndarray) for v in d.values())
     assert isinstance(h.landmarks, tuple) and isinstance(h.landmarks[0], tuple)
+
+
+def test_phase04_record_classes_match_phase01_examples(example, validator):
+    trajectory = TrajectoryPrediction.from_dict(example("trajectory-prediction"))
+    assert trajectory.to_dict() == example("trajectory-prediction")
+    assert is_valid(validator("trajectory-prediction"), trajectory.to_dict())
+    commit_data = example("committed-strike")
+    commit = CommittedStrike(**{k: v for k, v in commit_data.items() if k != "schema_version"})
+    assert commit.to_dict() == commit_data
+    audio_data = example("audio-event")
+    audio = AudioEvent(**{k: v for k, v in audio_data.items() if k != "schema_version"})
+    assert audio.to_dict() == audio_data
+    assert is_valid(validator("audio-event"), audio.to_dict())
+
+
+def test_trajectory_sparse_offsets_are_strict_and_lengths_match():
+    base = dict(
+        frame_id=1,
+        t_capture=0.0,
+        hand_id="LEFT",
+        anticipator_id="a",
+        model_hash=None,
+        K=2,
+        dt_step=0.1,
+        positions=((0.1, 0.2), (0.2, 0.3)),
+        velocities=None,
+        uncertainty=None,
+        uncertainty_kind=None,
+        aux=TrajectoryAux(),
+        t_inference_done=0.01,
+    )
+    valid = TrajectoryPrediction(**base, t_offsets_s=(0.04, 0.2))
+    assert valid.sample_times() == pytest.approx((0.04, 0.2))
+    with pytest.raises(ValueError):
+        TrajectoryPrediction(**base, t_offsets_s=(0.2, 0.1))

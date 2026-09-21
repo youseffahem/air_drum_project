@@ -185,6 +185,7 @@ class RunLog:
         seed: int = 0,
         experiments_dir: Path | None = None,
         camera_model: str = "Integrated Webcam (USB 0C45:6717)",
+        audio_device: str = "n/a (Phase 04)",
     ) -> None:
         if not _SLUG_RE.match(slug) or len(slug) > 40:
             raise ValueError(f"slug {slug!r} must match {_SLUG_RE.pattern} and be <= 40 chars")
@@ -194,6 +195,7 @@ class RunLog:
         self.config = config
         self.hardware_id, self.arm, self.seed = hardware_id, arm, seed
         self.camera_model = camera_model
+        self.audio_device = audio_device
         self.artefacts: list[dict[str, Any]] = []
         self.record: dict[str, Any] = {}
         self._log_fh: TextIO | None = None
@@ -222,7 +224,8 @@ class RunLog:
             "git_sha": git_sha(),
             "git_dirty": git_dirty(),
             "hardware_id": self.hardware_id,
-            "hardware": hardware_snapshot(camera_model=self.camera_model),
+            "hardware": hardware_snapshot(camera_model=self.camera_model,
+                                          audio_device=self.audio_device),
             "environment": environment_block(),
             "seed": self.seed,
             "deterministic": False,

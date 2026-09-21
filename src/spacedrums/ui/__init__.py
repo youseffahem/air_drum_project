@@ -12,6 +12,7 @@ from spacedrums.ui.overlay import (
     draw_stick,
     draw_track,
 )
+from spacedrums.ui.zones import draw_zones
 
 __all__ = [
     "DEFAULT_INSTRUCTION",
@@ -25,5 +26,6 @@ __all__ = [
     "draw_hand",
     "draw_stick",
     "draw_track",
+    "draw_zones",
     "guide_status_lines",
 ]

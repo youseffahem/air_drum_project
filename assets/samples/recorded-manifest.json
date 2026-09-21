@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "asset_kind": "prerecorded-local-drum-samples",
+  "source_page": "https://oramics.github.io/sampled/DM/TR-505/",
+  "source_collection": "Roland TR-505",
+  "license_id": "Public-Domain",
+  "samples": [
+    {"sample_id": "tr505-hihat-closed", "file": "recorded/tr505-hihat-closed.wav", "sha256": "sha256:788f7f0981fc437cfcad178cace0f8762fe546761d84be497b0ca70936bf3f80"},
+    {"sample_id": "tr505-snare", "file": "recorded/tr505-snare.wav", "sha256": "sha256:53c2c96f461e99051dcfd7f7aa3787751d688b4742aad50247fa0a69505a8c4b"},
+    {"sample_id": "tr505-tom-h", "file": "recorded/tr505-tom-h.wav", "sha256": "sha256:5f3cb3b833dfeea305c7d72adab0db80c93f37c05f70d33e15b78cccc44d2b0b"},
+    {"sample_id": "tr505-tom-m", "file": "recorded/tr505-tom-m.wav", "sha256": "sha256:a5b3ba6c702ca197cb5e6a24c53724ad4a92e0fafbfbd6aee7d1046bc61ba84f"},
+    {"sample_id": "tr505-tom-l", "file": "recorded/tr505-tom-l.wav", "sha256": "sha256:6bb21b1a3b98d9def4cf1995ef28842478d4c28559d18652e0f4c623f6ddcc7c"},
+    {"sample_id": "tr505-crash", "file": "recorded/tr505-crash.wav", "sha256": "sha256:5f4c6a4f99c5d2258f10a3a52059a302d379b4720a850ad5e4d1b29986f2ad50"},
+    {"sample_id": "tr505-ride", "file": "recorded/tr505-ride.wav", "sha256": "sha256:855674eff60e1b84aa13bb3dfa87ce41c5dc623c387eaa8bcb7adafaa705ead4"}
+  ]
+}

@@ -1,7 +1,7 @@
-# spacedrums.geometry
+# Geometry
 
-**Status:** PLANNED - empty stub, no code (Phase 00, Task 00.4).
+**Status:** IMPLEMENTED (Phase 04; empirical layout tuning remains pending).
 
-Zone registry, impact surfaces, valid-entry test, sub-frame crossing interpolation, trajectory-zone intersection. Owner: Phase 04.
-
-See docs/repo-layout.md section 2 for the pipeline-stage mapping. Code may only be added by the owning phase.
+Deterministic, causal trajectory-to-impact geometry in ROI-normalized, y-down coordinates.
+`GeometryEngine.observe` consumes only the previous and current observed point. Predicted paths use
+the same segment/surface intersection code and sparse predictions are never silently densified.

@@ -24,6 +24,8 @@ from spacedrums.config import (
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / "configs" / "example.candidate.yaml"
 CAMERA = ROOT / "configs" / "camera" / "hw01-integrated-webcam.candidate.yaml"
+MVP = ROOT / "configs" / "zones" / "mvp4.candidate.yaml"
+V1 = ROOT / "configs" / "zones" / "v1-7.candidate.yaml"
 
 
 def test_example_loads_and_hashes():
@@ -48,6 +50,16 @@ def test_camera_fragment_validates_on_its_own():
         validate_blocks({"camera_profile": {"profile_id": "x"}}, ["camera_profile"])
     with pytest.raises(ConfigError):
         validate_blocks(frag, ["nonexistent"])
+
+
+def test_phase04_layout_fragments_validate_and_merge():
+    for layout, expected in ((MVP, 4), (V1, 7)):
+        frag = yaml.safe_load(layout.read_text(encoding="utf-8"))
+        validate_blocks(frag, ["meta", "zones"])
+        cfg = load_config(BASE, layout)
+        assert len(cfg["zones"]) == expected
+        assert all(set(zone.get("allowed_hands", ["LEFT", "RIGHT"])) == {"LEFT", "RIGHT"}
+                   for zone in cfg["zones"])
 
 
 def test_overrides_and_hash_change():
@@ -177,3 +189,18 @@ def test_ambiguous_score_cap_must_map_to_degraded(cap, ok):
     else:
         with pytest.raises(ConfigError, match="ambiguous_score_cap"):
             validate(doc)
+
+
+def test_phase04_zone_and_gain_cross_field_checks():
+    doc = resolve(BASE, MVP)
+    doc["zones"][0]["impact_surface"]["ry"] = 0.08
+    with pytest.raises(ConfigError, match="impact_surface"):
+        validate(doc)
+    doc = resolve(BASE, MVP)
+    doc["zones"][0]["allowed_hands"] = ["LEFT"]
+    with pytest.raises(ConfigError, match="hand-agnostic"):
+        validate(doc)
+    doc = resolve(BASE, MVP)
+    doc["audio"]["gain"]["curves"][0]["proxy_max"] = 0.1
+    with pytest.raises(ConfigError, match="proxy_min"):
+        validate(doc)
