@@ -7,7 +7,7 @@
 | Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Reviewer(s) | Project owner — review pending |
 | Review date | 2026-09-21 (submission) |
-| Code state | base `36f2d4eb5623b1c9bf2ffa8e72d5c0b9c80580b0` / dirty: **yes** (owner required no commit; every run cited below carries `git_dirty: true`) |
+| Code state | Phase 05 tree committed by the owner as **`4c42b8f7cf35163f5c8a610c1f489cef0bf812c9`** ("[P05] Phase 05 rule-based baseline; gate PROPOSED PASS-WITH-CONDITIONS"). Development runs were taken on the dirty tree at `36f2d4e…`; **all five cited runs were repeated on the clean tree at `4c42b8f…` with `git_dirty: false` (C-05-5, §3a) and their decision-level artefacts are identical.** Tag `gate-05-pass` not created (owner; verdict pending). |
 | **Verdict** | **PROPOSED PASS-WITH-CONDITIONS — owner verdict pending.** The machine-executable scope of Tasks 05.1–05.5 and the machinery of 05.6–05.10 is IMPLEMENTED with tests (485 passed); causality tests pass; the synthetic safety test shows zero commits on non-VALID frames. Acceptance criteria **3** and **5** are **NOT MET** as measurements (playability with sticks; a software-stamped `L_sys_est` decomposition) and criterion 6 is met only as a *candidate* file, because every measurement they need is person-dependent (no new recording was made, on the owner's instruction) or depends on the Phase 04 audio-output latency that is still PENDING. Whether "PASS-WITH-CONDITIONS" or "FAIL" is the right reading is the owner's call; the submitter proposes conditions C-05-1…C-05-5 below and notes that the phase document's *Definition of Done* (playability report with counts, safety-test log, timing decomposition) is **not** satisfied by this submission. |
 
 **Dependency note.** Phase 04's gate record proposes **FAIL** (criterion 6: physical audio output latency PENDING) and states "Phase 05 and later work must not start". Phase 05 was executed on the owner's explicit instruction. This record does not reinterpret Phase 04's evidence: the audio-output term stays PENDING everywhere below, and `t_audio_out_est` is withheld from every timing record (ADR-0018 §7).
@@ -33,15 +33,15 @@
 | # | Criterion (verbatim from phase document) | Evidence (file / test id / run id) | Status |
 |---|---|---|---|
 | 1 | Baseline A and Baseline B run under the shared commit policy; runtime switch and shadow logging work. | `tests/app/test_app_pipeline.py` (`test_hit_types_reactive_arm_matches_synthetic_truth`, `test_rule_arm_anticipates_on_synthetic_strikes`, `test_shadow_commits_never_reach_audio`, `test_runtime_arm_switch`); dev-capture runs (§4) with A active + B shadow | **MET** (VERIFIED on SYNTHETIC input and on replayed DEV CAPTURES; live run with a person PENDING) |
-| 2 | All commit-policy and safety tests pass; zero commits during `INVALID` in the induced-loss test. | `tests/commit/` (27 tests incl. the TEST-CONFORM-5 property test), `tests/commit/test_causal_commit.py`; induced-loss: `tests/app/test_app_pipeline.py::test_induced_tracking_loss_zero_commits_while_not_valid` and run `20260921-1918-p05-induced-loss-synthetic` (24/24 cases, 0 commits on non-VALID frames); dev-capture sessions: 0 commits on non-VALID frames | **MET for the tests and the SYNTHETIC induced-loss test; the live induced-loss test (real occlusions) is PENDING** (C-05-2) |
-| 3 | Playable with ordinary sticks on the MVP layout: single, alternating, repeated, rapid, and near-simultaneous hits each demonstrated and logged in the playability report with counts. | Protocol implemented (`scripts/playability_session.py --live`); SYNTHETIC self-test run `20260921-1917-p05-playability-synthetic` exercises every hit type through the pipeline | **NOT MET** — no person, no sticks, no live session (C-05-1) |
+| 2 | All commit-policy and safety tests pass; zero commits during `INVALID` in the induced-loss test. | `tests/commit/` (27 tests incl. the TEST-CONFORM-5 property test), `tests/commit/test_causal_commit.py`; induced-loss: `tests/app/test_app_pipeline.py::test_induced_tracking_loss_zero_commits_while_not_valid` and run `20260921-1955-p05-induced-loss-synthetic` (24/24 cases, 0 commits on non-VALID frames); dev-capture sessions: 0 commits on non-VALID frames | **MET for the tests and the SYNTHETIC induced-loss test; the live induced-loss test (real occlusions) is PENDING** (C-05-2) |
+| 3 | Playable with ordinary sticks on the MVP layout: single, alternating, repeated, rapid, and near-simultaneous hits each demonstrated and logged in the playability report with counts. | Protocol implemented (`scripts/playability_session.py --live`); SYNTHETIC self-test run `20260921-1955-p05-playability-synthetic` exercises every hit type through the pipeline | **NOT MET** — no person, no sticks, no live session (C-05-1) |
 | 4 | Record mode persists raw video + all records + config snapshot; replay reproduces the committed-strike list. | `tests/app/test_app_recorder_summary.py` (every stream schema-valid with headers; replay reproduces the committed-strike list bit-for-bit); `ReplayFrameSource` (`tests/capture/test_replay_source.py`) | **MET** (VERIFIED on SYNTHETIC sessions and on the replayed dev captures; PNG-sequence "video") |
-| 5 | `TimingRecord` populated; software-stamped `L_sys` decomposition reported with its term list. | `TimingRecord` populated on every path (VERIFIED); decomposition implemented with its term list (`spacedrums.timing.decomposition`, `scripts/timing_summary.py`, runs `20260921-1919-p05-timing-summary-synthetic`, `20260921-1924-p05-timing-summary`); **no `L_sys_est` value**: needs a live session and the MEASURED audio output latency (Phase 04 criterion 6 PENDING) | **PARTIAL** — instrumentation MET; the decomposition *report* is PENDING (C-05-3, depends on Phase 04) |
+| 5 | `TimingRecord` populated; software-stamped `L_sys` decomposition reported with its term list. | `TimingRecord` populated on every path (VERIFIED); decomposition implemented with its term list (`spacedrums.timing.decomposition`, `scripts/timing_summary.py`, runs `20260921-1919-p05-timing-summary-synthetic`, `20260921-1956-p05-timing-summary`); **no `L_sys_est` value**: needs a live session and the MEASURED audio output latency (Phase 04 criterion 6 PENDING) | **PARTIAL** — instrumentation MET; the decomposition *report* is PENDING (C-05-3, depends on Phase 04) |
 | 6 | Candidate prototype config frozen and labelled as candidate. | `configs/prototype.candidate.yaml` (`meta.status: candidate`, every value commented as candidate/provisional; `config_hash sha256:fd7d0926…`) | **MET as a labelled candidate file; the developer tuning session (Task 05.6) that was to inform it is PENDING** (C-05-4) |
 
 ## 3. Tests
 
-All commands ran on HW-01, 2026-09-21, `.venv` Python 3.11.9, dirty tree on `36f2d4e…`.
+All commands ran on HW-01, 2026-09-21, `.venv` Python 3.11.9, dirty tree on `36f2d4e…` (development); the run reruns of §3a were taken on the clean committed tree `4c42b8f…`.
 
 | Test id / command | What it checks | Result |
 |---|---|---|
@@ -61,9 +61,21 @@ Known test-layout note: the `from conftest import …` pattern of `tests/trackin
 
 Line endings: three tracked files that are CRLF in HEAD (`configs/schema/config.schema.json`, `src/spacedrums/config/loader.py`, `tests/contracts/test_config_schema.py`) received LF-only additions, as in the Phase 04 gate, so `git diff --check` stays clean and the diffs are minimal (3 / 13 / 16 lines).
 
+### 3a. Clean-tree reruns (condition C-05-5) — 2026-09-21, HW-01, commit `4c42b8f7cf35163f5c8a610c1f489cef0bf812c9`
+
+| Rerun (run_id) | Command | `git_sha` / `git_dirty` | Result vs the dirty-tree run |
+|---|---|---|---|
+| `20260921-1955-p05-playability-synthetic` | `scripts/playability_session.py --synthetic` | `4c42b8f…` / **false** | COMPLETED; hit-type table identical row for row (report §5.1); 0 commits on non-VALID frames |
+| `20260921-1955-p05-induced-loss-synthetic` | `scripts/induced_loss_test.py --synthetic` | `4c42b8f…` / **false** | COMPLETED; 24/24 cases OK, 0 commits on non-VALID frames; artefact byte-identical |
+| `20260921-1956-p05-rule-sensitivity-synthetic` | `scripts/rule_baseline_sensitivity.py` | `4c42b8f…` / **false** | COMPLETED; 16-config artefact byte-identical |
+| `20260921-1956-p05-timing-summary` | `scripts/timing_summary.py --session-dir data/dev-sessions/dev-p05-swing-L2-exp-5` | `4c42b8f…` / **false** | COMPLETED; recorded-clock terms identical (only the live-stamped `inference` durations differ, as expected); `L_sys_est` still PENDING (Phase 04 criterion 6 unchanged) |
+| `20260921-1956-p05-shadow-compare` | `scripts/shadow_compare.py --session-dir data/dev-sessions/dev-p05-swing-L2-exp-5` | `4c42b8f…` / **false** | COMPLETED; A = 2, B = 0, 0 matched pairs — identical |
+
+Every `run.json` validates against `schemas/experiment-log.schema.json` with `status: COMPLETED`. The two session-based reruns re-analyse the existing git-ignored replay session of the Phase 02 capture; no recording was made. Integrity item I-11 is therefore **YES** for the cited runs (§5 updated).
+
 ## 4. Measurements produced in this phase
 
-Every run is a dirty-tree run (`git_dirty: true`); none is promotable to VALIDATED (I-11).
+Every cited run below is the clean-tree rerun on `4c42b8f…` (`git_dirty: false`, §3a). Their labels (SYNTHETIC / DEV CAPTURE / software-stamped / PENDING) are unchanged: a clean tree makes them citable, not validated.
 
 | Quantity | Label | Value | run_id / test | Method | Hardware id |
 |---|---|---|---|---|---|
@@ -71,10 +83,10 @@ Every run is a dirty-tree run (`git_dirty: true`); none is promotable to VALIDAT
 | TEST-CAUSAL-2 rule-based anticipator | VERIFIED on SYNTHETIC | PASS; N = 3, N_min = 2, \|I\| = 23; negative control differs 23/23 | idem | §3 | HW-01 |
 | TEST-CAUSAL-1 / -2 commit policy | VERIFIED on SYNTHETIC | PASS (\|I\| = 57; 38 commits) / PASS (N_eff = 7 frames, \|I\| = 73; negative control differs 2/73) | `tests/commit/test_causal_commit.py` | §2–3 | HW-01 |
 | Predicted-crossing error vs analytic parabola | SYNTHETIC | CA −3.6e-4 s, CV +1.06e-2 s (dt_step 1/30 s, linear sub-step interpolation) | `tests/prediction/test_rule_based.py` | analytic | HW-01 |
-| Commits on non-VALID frames (synthetic induced loss, 24 cases) | SYNTHETIC | **0**; all cases OK | `20260921-1918-p05-induced-loss-synthetic` | occlusion injection | HW-01 |
-| Hit-type table (synthetic scenarios, A + B shadow) | SYNTHETIC | report §5.1 | `20260921-1917-p05-playability-synthetic` | analytic truth matching, W = 0.10 s | HW-01 |
-| Rule-arm sensitivity grid (16 configs) | SYNTHETIC | report §5.4 | `20260921-1920-p05-rule-sensitivity-synthetic` | synthetic sweep | HW-01 |
-| Dev-capture pipeline runs (3 captures; A active, B shadow) | DEV CAPTURE (replay of existing captures) | exp-5: 2 A commits (1 visibly plausible, 1 spurious from a mis-estimated tip), 0 B commits, 0 non-VALID commits; exp-6/7: 0 commits | `data/dev-sessions/dev-p05-swing-L2-exp-*`, `20260921-1924-p05-timing-summary`, `20260921-1924-p05-shadow-compare` | `app.main --source devcapture --record` | HW-01 |
+| Commits on non-VALID frames (synthetic induced loss, 24 cases) | SYNTHETIC | **0**; all cases OK | `20260921-1955-p05-induced-loss-synthetic` | occlusion injection | HW-01 |
+| Hit-type table (synthetic scenarios, A + B shadow) | SYNTHETIC | report §5.1 | `20260921-1955-p05-playability-synthetic` | analytic truth matching, W = 0.10 s | HW-01 |
+| Rule-arm sensitivity grid (16 configs) | SYNTHETIC | report §5.4 | `20260921-1956-p05-rule-sensitivity-synthetic` | synthetic sweep | HW-01 |
+| Dev-capture pipeline runs (3 captures; A active, B shadow) | DEV CAPTURE (replay of existing captures) | exp-5: 2 A commits (1 visibly plausible, 1 spurious from a mis-estimated tip), 0 B commits, 0 non-VALID commits; exp-6/7: 0 commits | `data/dev-sessions/dev-p05-swing-L2-exp-*`, `20260921-1956-p05-timing-summary`, `20260921-1956-p05-shadow-compare` | `app.main --source devcapture --record` | HW-01 |
 | Per-frame processing (perception + decision, PNG decode excluded) | MEASURED development only (software-stamped) | exp-5 p50 31.2 / p95 47.4 ms; exp-6 36.9 / 46.0; exp-7 25.5 / 37.3 | dev-session summaries | wall-clock deltas | HW-01 |
 | Per-hit-type counts (live), max hit rate, induced-loss log (live), `L_sys_est` decomposition, tuning log | **PENDING** | none | — | need a person / Phase 04 audio latency | HW-01 |
 
@@ -92,7 +104,7 @@ Every run is a dirty-tree run (`git_dirty: true`); none is promotable to VALIDAT
 | I-8 | Participant-level split | N/A | no ML, no dataset |
 | I-9 | Scope respected | YES | no learned model, no participant recording, no calibration wizard, no cancellation of commits, no Phase 06 work; `OOS-REF` unchanged |
 | I-10 | Status vocabulary | YES | phase document `## Status` = IMPLEMENTED with PENDING measurements; RTM rows keep PLANNED with evidence pointers until signature |
-| I-11 | Reproducibility fields complete | **NO** | every cited run has `git_dirty: true` (owner prohibited a commit); clean-tree reruns are condition C-05-5 |
+| I-11 | Reproducibility fields complete | YES | every cited run is a clean-tree rerun on `4c42b8f…` with `git_dirty: false`, schema-valid `run.json`, config snapshot and artefact hashes (§3a; C-05-5 closed) |
 | I-12 | Limitations stated | YES | report §9 |
 
 ## 6. Deviations from the phase document
@@ -128,10 +140,10 @@ Every run is a dirty-tree run (`git_dirty: true`); none is promotable to VALIDAT
 | **C-05-2** Run `scripts/induced_loss_test.py --live` (cover the camera / occlude a hand for ~100–300 ms and longer, during and outside swings); the script's non-VALID commit count must be 0; paste the trace into report §5.2. | Project owner + submitter | with C-05-1 |
 | **C-05-3** After Phase 04 criterion 6 is closed (accepted post-DAC output latency with run id), run a live session with `--audio-output-latency-s <value> --audio-latency-run-id <run>` and `scripts/timing_summary.py --session-dir …`; fill the `L_sys_est` table (§5.3) with its term list. | Submitter | before Phase 09 cites any timing figure |
 | **C-05-4** Developer tuning session (Task 05.6): try configurations for playability, log each (config, qualitative outcome) pair in report §6, freeze the Phase 06 candidate config (`configs/prototype.candidate.yaml` or a successor). | Project owner + submitter | before the Phase 06 freeze |
-| **C-05-5** Clean-tree reruns of the cited runs (`p05-playability-synthetic`, `p05-induced-loss-synthetic`, `p05-rule-sensitivity-synthetic`, `p05-timing-summary`, `p05-shadow-compare`) after the owner commits the Phase 05 tree; update run ids in the report. | Submitter | at signature |
+| **C-05-5** Clean-tree reruns of the cited runs (`p05-playability-synthetic`, `p05-induced-loss-synthetic`, `p05-rule-sensitivity-synthetic`, `p05-timing-summary`, `p05-shadow-compare`) after the owner commits the Phase 05 tree; update run ids in the report. | Submitter | **CLOSED 2026-09-21** — five reruns on `4c42b8f…`, all `git_dirty: false`, decision-level artefacts identical (§3a); run ids updated in the report and this record |
 
 ## 9. Reviewer statement
 
-Submitter evidence assembly is complete. The project owner has not yet reviewed or signed this record, and the submitter does not claim authority to pass it. What was inspected/run by the submitter: the full test suite and every validation command in §3; the five SYNTHETIC/dev-capture runs in §4; the exp-5 commit frames rendered from the git-ignored dev session (one plausible entry, one spurious commit from a mis-estimated tip; the renderings contain the developer's image and are not kept in the repository — regenerable with `scripts/render_session_frames.py`; `docs/figures/phase-05/` holds only a SYNTHETIC illustration of the overlay). What was **not** done: any session with a person and sticks, any audible check, any measurement of playability, lead time or latency on real strokes. The honest proposed verdict is **PASS-WITH-CONDITIONS if the owner accepts that criteria 3 and 5 are closed by C-05-1…C-05-4 before Phase 06 recording; otherwise FAIL** (criterion 3 is a measurement the phase document requires and it does not exist). No Phase 06 work was started.
+Submitter evidence assembly is complete. The project owner has not yet reviewed or signed this record, and the submitter does not claim authority to pass it. What was inspected/run by the submitter: the full test suite and every validation command in §3; the five SYNTHETIC/dev-capture runs in §4, repeated on the clean committed tree (§3a, C-05-5 closed); the exp-5 commit frames rendered from the git-ignored dev session (one plausible entry, one spurious commit from a mis-estimated tip; the renderings contain the developer's image and are not kept in the repository — regenerable with `scripts/render_session_frames.py`; `docs/figures/phase-05/` holds only a SYNTHETIC illustration of the overlay). What was **not** done: any session with a person and sticks, any audible check, any measurement of playability, lead time or latency on real strokes. The honest proposed verdict is **PASS-WITH-CONDITIONS if the owner accepts that criteria 3 and 5 are closed by C-05-1…C-05-4 before Phase 06 recording; otherwise FAIL** (criterion 3 is a measurement the phase document requires and it does not exist). No Phase 06 work was started.
 
 Signed: **PENDING — project owner**, 2026-09-21

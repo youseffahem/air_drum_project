@@ -1,7 +1,7 @@
 # Phase 05 — Rule-Based Baseline & First Playable Prototype: implementation and playability report
 
 **Phase:** 05 · **Status:** IMPLEMENTED (code + tests); every person-dependent measurement **PENDING**\
-**Date:** 2026-09-21 · **Hardware:** HW-01 · **Clock:** `perf_counter` · **Config:** `configs/prototype.candidate.yaml` (`sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85`, candidate) · **Code state:** dirty tree on `36f2d4eb5623b1c9bf2ffa8e72d5c0b9c80580b0` (owner commits after review)
+**Date:** 2026-09-21 · **Hardware:** HW-01 · **Clock:** `perf_counter` · **Config:** `configs/prototype.candidate.yaml` (`sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85`, candidate) · **Code state:** Phase 05 commit `4c42b8f7cf35163f5c8a610c1f489cef0bf812c9` (clean tree; every cited run is a clean-tree rerun with `git_dirty: false` — gate condition C-05-5 closed 2026-09-21; the original development runs on the dirty tree at `36f2d4e…` gave identical decision-level artefacts)
 
 > **Evidence classes used in this report** (never merged): **VERIFIED** = mechanically checked by a test or a script self-check; **SYNTHETIC** = deterministic simulated observation sequences (`spacedrums.app.synthetic`; not recordings, not real-world behaviour); **DEV CAPTURE** = the three pre-existing Phase 02 developer captures (`data/dev-captures/swing-L2-exp-{5,6,7}`, exposure/blur checks of one developer, 6 s each, replayed — no new recording was made); **PENDING / NOT VALIDATED** = needs a person with sticks at the camera or an external instrument and was not done.
 >
@@ -108,7 +108,7 @@ Threshold origin: every value is the Phase 01 example's candidate or the phase d
 
 **Live protocol (developer with two sticks): PENDING / NOT VALIDATED.** `scripts/playability_session.py --live` runs the 16-segment scripted session (single hits per zone and hand, alternating on one/two zones, repeated with increasing rate, rapid, near-simultaneous, movement between zones, fake swings, stop-before-impact) in record mode with on-screen instructions and stores the segment boundaries; the per-hit-type counts (committed / missed / extra) require the person's manual review of the recording and are not fabricated here. The maximum hit rate at which the prototype separates hits is therefore also PENDING.
 
-**SYNTHETIC self-test (`scripts/playability_session.py --synthetic`, run `20260921-1917-p05-playability-synthetic`, dirty tree; the same table is produced by `tests/app/test_app_pipeline.py` with faster synthetic strokes):** machinery evidence only — synthetic strokes are constant-acceleration downstrokes with a symmetric rebound, no appearance model; the numbers say nothing about real strokes.
+**SYNTHETIC self-test (`scripts/playability_session.py --synthetic`, run `20260921-1955-p05-playability-synthetic`; clean-tree rerun on `4c42b8f…`, `git_dirty: false`; the same table is produced by `tests/app/test_app_pipeline.py` with faster synthetic strokes):** machinery evidence only — synthetic strokes are constant-acceleration downstrokes with a symmetric rebound, no appearance model; the numbers say nothing about real strokes.
 
 | Scenario (SYNTHETIC) | Arm | truth | commits | matched | FP | FN | dup | zone acc | L_pred median s | TE median s |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -129,7 +129,7 @@ Threshold origin: every value is the Phase 01 example's candidate or the phase d
 
 **Live test (developer occludes a hand / covers the camera): PENDING / NOT VALIDATED** — `scripts/induced_loss_test.py --live` records the session and counts commits on non-VALID frames from the recorded streams.
 
-**SYNTHETIC self-test (`scripts/induced_loss_test.py --synthetic`, run `20260921-1918-p05-induced-loss-synthetic`; also `tests/app/test_app_pipeline.py::test_induced_tracking_loss_zero_commits_while_not_valid`):** occlusions of 100 / 200 / 300 / 500 ms (3 / 6 / 9 / 15 frames at the synthetic 30 FPS) injected during a swing, right before the crossing and outside any swing, for each hand; A active, B shadow. Result: **24/24 cases OK, 0 commits on non-VALID frames**; 100 ms losses are bridged (`DEGRADED`, `g_max = 3`), longer losses go `INVALID` with a `GAP_EXCEEDED` reset and re-acquire to `VALID`; the other hand is unaffected. Example trace (RIGHT, 300 ms during the swing): `VVVVVVVDDDIIIIIIVVVV…`.
+**SYNTHETIC self-test (`scripts/induced_loss_test.py --synthetic`, run `20260921-1955-p05-induced-loss-synthetic`; also `tests/app/test_app_pipeline.py::test_induced_tracking_loss_zero_commits_while_not_valid`):** occlusions of 100 / 200 / 300 / 500 ms (3 / 6 / 9 / 15 frames at the synthetic 30 FPS) injected during a swing, right before the crossing and outside any swing, for each hand; A active, B shadow. Result: **24/24 cases OK, 0 commits on non-VALID frames**; 100 ms losses are bridged (`DEGRADED`, `g_max = 3`), longer losses go `INVALID` with a `GAP_EXCEEDED` reset and re-acquire to `VALID`; the other hand is unaffected. Example trace (RIGHT, 300 ms during the swing): `VVVVVVVDDDIIIIIIVVVV…`.
 
 **DEV CAPTURE:** on the three replayed captures (§5.5) the safety count `commits_during_non_valid` is 0 in each session, including exp-6 (mostly STALE/DEGRADED) and exp-7 (INVALID on every frame — no hand detected in the dark capture).
 
@@ -143,7 +143,7 @@ Threshold origin: every value is the Phase 01 example's candidate or the phase d
 
 ### 5.4 SYNTHETIC sensitivity of the rule arm (thresholds rationale, not tuning)
 
-`scripts/rule_baseline_sensitivity.py`, run `20260921-1920-p05-rule-sensitivity-synthetic` (noise σ = 0.003 ROI-norm, seed 0). Grid: motion CV/CA × filter kalman_cv/kalman_ca × `tti_commit_s` 0.05/0.10 × `p_commit` 0.3/0.5, on `repeated@0.20 s`, `repeated@0.12 s`, `rapid@0.10 s` and the fake swing `stop_short@0.12 s`. Excerpt (ms; `L_pred(truth)` = vs analytic crossing; `adv` = `t_commit(A) − t_commit(B)`):
+`scripts/rule_baseline_sensitivity.py`, run `20260921-1956-p05-rule-sensitivity-synthetic` (noise σ = 0.003 ROI-norm, seed 0). Grid: motion CV/CA × filter kalman_cv/kalman_ca × `tti_commit_s` 0.05/0.10 × `p_commit` 0.3/0.5, on `repeated@0.20 s`, `repeated@0.12 s`, `rapid@0.10 s` and the fake swing `stop_short@0.12 s`. Excerpt (ms; `L_pred(truth)` = vs analytic crossing; `adv` = `t_commit(A) − t_commit(B)`):
 
 | motion | filter | τ_commit | p_commit | repeated@0.20: matched/FN/FP, L_pred(truth), adv | repeated@0.12 | rapid@0.10 | fake-swing FP |
 |---|---|---|---|---|---|---|---|
@@ -164,7 +164,7 @@ The full pipeline (MediaPipe hands → GEOM stick → `kalman_cv` tracker → A 
 | exp-6 (−6) | 171 | 11/66/2/92 | 7/49/26/89 | 75 | 0 / 0 | 0 / 0 | 0 |
 | exp-7 (−7) | 172 | 0/0/172/0 | 0/0/172/0 | 0 | 0 / 0 | 0 / 0 | 0 |
 
-exp-5 detail (runs `20260921-1924-p05-timing-summary`, `20260921-1924-p05-shadow-compare`): the two reactive commits have `frame_quantization` 4.5 / 20.3 ms and `L_pred(A)` −4.6 / −20.4 ms (computable replay terms; the rest N/A). The four rule candidates were rejected (2 × status not VALID, 2 × probability < 0.5), so the B-vs-A comparison has **0 matched pairs** on this capture — no lead-time figure exists for B on developer data. **Manual review by the submitter** of the rendered commit frames 7–9 and 134–136 (produced from the git-ignored session with `scripts/render_session_frames.py --session-dir data/dev-sessions/dev-p05-swing-L2-exp-5 --frames 8 135 --context 1`; the renderings show the developer's own image and are therefore **not** kept in the repository — they are regenerable on demand from the git-ignored dev session and are not required as evidence; the finding is recorded here in prose): the RIGHT/Tom 1 commit at frame 135 coincides with the stick tip visibly entering Tom 1 through its upper-left boundary; the LEFT/snare commit at frame 8 is **spurious** — the GEOM tip estimate for the LEFT hand sat on the torso rather than on the stick during the first frames after acquisition, and that mis-estimated tip crossed the snare boundary. This is a Phase 03 tip-estimation error surfacing through the reactive arm (the arm did what the observed trajectory told it); it is recorded here as one visible false commit on developer data, not counted as a playability result (the captures were not aimed at zones, and the reviewer is the submitter).
+exp-5 detail (runs `20260921-1956-p05-timing-summary`, `20260921-1956-p05-shadow-compare`): the two reactive commits have `frame_quantization` 4.5 / 20.3 ms and `L_pred(A)` −4.6 / −20.4 ms (computable replay terms; the rest N/A). The four rule candidates were rejected (2 × status not VALID, 2 × probability < 0.5), so the B-vs-A comparison has **0 matched pairs** on this capture — no lead-time figure exists for B on developer data. **Manual review by the submitter** of the rendered commit frames 7–9 and 134–136 (produced from the git-ignored session with `scripts/render_session_frames.py --session-dir data/dev-sessions/dev-p05-swing-L2-exp-5 --frames 8 135 --context 1`; the renderings show the developer's own image and are therefore **not** kept in the repository — they are regenerable on demand from the git-ignored dev session and are not required as evidence; the finding is recorded here in prose): the RIGHT/Tom 1 commit at frame 135 coincides with the stick tip visibly entering Tom 1 through its upper-left boundary; the LEFT/snare commit at frame 8 is **spurious** — the GEOM tip estimate for the LEFT hand sat on the torso rather than on the stick during the first frames after acquisition, and that mis-estimated tip crossed the snare boundary. This is a Phase 03 tip-estimation error surfacing through the reactive arm (the arm did what the observed trajectory told it); it is recorded here as one visible false commit on developer data, not counted as a playability result (the captures were not aimed at zones, and the reviewer is the submitter).
 
 ---
 
@@ -174,7 +174,7 @@ exp-5 detail (runs `20260921-1924-p05-timing-summary`, `20260921-1924-p05-shadow
 
 ---
 
-## 7. Causality (VERIFIED, SYNTHETIC inputs; `git_sha 36f2d4e…` dirty)
+## 7. Causality (VERIFIED, SYNTHETIC inputs; `git_sha 4c42b8f…`, clean tree)
 
 | Component | Test | Result |
 |---|---|---|
