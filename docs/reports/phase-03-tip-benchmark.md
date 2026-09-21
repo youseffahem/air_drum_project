@@ -3,10 +3,10 @@
 | Field | Value |
 |---|---|
 | Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
-| Code state | Uncommitted working tree on `4dd0c2e` (owner rule: no assistant commits). Every run below carries `git_dirty: true` and is **development evidence**; a clean-tree repeat is a gate condition, as in Phase 02. |
+| Code state | Development runs (§2–§5) were taken on the uncommitted tree at `4dd0c2e` (`git_dirty: true`). **Clean-tree reruns on commit `191778882f646444395b58c71134c3942974c5d8` (`git_dirty: false`) reproduce every detection/tracking figure exactly — see §7.** The clean run ids are the citable ones. |
 | Hardware | HW-01 — Intel i7-7820HQ (4C/8T), Windows 11 22621, mains power, `cv2.getNumThreads() = 8` |
 | Data | Phase 02 developer captures only (owner, **not** dataset recordings): `swing-L2-exp-5/6/7` (171/171/172 frames, L2, manual exposure −5/−6/−7, DSHOW 640×480, ROI `[40, 20, 560, 440]`), `distance/d080…d220` single frames. **No new recording was made in Phase 03.** |
-| Runs | `20260921-1403-p03-tip-benchmark` (captures), `20260921-1405-p03-tip-benchmark` (distance stills), `20260921-1407-p03-stage-latency`; config `sha256:aca65e8026ebb55ac…` (example base + HW-01 fragment, all values candidates) |
+| Runs | development: `20260921-1403-p03-tip-benchmark` (captures), `20260921-1405-p03-tip-benchmark` (distance stills), `20260921-1407-p03-stage-latency`; **clean-tree (C-03-4):** `20260921-1449-p03-tip-benchmark` (captures + distance), `20260921-1449-p03-stage-latency`; config `sha256:aca65e8026ebb55ac…` (example base + HW-01 fragment, all values candidates) |
 | Related | ADR-0014 (§12 grip), ADR-0015 (stick pipeline, provisional primary method), ADR-0016 (filter, state machine); `docs/reports/phase-03-distance-lighting.md` (Task 03.11); Task 03.1/03.2 notes |
 
 ## 1. What was built (per task)
@@ -127,10 +127,26 @@ Reading: the estimator dominates; the GEOM pipeline's p50 sum is 0.89 of the fra
 
 `overlay.<capture>.frame*.png` in the benchmark run (every 40th frame) and the Task 03.3 development overlays: landmarks, grip point (cyan) with the KNUCKLE_ROW prior arrow, search region (yellow), candidate pixels (magenta), axis + connected support (green), GEOM tip (red), AXIS_REFINED tip (magenta ring), filtered tip (status-coloured cross) with velocity arrow, per-hand status line with reset reason. Frame 120 of exp-5 shows the blurred-swing loss (RIGHT INVALID, `GAP_EXCEEDED`) and a DEGRADED LEFT with an inflated velocity after a tip jump — both correct per README §8 and both inputs to the Phase 05 threshold tuning.
 
-## 6. Limitations
+## 6. Clean-tree reproduction (C-03-4, 2026-09-21, commit `191778882f646444395b58c71134c3942974c5d8`, `git_dirty: false`)
+
+The Phase 03 tree was committed by the owner and every cited run was repeated on the clean tree (tree verified clean before each run). Detection outputs are deterministic and reproduced **exactly**; wall-clock timings differ within run-to-run noise.
+
+| Development run (dirty tree, `4dd0c2e`) | Clean-tree rerun (`1917788`) | Comparison |
+|---|---|---|
+| `20260921-1003-p03-hands-check-video` (RAW identity, VIDEO) | `20260921-1448-p03-hands-check-video-idraw` | both-hands frames 99 / 10 / 0 → **99 / 10 / 0** (exp-5/6/7), identical; estimator p50 33.8 → 25.2 ms (exp-5) |
+| `20260921-1004-p03-hands-check-image` (RAW identity, IMAGE) | `20260921-1452-p03-hands-check-image-idraw` | 69 / 2 / 0 → **69 / 2 / 0**, identical; p50 46.9 → 38.3 ms |
+| `20260921-1046-p03-hands-check-video-idtemporal` | `20260921-1447-p03-hands-check-video-idtemporal` | 103 / 32 / 0 → **103 / 32 / 0**; label overrides 4 / 28, identity jumps 0 / 0, ambiguous 0 / 4 — all identical |
+| `20260921-1046-p03-hands-check-video-idraw` | `20260921-1448-p03-hands-check-video-idraw` | identical (99 / 10 / 0; 0 overrides) |
+| — (new comparison point) | `20260921-1447-p03-hands-check-image-idtemporal` | IMAGE + TEMPORAL identity: 83 / 8 / 0 both-hands frames |
+| `20260921-1403-p03-tip-benchmark` (+ `1405` distance) | `20260921-1449-p03-tip-benchmark` (captures + distance in one run) | per-method presence / no-axis / fallback / tip-confidence / agreement identical to every printed digit; every tracker histogram, reset list and state trace identical; distance rows identical |
+| `20260921-1407-p03-stage-latency` | `20260921-1449-p03-stage-latency` | hands p50 23.7 → 23.8 ms, stick GEOM 5.5 → 5.2, tracking 0.48 → 0.49; sum p50 29.7 → **29.5 ms** vs 33.3 ms; sum p95 47.0 → 47.2 ms |
+
+Clean-tree checks: `pytest` **370 passed, 1 skipped**; `ruff` clean; `lint-imports` 4 kept / 0 broken; `validate_contracts.py`, `env_smoke.py`, `fetch_hand_landmarker_model.py --verify` all PASS. Config hash of the captures/latency runs unchanged (`sha256:aca65e8026ebb55ac…`).
+
+## 7. Limitations
 
 - One person, one lighting condition (L2), three exposures, one distance with motion; two of the three captures are under-exposed. Nothing here generalises beyond HW-01 at 1.0 m.
 - No tip-error numbers: the reference does not exist (person-dependent). Presence, fallback, agreement and compute time are not accuracy.
-- All runs `git_dirty: true` (assistant does not commit); clean repeat at the gate.
+- The development runs are `git_dirty: true`; the clean-tree reruns (§6) reproduce them exactly and are the citable run ids.
 - Config values everywhere are candidates from a 12-cell development sweep on one capture.
 - `MARKER` is implemented and unit-tested only; no marker-equipped capture exists; its colour range is a placeholder.

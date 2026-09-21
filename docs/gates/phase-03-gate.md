@@ -7,7 +7,7 @@
 | Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Reviewer(s) | Project owner — **verdict approved 2026-09-21** (PASS-WITH-CONDITIONS); C-03-5 decided MANIFEST-ONLY; owner confirmed that **no participant recordings are required** to close any condition (developer-only captures suffice for C-03-2/C-03-3). Signature line in §9. |
 | Review date | 2026-09-21 (submission and owner approval) |
-| Code state | Uncommitted working tree on `4dd0c2ecd3116b902c9d535eacef4511b6b9ccce` (Phase 02 gate commit). The owner's standing rule is that the assistant never commits; every Phase 03 run therefore carries `git_dirty: true` and is development evidence (Phase 02 precedent D-1/C-3: clean-tree repeat after the owner commits — condition C-03-4). |
+| Code state | Phase 03 tree committed by the owner as **`191778882f646444395b58c71134c3942974c5d8`** ("[P03] Phase 03 gate…"). Development runs were taken on the uncommitted tree at `4dd0c2e` (`git_dirty: true`); **all cited runs were repeated on the clean tree at `1917788…` with `git_dirty: false` (C-03-4, §3a) and reproduce the development figures exactly.** Tag `gate-03-pass` not yet created (owner). |
 | **Verdict** | **PASS-WITH-CONDITIONS (approved by the owner, 2026-09-21)** — the machine-executable scope of all 15 tasks is IMPLEMENTED with tests (370 passed), `TEST-CAUSAL-1/2` pass on synthetic and recorded sequences, the state machine passes every transition test, per-stage latency is MEASURED, and the benchmark machinery is executed on the existing developer captures. Three acceptance criteria are **PARTIAL** for one reason only: the evidence they need (annotated tip reference, deliberate crossings, distance × lighting captures) requires a person at the camera and no new recording was made in this phase on the owner's instruction. Each is a named condition with its resolving action (§8). The owner chose PASS-WITH-CONDITIONS over the stricter BLOCKED reading; conditions C-03-1…C-03-4 remain **PENDING** and are not weakened by the approval. Phase 05 development may start on the provisional `GEOM` method; Phase 06 participant recording may **not** start before C-03-3. |
 
 ## 1. Artefacts produced
@@ -25,7 +25,7 @@
 | ADR primary tip method | `docs/decisions/ADR-0015-primary-tip-method.md` | Accepted (pipeline) / **Provisional** (`GEOM`) | yes |
 | ADR filter choice | `docs/decisions/ADR-0016-filter-choice.md` | Accepted (`kalman_cv` candidate; thresholds candidates) | yes |
 | ADR ROI / distance | `docs/decisions/ADR-0017-roi-distance.md` | **Proposed** (recommendation; factorial pending) | yes |
-| Experiment logs | `experiments/20260921-{1003,1004,1046}-p03-hands-check-*`, `20260921-1403/1405-p03-tip-benchmark`, `20260921-1407-p03-stage-latency` (git-ignored per repo-layout §3.3) | MEASURED (development, `git_dirty: true`) | yes |
+| Experiment logs | clean-tree (`1917788…`, `git_dirty: false`): `experiments/20260921-1447-p03-hands-check-{video,image}-idtemporal`, `20260921-1448-p03-hands-check-video-idraw`, `20260921-1452-p03-hands-check-image-idraw`, `20260921-1449-p03-tip-benchmark`, `20260921-1449-p03-stage-latency`; development originals `20260921-{1003,1004,1046}-…`, `1403/1405`, `1407` (git-ignored per repo-layout §3.3) | MEASURED | yes |
 | Task evidence notes | `docs/reports/phase-03-task-03.1-hand-landmarker.md`, `phase-03-task-03.2-identity.md` | — | yes |
 | Model asset + manifest | `assets/models/hand_landmarker.task` (+ `manifest.json`) | pinned (`sha256:fbc2a300…`) | yes — **MANIFEST-ONLY** (C-03-5, owner 2026-09-21): `assets/models/*.task` git-ignored; the manifest is tracked; `scripts/fetch_hand_landmarker_model.py` re-fetches and verifies the pinned file |
 | Config schema 1.2 (`hands`, `stick` blocks; real `tracking.filter`) | `configs/schema/config.schema.json`, `configs/example.candidate.yaml`, camera fragment (`1.2`) | IMPLEMENTED | yes |
@@ -44,7 +44,7 @@
 
 ## 3. Tests
 
-Run 2026-09-21 on HW-01, `.venv` Python 3.11.9, from both PowerShell and Git Bash: **370 passed, 1 skipped** (`tests/capture/test_hardware_capture.py`, opt-in webcam). `ruff check .` clean; `lint-imports` 4 kept / 0 broken; `scripts/validate_contracts.py` PASS; `scripts/env_smoke.py` PASS; `scripts/fetch_hand_landmarker_model.py --verify` PASS.
+Run 2026-09-21 on HW-01, `.venv` Python 3.11.9, from both PowerShell and Git Bash on the development tree and **again on the clean tree at `1917788…`**: **370 passed, 1 skipped** (`tests/capture/test_hardware_capture.py`, opt-in webcam). `ruff check .` clean; `lint-imports` 4 kept / 0 broken; `scripts/validate_contracts.py` PASS; `scripts/env_smoke.py` PASS; `scripts/fetch_hand_landmarker_model.py --verify` PASS.
 
 | Test id | What it checks | Result | Suite |
 |---|---|---|---|
@@ -58,7 +58,23 @@ Run 2026-09-21 on HW-01, `.venv` Python 3.11.9, from both PowerShell and Git Bas
 | `TEST-SCRIPTS-1` | every Phase 02/03 script in `--synthetic` mode writes a schema-valid run | pass | `tests/scripts` (10) |
 | Phase 02 suites | unchanged | pass | `tests/{capture,timing,ui}` (54) |
 
-## 4. Measurements produced in this phase (all MEASURED, development, HW-01, `git_dirty: true`; details in the reports)
+### 3a. Clean-tree reproduction (C-03-4, 2026-09-21, commit `191778882f646444395b58c71134c3942974c5d8`, `git_dirty: false`)
+
+The Phase 03 tree was committed by the owner and every cited run was repeated on the clean tree (tree verified clean before each run). Detection outputs are deterministic and reproduced **exactly**; wall-clock timings differ within run-to-run noise.
+
+| Development run (dirty tree, `4dd0c2e`) | Clean-tree rerun (`1917788`) | Comparison |
+|---|---|---|
+| `20260921-1003-p03-hands-check-video` (RAW identity, VIDEO) | `20260921-1448-p03-hands-check-video-idraw` | both-hands frames 99 / 10 / 0 → **99 / 10 / 0** (exp-5/6/7), identical; estimator p50 33.8 → 25.2 ms (exp-5) |
+| `20260921-1004-p03-hands-check-image` (RAW identity, IMAGE) | `20260921-1452-p03-hands-check-image-idraw` | 69 / 2 / 0 → **69 / 2 / 0**, identical; p50 46.9 → 38.3 ms |
+| `20260921-1046-p03-hands-check-video-idtemporal` | `20260921-1447-p03-hands-check-video-idtemporal` | 103 / 32 / 0 → **103 / 32 / 0**; label overrides 4 / 28, identity jumps 0 / 0, ambiguous 0 / 4 — all identical |
+| `20260921-1046-p03-hands-check-video-idraw` | `20260921-1448-p03-hands-check-video-idraw` | identical (99 / 10 / 0; 0 overrides) |
+| — (new comparison point) | `20260921-1447-p03-hands-check-image-idtemporal` | IMAGE + TEMPORAL identity: 83 / 8 / 0 both-hands frames |
+| `20260921-1403-p03-tip-benchmark` (+ `1405` distance) | `20260921-1449-p03-tip-benchmark` (captures + distance in one run) | per-method presence / no-axis / fallback / tip-confidence / agreement identical to every printed digit; every tracker histogram, reset list and state trace identical; distance rows identical |
+| `20260921-1407-p03-stage-latency` | `20260921-1449-p03-stage-latency` | hands p50 23.7 → 23.8 ms, stick GEOM 5.5 → 5.2, tracking 0.48 → 0.49; sum p50 29.7 → **29.5 ms** vs 33.3 ms; sum p95 47.0 → 47.2 ms |
+
+Clean-tree checks: `pytest` **370 passed, 1 skipped**; `ruff` clean; `lint-imports` 4 kept / 0 broken; `validate_contracts.py`, `env_smoke.py`, `fetch_hand_landmarker_model.py --verify` all PASS. Config hash of the captures/latency runs unchanged (`sha256:aca65e8026ebb55ac…`).
+
+## 4. Measurements produced in this phase (all MEASURED on HW-01; development run ids below, each reproduced exactly by the clean-tree run listed in §3a; details in the reports)
 
 | Quantity | Value | run_id |
 |---|---|---|
@@ -89,7 +105,7 @@ Run 2026-09-21 on HW-01, `.venv` Python 3.11.9, from both PowerShell and Git Bas
 | I-8 | Participant-level split | N/A | no ML result |
 | I-9 | Scope respected | YES | no strike/zone/audio logic, no anticipation beyond the filter's one-step prediction, no non-causal smoothing, no participant recordings, no foot tracking; `LEFT_FOOT` remains a rejected value |
 | I-10 | Status vocabulary | YES | phase document status updated; RTM rows advance only on signature; PENDING items name their resolving action |
-| I-11 | Reproducibility fields | PARTIAL | all `run.json` validate, snapshots + hashes present; `git_dirty: true` by construction (C-03-4) |
+| I-11 | Reproducibility fields | YES | every `run.json` validates, config snapshots + hashes present; the cited clean-tree runs (§3a) carry `git_dirty: false` and `git_sha = 1917788…` |
 | I-12 | Limitations stated | YES | report §6, distance report, ADR limitations |
 
 ## 6. Deviations from the phase document
@@ -126,13 +142,15 @@ No participant recordings are required for any condition (owner statement); C-03
 | **C-03-1** Annotate the tip on a stratified subset of the dev captures (`tools/annotate_tip.py --capture swing-L2-exp-5 --every 10`, plus a disjoint `--offset 5` subset for agreement), re-run `scripts/benchmark_tip_methods.py`, fill the error tables in the benchmark report, and finalise ADR-0015 (keep or supersede `GEOM`). Person-dependent, ≈ 30 min. | **PENDING** | Project owner (annotation) + submitter (re-run, report) | before any Phase 05 result is reported; before Phase 18 |
 | **C-03-2** Deliberate-crossing developer capture (P-03.2-1) → swap-rate row in the Task 03.2 note. | **PENDING** | Project owner | with C-03-3 |
 | **C-03-3** Distance × lighting factorial per `docs/reports/phase-03-distance-lighting.md` §5 (developer only, ≈ 10 s per cell, exposure per lighting), fill the table, move ADR-0017 to Accepted, then close Phase 02 C-5 (frozen capture config with exposure −5 at L2 and `native_fps_measured`). | **PENDING** | Project owner + submitter | **before Phase 06 records any participant** |
-| **C-03-4** Clean-tree repeat of the cited runs (`hands-check`, `tip-benchmark`, `stage-latency`) after the owner commits the Phase 03 tree; update run ids in the reports. | **PENDING until the clean-tree reruns** | Submitter | at signature |
+| **C-03-4** Clean-tree repeat of the cited runs (`hands-check`, `tip-benchmark`, `stage-latency`) after the owner commits the Phase 03 tree; update run ids in the reports. | **CLOSED 2026-09-21** — six reruns on `1917788…`, all `git_dirty: false`, detection/tracking figures identical, timings within noise (§3a); reports updated | Submitter | at signature |
 | **C-03-5** Decide git-tracking of `assets/models/hand_landmarker.task` (P-03.1-2). | **CLOSED — MANIFEST-ONLY** (`.gitignore`: `assets/models/*.task`; manifest tracked; fetch script re-creates the file) | Project owner | closed 2026-09-21 |
 
 ## 9. Reviewer statement
 
 Submitter's statement: every artefact in §1 was written and every test/run in §3–§4 executed in one assistant session on HW-01 on 2026-09-21 without a person at the camera and without any new recording. Inspected by the submitter: all overlays cited in the reports (frames 2/30/100/140 of exp-5 during development; benchmark overlays at frames 0–160; exp-6 frame 22 for identity), the run directories' `run.json` (all validate), the printed causality lines. Not done: anything person-dependent (annotation, crossings, factorial), any commit/tag/push.
 
-Owner's review (2026-09-21): verdict **PASS-WITH-CONDITIONS approved**; C-03-1, C-03-2, C-03-3 PENDING; C-03-4 PENDING until the clean-tree reruns; C-03-5 decided MANIFEST-ONLY; no participant recordings are required. Pending evidence is not fabricated by this approval: the conditions stay open until their runs exist.
+Owner's review (2026-09-21): verdict **PASS-WITH-CONDITIONS approved**; C-03-1, C-03-2, C-03-3 PENDING; C-03-4 PENDING until the clean-tree reruns; C-03-5 decided MANIFEST-ONLY; no participant recordings are required.
+
+C-03-4 closure (submitter, 2026-09-21, after the owner's commit `1917788…`): tree verified clean before each of the six reruns; results in §3a; C-03-1/2/3 untouched and still PENDING; verdict unchanged. Pending evidence is not fabricated by this approval: the conditions stay open until their runs exist.
 
 Signed: project owner (approval recorded in the conversation of 2026-09-21; countersignature on commit), 2026-09-21

@@ -5,7 +5,7 @@
 | Task | 03.2 — Left/Right Identity Assignment (`phases/phase-03-hand-stick-tracking.md`, Checkpoint 03.A) |
 | Status | **IMPLEMENTED** (code + synthetic-sequence tests) · swap-rate **MEASURED** on the existing dev captures (no crossings) · deliberate-crossing swap rate **PENDING** (§6: needs a dev capture with crossings; none was recorded, per the owner's instruction) |
 | Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
-| Code state | Uncommitted working tree on `4dd0c2e` (owner rule: no assistant commits; runs carry `git_dirty: true`; clean-tree repeat due at the Phase 03 gate) |
+| Code state | Development runs on the uncommitted tree at `4dd0c2e` (`git_dirty: true`). **Clean-tree reruns (C-03-4) on commit `191778882f646444395b58c71134c3942974c5d8`, `git_dirty: false`: `20260921-1447-p03-hands-check-video-idtemporal` and `20260921-1448-p03-hands-check-video-idraw` reproduce every figure in §3 exactly (both-hands 103 / 32 / 0 and 99 / 10 / 0; overrides 4 / 28; jumps 0; ambiguous 0 / 4).** |
 | Hardware | HW-01 (`docs/hardware-inventory.md`), mains power, `cv2.getNumThreads() = 8` |
 | Related | ADR-0014 §Decision 10; Task 03.1 note (`phase-03-task-03.1-hand-landmarker.md`); README §8 (Q33–Q35); contracts.md §3.2 |
 
@@ -95,7 +95,7 @@ Task 03.2 — *"Combine the estimator's handedness score with temporal continuit
 |---|---|---|---|
 | P-03.2-1 | **Deliberate-crossing dev capture** (developer only, not a participant): ~10 s at L2 / exposure −5 with 4–6 slow and fast hand crossings, recorded with `scripts/exposure_blur_check.py record --name cross-L2-exp-5 --exposure MANUAL:-5 --lighting L2 --seconds 10`; then `scripts/hands_landmark_check.py --capture cross-L2-exp-5` and `--identity-mode RAW` for the baseline. Report identity jumps, label overrides, ambiguous frames; owner visually reviews the events' overlay frames. | Project owner | before the Phase 03 gate (can be folded into Task 03.11's session) |
 | P-03.2-2 | Tune `ambiguity_margin` / `w_label` only against P-03.2-1 evidence; current values are candidates. | Task 03.11 | Phase 03 gate |
-| P-03.2-3 | Clean-tree repeat of the two runs in §3 (with P-03.1-3). | Submitter | Phase 03 gate |
+| P-03.2-3 | **CLOSED 2026-09-21** — `20260921-1447-…-idtemporal`, `20260921-1448-…-idraw` on `1917788…`, figures identical. | Submitter | closed |
 
 ## 7. Integrity and test status
 

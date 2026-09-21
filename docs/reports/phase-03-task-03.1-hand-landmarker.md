@@ -5,7 +5,7 @@
 | Task | 03.1 — Hand Landmark Estimator Wrapper (`phases/phase-03-hand-stick-tracking.md`, Checkpoint 03.A) |
 | Status | **IMPLEMENTED** (code + tests) · integration evidence **MEASURED** on two dev-capture runs · owner handedness check **CLOSED 2026-09-21** (§6, P-03.1-1) |
 | Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
-| Code state | Uncommitted working tree on `4dd0c2e` (owner rule: the assistant does not commit; runs below carry `git_dirty: true` and are development evidence — a clean-tree repeat is due at the Phase 03 gate, as Phase 02 did for its FPS cells) |
+| Code state | Development runs on the uncommitted tree at `4dd0c2e` (`git_dirty: true`). **Clean-tree reruns (C-03-4) on commit `191778882f646444395b58c71134c3942974c5d8`, `git_dirty: false`: `20260921-1448-p03-hands-check-video-idraw` (VIDEO, RAW identity = this note's configuration) and `20260921-1452-p03-hands-check-image-idraw` (IMAGE, RAW) reproduce every presence count in §2.1 exactly (99 / 10 / 0 and 69 / 2 / 0 both-hands frames); estimator timings differ within noise (exp-5 VIDEO p50 33.8 → 25.2 ms, IMAGE 46.9 → 38.3 ms).** |
 | Hardware | HW-01 (`docs/hardware-inventory.md`): Intel i7-7820HQ, 4C/8T, Windows 11 22621, on mains power; `cv2.getNumThreads() = 8` |
 | Related | ADR-0014; `docs/architecture/contracts.md` §3.2; `docs/environment.md` §7; Phase 02 gate items F-3, C-5 |
 
@@ -113,6 +113,6 @@ Task 03.1 evidence requirement: *"Integration test on a dev capture: landmarks p
 |---|---|---|---|
 | P-03.1-1 | **CLOSED 2026-09-21 (owner check, no recording):** Step 1 — overlay `20260921-1003-…-video/overlay.swing-L2-exp-5.frame00002.png`: image-left hand labelled `Right->RIGHT` (confirmed). Step 2 — live guide window (`scripts/show_guide.py`): the owner's raised **anatomical right** hand appears on the **image-left** side. Conclusion: the HW-01 DSHOW image is **not mirrored**; the estimator's `Right` label is the anatomical right hand. **Decision: `hands.swap_handedness = false`** (unchanged). | Project owner | closed |
 | P-03.1-2 | **CLOSED 2026-09-21 (Phase 03 gate C-03-5): MANIFEST-ONLY** — binary git-ignored, manifest tracked, fetch script re-creates it. | Project owner | closed |
-| P-03.1-3 | Clean-tree repeat of the two runs in §2 once the Task 03.x code is committed by the owner. | Submitter | Phase 03 gate |
+| P-03.1-3 | **CLOSED 2026-09-21** — clean-tree reruns `20260921-1448-…-video-idraw`, `20260921-1452-…-image-idraw` on `1917788…` (`git_dirty: false`), presence counts identical. | Submitter | closed |
 | P-03.1-4 | Phase 02 F-3 / C-5: the exposure-vs-presence finding (§2.3) is input to the fragment's `exposure.value` decision; Task 03.11 quantifies it per lighting condition. | Project owner + Task 03.11 | C-5 |
 | P-03.1-5 | Phase 02 test robustness fix made here: `tests/architecture/test_import_layers.py` decodes the `lint-imports` output as UTF-8 (the test failed only when `PYTHONIOENCODING=utf-8` made `rich` print a UTF-8 banner into a cp1252 decoder). Test-only change; recorded for the Phase 03 gate trail. | — | recorded |
