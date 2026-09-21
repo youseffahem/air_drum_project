@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/raw-manifest.schema.json",
+  "title": "RawDatasetManifest",
+  "description": "Raw-recording dataset manifest (Phase 06, Task 06.9; reserved by Phase 01: dataset_version, per-file path, bytes, sha256). Lists every file of every accepted session with SHA-256; its canonical hash (manifest_hash) is the dataset_hash of experiment logs. kind is derived from dataset_version: PARTICIPANT (ds-raw-v<M>.<m>), PILOT (ds-raw-v<M>.<m>-pilot) or SELFTEST (ds-raw-v0.0-selftest..., SYNTHETIC / DEV CAPTURE sessions only, labelled TEST / DEVELOPMENT ONLY). The builder refuses sessions of the wrong kind and lists them under refused.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "dataset_version", "kind", "label", "root", "generated_at", "generator", "include_review", "totals", "participants", "sessions", "refused", "exclusions", "withdrawals", "notes", "manifest_hash"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "dataset_version": { "type": "string", "pattern": "^ds-raw-v[0-9]+\\.[0-9]+(-[a-z0-9]+)*$" },
+    "kind": { "type": "string", "enum": ["PARTICIPANT", "PILOT", "SELFTEST"] },
+    "label": { "type": "string", "minLength": 1 },
+    "root": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "generator": { "type": "object", "required": ["tool", "version", "git_sha", "git_dirty"], "properties": { "tool": { "type": "string" }, "version": { "type": "string" }, "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }, "git_dirty": { "type": ["boolean", "null"] } } },
+    "include_review": { "type": "boolean" },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["n_sessions", "n_participants", "n_files", "total_bytes", "total_duration_s", "n_frames", "segments_accepted", "segments_excluded", "label"],
+      "properties": {
+        "n_sessions": { "type": "integer", "minimum": 0 },
+        "n_participants": { "type": "integer", "minimum": 0 },
+        "n_files": { "type": "integer", "minimum": 0 },
+        "total_bytes": { "type": "integer", "minimum": 0 },
+        "total_duration_s": { "type": "number", "minimum": 0 },
+        "n_frames": { "type": "integer", "minimum": 0 },
+        "segments_accepted": { "type": "integer", "minimum": 0 },
+        "segments_excluded": { "type": "integer", "minimum": 0 },
+        "label": { "type": "string" }
+      }
+    },
+    "participants": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" } },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["session_id", "participant_id", "session_kind", "session_index", "date", "verdict", "consent_status", "protocol_version", "config_hash", "git_sha", "path", "n_frames", "duration_s", "segments_accepted", "segments_excluded", "n_files", "total_bytes", "files"],
+        "properties": {
+          "session_id": { "$ref": "common.schema.json#/$defs/identifier" },
+          "participant_id": { "$ref": "common.schema.json#/$defs/identifier" },
+          "session_kind": { "type": "string", "enum": ["SYNTHETIC", "DEV_CAPTURE", "PILOT", "PARTICIPANT"] },
+          "session_index": { "type": "integer", "minimum": 1 },
+          "date": { "type": "string" },
+          "verdict": { "type": "string", "enum": ["ACCEPT", "REVIEW"] },
+          "consent_status": { "type": "string", "enum": ["SIGNED", "PENDING", "NOT_REQUIRED", "WITHDRAWN"] },
+          "protocol_version": { "type": "string" },
+          "config_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+          "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+          "path": { "type": "string", "minLength": 1 },
+          "n_frames": { "type": "integer", "minimum": 0 },
+          "duration_s": { "type": "number", "minimum": 0 },
+          "segments_accepted": { "type": "integer", "minimum": 0 },
+          "segments_excluded": { "type": "integer", "minimum": 0 },
+          "n_files": { "type": "integer", "minimum": 0 },
+          "total_bytes": { "type": "integer", "minimum": 0 },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "bytes", "sha256"],
+              "properties": {
+                "path": { "type": "string", "minLength": 1 },
+                "bytes": { "type": "integer", "minimum": 0 },
+                "sha256": { "$ref": "common.schema.json#/$defs/sha256" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "refused": { "type": "array", "items": { "type": "object", "required": ["session_id", "reason"], "properties": { "path": { "type": "string" }, "session_id": { "type": "string" }, "reason": { "type": "string" } } } },
+    "exclusions": { "type": "array", "items": { "$ref": "exclusion-record.schema.json" } },
+    "withdrawals": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["participant_id", "date", "n_sessions_removed", "note"], "properties": { "participant_id": { "type": "string" }, "date": { "type": "string" }, "n_sessions_removed": { "type": "integer", "minimum": 0 }, "note": { "type": "string" } } } },
+    "notes": { "type": "string" },
+    "manifest_hash": { "$ref": "common.schema.json#/$defs/sha256" }
+  },
+  "allOf": [
+    { "if": { "properties": { "kind": { "const": "PARTICIPANT" } } }, "then": { "properties": { "sessions": { "items": { "properties": { "session_kind": { "const": "PARTICIPANT" }, "consent_status": { "const": "SIGNED" } } } } } } },
+    { "if": { "properties": { "kind": { "const": "PILOT" } } }, "then": { "properties": { "sessions": { "items": { "properties": { "session_kind": { "const": "PILOT" }, "consent_status": { "const": "SIGNED" } } } } } } },
+    { "if": { "properties": { "kind": { "const": "SELFTEST" } } }, "then": { "properties": { "sessions": { "items": { "properties": { "session_kind": { "enum": ["SYNTHETIC", "DEV_CAPTURE"] } } } } } } }
+  ]
+}

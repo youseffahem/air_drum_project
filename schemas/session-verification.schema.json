@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/session-verification.schema.json",
+  "title": "SessionVerification",
+  "description": "Output of scripts/verify_session.py (Phase 06, Task 06.7): integrity checks, the session quality report, per-segment statistics and the ACCEPT | REVIEW | QUARANTINE verdict of the unusable-recording policy with the candidate thresholds that produced it. Written as <session_dir>/verify.json. The label field repeats the session classification (SYNTHETIC / DEV CAPTURE / PILOT / PARTICIPANT); a verdict on SYNTHETIC or DEV CAPTURE material is machinery evidence only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "session_id", "session_kind", "label", "verdict", "reasons", "thresholds", "thresholds_hash", "thresholds_label", "checks", "quality", "segments", "sync", "exclusions", "generated_at", "generator"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "session_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "session_kind": { "type": "string", "enum": ["SYNTHETIC", "DEV_CAPTURE", "PILOT", "PARTICIPANT"] },
+    "label": { "type": "string", "minLength": 1 },
+    "verdict": { "type": "string", "enum": ["ACCEPT", "REVIEW", "QUARANTINE"] },
+    "reasons": { "type": "array", "items": { "type": "string" } },
+    "thresholds": { "type": "object" },
+    "thresholds_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+    "thresholds_label": { "type": "string" },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "detail"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^V-[A-Z-]+$" },
+          "status": { "type": "string", "enum": ["PASS", "FAIL", "WARN", "SKIP"] },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "required": ["label", "frames", "duration_s", "fps_delivered", "dropped", "stalls", "tracking", "both_hands_valid_fraction", "events", "storage"],
+      "properties": {
+        "label": { "type": "string" },
+        "frames": { "type": "integer", "minimum": 0 },
+        "duration_s": { "type": "number", "minimum": 0 },
+        "fps_delivered": { "type": ["number", "null"] },
+        "dropped": { "type": "integer", "minimum": 0 },
+        "stalls": { "type": "integer", "minimum": 0 },
+        "tracking": { "type": "object" },
+        "both_hands_valid_fraction": { "type": ["number", "null"] },
+        "events": { "type": "object" },
+        "storage": { "type": "object" }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["segment_id", "take", "type", "status", "relevant_hands", "n_frames", "duration_s", "fps_est", "dropped", "tracking_validity", "commits", "verdict", "reasons"],
+        "properties": {
+          "segment_id": { "type": "string" },
+          "take": { "type": "integer", "minimum": 1 },
+          "type": { "type": ["string", "null"] },
+          "status": { "type": ["string", "null"] },
+          "relevant_hands": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/hand_id" } },
+          "n_frames": { "type": "integer", "minimum": 0 },
+          "duration_s": { "type": ["number", "null"] },
+          "fps_est": { "type": ["number", "null"] },
+          "dropped": { "type": "integer", "minimum": 0 },
+          "tracking_validity": { "type": "object", "additionalProperties": false, "properties": { "LEFT": { "type": ["number", "null"] }, "RIGHT": { "type": ["number", "null"] } } },
+          "commits": { "type": "object", "additionalProperties": { "type": "integer" } },
+          "verdict": { "type": "string", "enum": ["ACCEPT", "EXCLUDE", "SKIPPED"] },
+          "reasons": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "sync": { "type": ["object", "null"] },
+    "exclusions": { "type": "array", "items": { "$ref": "exclusion-record.schema.json" } },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "generator": { "type": "object", "required": ["tool", "version", "git_sha"], "properties": { "tool": { "type": "string" }, "version": { "type": "string" }, "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" } } }
+  }
+}

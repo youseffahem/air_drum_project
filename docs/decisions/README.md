@@ -24,5 +24,6 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0016](ADR-0016-filter-choice.md) | Per-hand causal filter (`kalman_cv` candidate) and README §8 state machine; TEST-CAUSAL-2 `N_eff` declaration rule | Accepted (thresholds = candidates) | 2026-09-21 | 03 |
 | [ADR-0017](ADR-0017-roi-distance.md) | ROI / user distance for data collection: keep 1.0 m, 640×480, exposure −5 at L2; factorial PENDING (gate C-03-3) | Proposed (recommendation) | 2026-09-21 | 03 |
 | [ADR-0018](ADR-0018-rule-baseline-commit-policy.md) | Rule-based arm B (CV/CA extrapolation, heuristic probability), shared commit policy + episode rule for anticipatory commits, per-arm shadow logging, replay `t_now`, unmeasured audio-latency handling, config schema 1.3 (`geometry.v_min`) | Proposed (thresholds = playability candidates; tuning PENDING) | 2026-09-21 | 05 |
+| [ADR-0019](ADR-0019-raw-retention-storage-versioning.md) | Raw retention: full frame, lossless PNG sequence (storage: DEV CAPTURE estimate ≈ 0.75 GB/min; re-track DECISION-IDENTICAL, not bit-exact across processes); `SessionMetadata` 1.0 with structural session-kind classification; storage layout; manifest-only versioning (no DVC); manifest kind gating | Proposed (pilot re-track and storage MEASURED values PENDING) | 2026-09-21 | 06 |
 
-Next free number: **ADR-0019**.
+Next free number: **ADR-0020**.

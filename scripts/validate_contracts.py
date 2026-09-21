@@ -47,6 +47,14 @@ RECORD_SCHEMAS = [
     "timing-record",
     "record-stream-header",
 ]
+# Phase 06 dataset documents (session metadata, verification, exclusion record, raw manifest):
+# example accepted; required fields removed one at a time -> rejected; unknown field -> rejected.
+DATASET_SCHEMAS = [
+    "session-metadata",
+    "session-verification",
+    "exclusion-record",
+    "raw-manifest",
+]
 # Records that must carry t_capture (Task 01.3 rule). Header/audio records are exempt:
 # AudioEvent is keyed by strike_id; RecordStreamHeader is not a per-frame record.
 CARRIES_T_CAPTURE = [s for s in RECORD_SCHEMAS if s not in ("audio-event", "record-stream-header")]
@@ -86,7 +94,10 @@ def main() -> int:
             print(f"     - {line}")
 
     registry, schemas = load_registry()
-    report(all(s in schemas for s in RECORD_SCHEMAS + ["common", "config"]), f"loaded {len(schemas)} schemas")
+    report(
+        all(s in schemas for s in RECORD_SCHEMAS + DATASET_SCHEMAS + ["common", "config"]),
+        f"loaded {len(schemas)} schemas",
+    )
 
     # 2 + 3: each schema is valid; each valid example is accepted.
     for stem in RECORD_SCHEMAS:
@@ -111,6 +122,34 @@ def main() -> int:
             wrong = copy.deepcopy(example)
             wrong["t_capture"] = "12345 ms"
             report(bool(errors(v, wrong)), f"{stem}: non-numeric t_capture rejected")
+
+    # 4d (Phase 06): dataset documents.
+    for stem in DATASET_SCHEMAS:
+        v = validator_for(schemas[stem], registry)
+        example = json.loads((EXAMPLES / f"{stem}.valid.example.json").read_text(encoding="utf-8"))
+        errs = errors(v, example)
+        report(not errs, f"{stem}: schema valid, example accepted", errs)
+        for field in schemas[stem]["required"]:
+            broken = copy.deepcopy(example)
+            del broken[field]
+            report(bool(errors(v, broken)), f"{stem}: missing '{field}' rejected")
+        extra = copy.deepcopy(example)
+        extra["not_in_contract"] = 1
+        report(bool(errors(v, extra)), f"{stem}: unknown field rejected")
+    # session-metadata classification rules: developer / synthetic material can never carry participant ids.
+    v = validator_for(schemas["session-metadata"], registry)
+    meta = json.loads((EXAMPLES / "session-metadata.valid.example.json").read_text(encoding="utf-8"))
+    promoted = copy.deepcopy(meta)
+    promoted["session_kind"] = "PARTICIPANT"  # everything else still says SYNTHETIC
+    report(bool(errors(v, promoted)), "session-metadata: SYNTHETIC document relabelled PARTICIPANT rejected")
+    pid = copy.deepcopy(meta)
+    pid["participant_id"] = "P01"
+    report(bool(errors(v, pid)), "session-metadata: SYNTHETIC session with a participant pseudonym rejected")
+    dsv = copy.deepcopy(meta)
+    dsv["dataset_version"] = "ds-raw-v1.0"
+    report(
+        bool(errors(v, dsv)), "session-metadata: SYNTHETIC session in a participant dataset version rejected"
+    )
 
     # 5: wrong units flag in the stream header.
     v = validator_for(schemas["record-stream-header"], registry)

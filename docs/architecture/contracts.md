@@ -272,6 +272,8 @@ Result on 2026-09-20 (submission): 90 passed / 183 checks. Result on 2026-09-21 
 
 ## 6. Reserved record names (defined later, constrained now)
 
+> **Phase 06 (2026-09-21, ADR-0019):** `SessionMetadata` is now **defined** — `schemas/session-metadata.schema.json` (1.0), `spacedrums.data.metadata`; every reserved field below is present, plus `session_kind` (`SYNTHETIC | DEV_CAPTURE | PILOT | PARTICIPANT`) with conditional rules that make developer / synthetic material structurally unable to carry participant ids, consent or dataset versions. Companion Phase 06 documents: `session-verification` (verify.json), `exclusion-record`, `raw-manifest` (the dataset manifest reserved in the table). `LabelRecord` and `ReferenceTrack` remain reserved for Phase 07.
+
 | Record | Defined in | Required fields reserved by this phase |
 |---|---|---|
 | `SessionMetadata` (`schemas/session-metadata.schema.json`) | Phase 06 | `schema_version`, `dataset_version`, `session_id`, `participant_id` (pseudonym), `hardware_id`, `camera_profile_id`, `audio_profile_id`, `config_hash`, `git_sha`, `clock_id`, `started_at` (wall clock) + `t_mono_at_start`, `arm_active`, `arms_shadow[]`, `fallback_events[]`, `has_phys_gt: bool` + `segments[]` (see invariant below), `audio_track_ref: str|null` + `audio_alignment_residual_s: float|null` (ADR-0002), `capture_stats` (Phase 02), `video_codec` + parameters, `tip_method_condition` (markerless vs marker, REQ-211), `lighting`/`background` descriptors (Q27–Q29), `consent_record_id`. |

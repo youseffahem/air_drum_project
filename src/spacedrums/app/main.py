@@ -110,6 +110,7 @@ def render(
     active_arm: Arm,
     style: OverlayStyle,
     status_lines: list[str] | None = None,
+    draw_hook: Callable[[np.ndarray, ZoneRegistry], None] | None = None,
 ) -> np.ndarray:
     full = view_image if view_image is not None else np.zeros((roi.y1 + 8, roi.x1 + 8, 3), np.uint8)
     hands = {h: observations[h][0] for h in HANDS}
@@ -125,6 +126,8 @@ def render(
         title=f"active arm {active_arm} | a/b switch | q quit",
     )
     zone_img = draw_zones(img[roi.y : roi.y1, roi.x : roi.x1], registry)
+    if draw_hook is not None:  # Phase 06 guided-protocol cues (zone highlight, countdown) on the ROI
+        draw_hook(zone_img, registry)
     img[roi.y : roi.y1, roi.x : roi.x1] = zone_img
     y = 60
     for line in status_lines or []:  # protocol instructions (playability / induced-loss scripts)
@@ -245,18 +248,27 @@ def iter_source(
             n += 1
             yield f, live.view(f), None
 
-    return (
-        gen_live(),
-        live.stop,
-        {"source": "live", "negotiated": mode.__dict__ if hasattr(mode, "__dict__") else str(mode)},
-        None,
-    )
+    live_meta: dict[str, Any] = {
+        "source": "live",
+        "negotiated": mode.__dict__ if hasattr(mode, "__dict__") else str(mode),
+        "capture_stats": None,  # filled at stop (Phase 06 SessionMetadata.capture_stats)
+    }
+
+    def stop_live() -> None:
+        try:
+            live_meta["capture_stats"] = live.stats().to_dict()
+        except Exception:  # noqa: BLE001 - stats are best-effort provenance, never block the stop
+            pass
+        live.stop()
+
+    return gen_live(), stop_live, live_meta, None
 
 
 # ----------------------------------------------------------------------------- main loop
 
 
 FrameHook = Callable[[FrameSample, FrameResult, "DecisionPipeline"], bool]
+SourceFactory = Callable[[argparse.Namespace, ResolvedConfig, ZoneRegistry], tuple[Any, Any, Any, Any]]
 
 
 def run(
@@ -265,10 +277,15 @@ def run(
     on_frame: FrameHook | None = None,
     status_lines: Callable[[], list[str]] | None = None,
     session_meta: dict[str, Any] | None = None,
+    source_factory: SourceFactory | None = None,
+    draw_hook: Callable[[np.ndarray, ZoneRegistry], None] | None = None,
+    on_key: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     """Run one session. ``on_frame`` (returns False to stop) and ``status_lines`` (overlay text) let the
     protocol scripts drive the loop without re-implementing it; ``session_meta`` is merged into
-    session.json."""
+    session.json. Phase 06 additions: ``source_factory`` replaces :func:`iter_source` (a composed
+    SYNTHETIC protocol sequence), ``draw_hook`` draws cues on the ROI, ``on_key`` receives every
+    printable key the loop does not consume itself (``a`` / ``b`` / ``q``)."""
     cfg = load_config(*args.config)
     if "arms" not in cfg.data:
         raise ValueError("config needs an arms block (active / shadow) from Phase 05 on")
@@ -296,7 +313,7 @@ def run(
         config_hash=cfg.config_hash,
         audio=audio,
     )
-    frames, stop, source_meta, truth = iter_source(args, cfg, registry)
+    frames, stop, source_meta, truth = (source_factory or iter_source)(args, cfg, registry)
     perception = None if args.synthetic else Perception(cfg.data)
     replay_like = bool(args.synthetic) or args.source in ("replay", "devcapture")
     recorder: SessionRecorder | None = None
@@ -307,7 +324,7 @@ def run(
             session_id=session_id,
             config=cfg,
             git_sha=git_sha(),
-            producer="REPLAY" if replay_like else "LIVE",
+            producer=("REGENERATED" if args.regenerated else "REPLAY") if replay_like else "LIVE",
             store_crop=cfg["debug"]["record_mode"]["store_crop"],
             extra_meta={
                 "hardware_id": args.hardware_id,
@@ -364,6 +381,7 @@ def run(
                     pipeline.active_arm,
                     style,
                     status_lines() if status_lines is not None else None,
+                    draw_hook,
                 )
                 cv2.imshow(WINDOW, img)
                 key = cv2.waitKey(1) & 0xFF
@@ -372,6 +390,8 @@ def run(
                 if key in (ord("a"), ord("b")):
                     pipeline.set_active_arm(Arm.A if key == ord("a") else Arm.B, result.t_now)
                     print(f"[app] active arm -> {pipeline.active_arm}")
+                elif on_key is not None and 32 <= key < 127:
+                    on_key(chr(key))
             if args.max_frames is not None and n >= args.max_frames:
                 break
     finally:
@@ -455,6 +475,12 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--no-window", action="store_true")
     ap.add_argument("--max-frames", type=int, default=None)
     ap.add_argument("--max-seconds", type=float, default=None)
+    ap.add_argument(
+        "--regenerated",
+        action="store_true",
+        help="record-mode streams carry producer REGENERATED (offline re-derivation from raw frames, "
+        "architecture.md section 12.3; Phase 06 scripts/regenerate_session.py)",
+    )
     ap.add_argument(
         "--replay-delta-proc-s",
         type=float,

@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "dataset_version": "ds-raw-v0.0-selftest-example",
+  "kind": "SELFTEST",
+  "label": "TEST / DEVELOPMENT ONLY - SYNTHETIC and/or DEV CAPTURE sessions; never participant evidence",
+  "root": "data/raw",
+  "generated_at": "2026-09-21T23:17:01+03:00",
+  "generator": {
+    "tool": "spacedrums.data.manifest",
+    "version": "0.6.0",
+    "git_sha": "0000000000000000000000000000000000000000",
+    "git_dirty": null
+  },
+  "include_review": true,
+  "totals": {
+    "n_sessions": 1,
+    "n_participants": 1,
+    "n_files": 3,
+    "total_bytes": 3677878,
+    "total_duration_s": 43.346425266667495,
+    "n_frames": 1302,
+    "segments_accepted": 36,
+    "segments_excluded": 9,
+    "label": "MEASURED from the listed files"
+  },
+  "participants": [
+    "SYNTHETIC"
+  ],
+  "sessions": [
+    {
+      "session_id": "synthetic-example",
+      "participant_id": "SYNTHETIC",
+      "session_kind": "SYNTHETIC",
+      "session_index": 1,
+      "date": "2026-09-21",
+      "verdict": "REVIEW",
+      "consent_status": "NOT_REQUIRED",
+      "protocol_version": "0.1-draft",
+      "config_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "git_sha": "0000000000000000000000000000000000000000",
+      "path": "SYNTHETIC/synthetic-example",
+      "n_frames": 1131,
+      "duration_s": 37.666666666664526,
+      "segments_accepted": 25,
+      "segments_excluded": 0,
+      "n_files": 3,
+      "total_bytes": 3677878,
+      "files": [
+        {
+          "path": "audio_track.wav",
+          "bytes": 3667244,
+          "sha256": "sha256:1e3267255d4ef1f5b6714a4b6963ec440f64cccd3b1cbd7bd7cb55eb75d37479"
+        },
+        {
+          "path": "config.snapshot.yaml",
+          "bytes": 6534,
+          "sha256": "sha256:cbaade7f92e510a2d33ed05ae13babb0d46624f8f3e4dce0d990a6dacee35fc2"
+        },
+        {
+          "path": "frames/frame_000000.png",
+          "bytes": 4100,
+          "sha256": "sha256:d9dc56084deb7e3839d2a0ccd35c0ea6764663d6adc5a133ad033aaf0fe170d8"
+        }
+      ]
+    }
+  ],
+  "refused": [
+    {
+      "path": "data/raw/DEV/dev-example",
+      "session_id": "dev-example",
+      "reason": "example: DEV_CAPTURE session refused from a participant manifest"
+    }
+  ],
+  "exclusions": [
+    {
+      "schema_version": "1.0",
+      "exclusion_id": "excl-synthetic-example-s01_warmup-t1",
+      "session_id": "synthetic-example",
+      "participant_id": "SYNTHETIC",
+      "level": "SEGMENT",
+      "segment_id": "s01_warmup",
+      "take": 1,
+      "reason_codes": [
+        "LOW_TRACKING_VALIDITY"
+      ],
+      "reason_text": "SYNTHETIC example: tracking validity LEFT 0.1 < q_seg 0.6",
+      "decided_by": "RULE",
+      "rule_id": "unusable-recording-policy-v0.1",
+      "thresholds_hash": "sha256:aa4e3f97ae6f3dedc843003bd88760eb129c0c432cf5ad479501a59cec1026e6",
+      "decided_at": "2026-09-21T23:13:44+03:00",
+      "status": "QUARANTINED"
+    }
+  ],
+  "withdrawals": [],
+  "notes": "SYNTHETIC example manifest for TEST-SCHEMA-1; TEST / DEVELOPMENT ONLY; lists no recording",
+  "manifest_hash": "sha256:e7072af492cee79160d195934a19f5a7d67d7978ad1c56af9ae703fb96a09b8e"
+}

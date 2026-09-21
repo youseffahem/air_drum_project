@@ -18,4 +18,5 @@ Layout and the allowed-dependency layers: `docs/architecture/architecture.md` se
 | `prediction` | IMPLEMENTED: `RuleBasedAnticipator` (CV/CA, heuristic probability, `TEST-CAUSAL-1/2`) — arm B | 05 (learned arms 09–12) |
 | `commit` | IMPLEMENTED: `PerHandCommitPolicy` + zone state machine + refractory timers (shared by every arm) | 05 |
 | `app` | IMPLEMENTED: `DecisionPipeline`, CLI with live/replay/dev-capture/synthetic sources, record mode, session summaries | 05 (13 adds arm C) |
-| `features`, `eval`, `data`, `calib` | PLANNED stubs | 08+ |
+| `data` | IMPLEMENTED (Phase 06 machinery: protocol, metadata, recorder hooks, audio capture, validation, manifests; no participant data) | 06 (07 adds labels / splits) |
+| `features`, `eval`, `calib` | PLANNED stubs | 08+ |

@@ -10,6 +10,10 @@ venv/
 # --- Recordings, datasets, model artefacts (manifest-tracked, never committed) ---
 data/**
 !data/README.md
+!data/manifests/
+!data/manifests/README.md
+!data/manifests/*.json
+!data/manifests/*.exclusions.jsonl
 experiments/**
 !experiments/README.md
 *.onnx

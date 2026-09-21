@@ -1,0 +1,198 @@
+{
+  "schema_version": "1.0",
+  "session_id": "synthetic-example",
+  "session_kind": "SYNTHETIC",
+  "label": "SYNTHETIC - generated observations; not a recording; not participant evidence",
+  "verdict": "REVIEW",
+  "reasons": [
+    "V-SEG-TRACKING: 1/2 core takes excluded by the segment rules (SYNTHETIC example)"
+  ],
+  "thresholds": {
+    "q_seg": 0.6,
+    "q_sess": 0.5,
+    "fps_tolerance": 0.15,
+    "segment_fps_tolerance": 0.25,
+    "drop_factor": 1.5,
+    "stall_factor": 2.0,
+    "max_drop_fraction": 0.05,
+    "max_stalls": 0,
+    "min_segment_frames": 5,
+    "sync_window_s": 0.5,
+    "sync_residual_max_s": 0.05,
+    "sync_min_matched": 2,
+    "schema_sample": null
+  },
+  "thresholds_hash": "sha256:aa4e3f97ae6f3dedc843003bd88760eb129c0c432cf5ad479501a59cec1026e6",
+  "thresholds_label": "candidate values (pilot distribution sets them, Task 06.10)",
+  "checks": [
+    {
+      "id": "V-FILES",
+      "status": "PASS",
+      "detail": "all required files present"
+    },
+    {
+      "id": "V-META-SCHEMA",
+      "status": "PASS",
+      "detail": "metadata.json valid (schema + invariants)"
+    },
+    {
+      "id": "V-CONFIG-HASH",
+      "status": "PASS",
+      "detail": "snapshot, metadata and 8 headers agree: sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85"
+    },
+    {
+      "id": "V-HEADERS",
+      "status": "PASS",
+      "detail": "8 stream headers valid and consistent"
+    }
+  ],
+  "quality": {
+    "label": "SYNTHETIC - generated observations; not a recording; not participant evidence",
+    "frames": 1131,
+    "duration_s": 37.666666666664526,
+    "fps_delivered": 30.000000000001705,
+    "dropped": 0,
+    "stalls": 0,
+    "tracking": {
+      "LEFT": {
+        "counts": {
+          "VALID": 1118,
+          "DEGRADED": 6,
+          "INVALID": 7
+        },
+        "valid_fraction": 0.9885057471264368
+      },
+      "RIGHT": {
+        "counts": {
+          "VALID": 1124,
+          "DEGRADED": 3,
+          "INVALID": 4
+        },
+        "valid_fraction": 0.9938107869142352
+      }
+    },
+    "both_hands_valid_fraction": 0.9885057471264368,
+    "events": {
+      "candidates_by_source": {
+        "REACTIVE": 33,
+        "RULE": 90,
+        "MODEL": 0
+      },
+      "commits_by_arm": {
+        "A": 33,
+        "B": 4
+      },
+      "commits_shadow": 4,
+      "commits_sounding": 33,
+      "commits_by_arm_hand_zone": {
+        "A:LEFT:crash_ride": 1,
+        "A:LEFT:hihat": 3,
+        "A:LEFT:snare": 7,
+        "A:LEFT:tom1": 2,
+        "A:RIGHT:crash_ride": 1,
+        "A:RIGHT:hihat": 3,
+        "A:RIGHT:snare": 13,
+        "A:RIGHT:tom1": 3,
+        "B:LEFT:hihat": 1,
+        "B:LEFT:snare": 1,
+        "B:RIGHT:snare": 2
+      },
+      "audio_events": 33,
+      "predictions": 729,
+      "commits_during_non_valid": 0,
+      "note": "integrity / coverage statistics only; never accuracy (phase document: no strike counts as accuracy)"
+    },
+    "storage": {
+      "frames_bytes": 0,
+      "bytes_per_frame": null,
+      "session_bytes": 0
+    }
+  },
+  "segments": [
+    {
+      "segment_id": "s01_warmup",
+      "take": 1,
+      "type": "WARMUP",
+      "status": "RECORDED",
+      "relevant_hands": [
+        "LEFT",
+        "RIGHT"
+      ],
+      "n_frames": 61,
+      "duration_s": 1.9999999999998863,
+      "fps_est": 30.000000000001705,
+      "dropped": 0,
+      "tracking_validity": {
+        "LEFT": 1.0,
+        "RIGHT": 1.0
+      },
+      "commits": {},
+      "verdict": "ACCEPT",
+      "reasons": []
+    },
+    {
+      "segment_id": "s02_single_hihat_R",
+      "take": 1,
+      "type": "SINGLE_HITS",
+      "status": "RECORDED",
+      "relevant_hands": [
+        "RIGHT"
+      ],
+      "n_frames": 37,
+      "duration_s": 1.1999999999999318,
+      "fps_est": 30.000000000001705,
+      "dropped": 0,
+      "tracking_validity": {
+        "LEFT": 1.0,
+        "RIGHT": 1.0
+      },
+      "commits": {
+        "A": 1
+      },
+      "verdict": "ACCEPT",
+      "reasons": []
+    }
+  ],
+  "sync": {
+    "n_markers": 2,
+    "n_onsets": 2,
+    "n_matched": 2,
+    "residuals_s": [
+      0.010000000001980425,
+      0.010000000002150955
+    ],
+    "residual_mean_s": 0.01000000000206569,
+    "residual_rms_s": 0.01000000000206569,
+    "residual_max_abs_s": 0.010000000002150955,
+    "unmatched_markers": [],
+    "window_s": 0.5,
+    "residual_spread_max_s": 8.526512829121202e-14,
+    "label": "audio/video alignment check; MEASURED only on a real session (pilot PENDING)"
+  },
+  "exclusions": [
+    {
+      "schema_version": "1.0",
+      "exclusion_id": "excl-synthetic-example-s01_warmup-t1",
+      "session_id": "synthetic-example",
+      "participant_id": "SYNTHETIC",
+      "level": "SEGMENT",
+      "segment_id": "s01_warmup",
+      "take": 1,
+      "reason_codes": [
+        "LOW_TRACKING_VALIDITY"
+      ],
+      "reason_text": "SYNTHETIC example: tracking validity LEFT 0.1 < q_seg 0.6",
+      "decided_by": "RULE",
+      "rule_id": "unusable-recording-policy-v0.1",
+      "thresholds_hash": "sha256:aa4e3f97ae6f3dedc843003bd88760eb129c0c432cf5ad479501a59cec1026e6",
+      "decided_at": "2026-09-21T23:13:44+03:00",
+      "status": "QUARANTINED"
+    }
+  ],
+  "generated_at": "2026-09-21T23:13:44+03:00",
+  "generator": {
+    "tool": "spacedrums.data.validation",
+    "version": "0.6.0",
+    "git_sha": "0000000000000000000000000000000000000000"
+  }
+}
