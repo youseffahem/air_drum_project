@@ -13,3 +13,5 @@
 | `device.py` | enumeration / mode probing through the backend (Task 02.1); values are *advertised*, never measured |
 
 Policies (docs/camera-profile-hw01-integrated-webcam.md, ADR-0013): delivered FPS is measured from `t_capture` of unique frames only; byte-identical consecutive frames are refused and counted (`CaptureStats.duplicates`); `frame_id` is assigned at delivery so neither drops nor duplicates consume ids; `t_capture <= t_frame_available` and monotone `t_capture` are enforced and any clamp is counted. No interpolation or resampling anywhere.
+
+**Phase 05:** `replay.ReplayFrameSource` — the basic replay `FrameSource` (architecture.md §12): reads a recorded session or a Phase 02/03 dev capture (`frames.jsonl` + PNG frames), reproduces `t_capture` / `t_frame_available` / `dropped_since_last` exactly and sets `timestamp_source = REPLAY` (`tests/capture/test_replay_source.py`). Promoted from the Phase 03 script helper `scripts/_devcapture.py`, which stays for the Phase 03 scripts.

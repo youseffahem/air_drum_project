@@ -1,6 +1,6 @@
 # Space Drums — Data Contract Specification
 
-**Phase:** 01 — Task 01.2 · **Status:** IMPLEMENTED as schemas (machine-readable JSON Schemas exist and their tests pass — `TEST-SCHEMA-1`); producers: `FrameSample` (Phase 02), `HandObservation`, `StickObservation`, `TrackState` (Phase 03) IMPLEMENTED, every other producer PLANNED.
+**Phase:** 01 — Task 01.2 · **Status:** IMPLEMENTED as schemas (machine-readable JSON Schemas exist and their tests pass — `TEST-SCHEMA-1`); producers: `FrameSample` (Phase 02), `HandObservation`, `StickObservation`, `TrackState` (Phase 03), `TrajectoryPrediction` (rule-based, Phase 05), `StrikeCandidate` (Phase 04 geometry; fed by Phase 05 arms A/B), `CommittedStrike` (Phase 05 commit policy), `AudioEvent` (Phase 04), `TimingRecord` (Phase 05 collector) IMPLEMENTED; `KinematicFeatures`, `DirectPrediction` and the learned producers PLANNED.
 **Schemas:** [`../../schemas/*.schema.json`](../../schemas/) (records, shared `common.schema.json`), [`../../configs/schema/config.schema.json`](../../configs/schema/config.schema.json) (config). Examples: [`../../schemas/examples/*.valid.example.json`](../../schemas/examples/) — **synthetic placeholders, not data**.
 **Tests:** `tests/contracts/` (pytest) and `scripts/validate_contracts.py` (same checks, standalone). See §5.
 **Related:** [`architecture.md`](architecture.md) §5 (clock), §9 (coordinates), §12 (record/replay); ADR-0004, ADR-0005, ADR-0012.

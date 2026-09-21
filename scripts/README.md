@@ -23,5 +23,12 @@ One-off tools. Run from the repository root with the development venv (`.venv\Sc
 | `measure_audio_latency.py` | 04 (04.7, 04.9) | self-test the detector with injected delay or attempt synchronized microphone/digital-loopback output-latency capture; rejected attempts remain PENDING |
 | `measure_geometry_audio_compute.py` | 04 (04.3, 04.8) | profile geometry intersection plus scheduling on labelled SYNTHETIC trajectories |
 | `render_zone_layout.py` | 04 (04.11) | render candidate zones/surfaces/normals on a SYNTHETIC blank ROI and profile overlay cost |
+| `_p05.py` | 05 | shared helper for the Phase 05 scripts (runs `spacedrums.app.main` on SYNTHETIC scenarios in record mode; hit-type table) |
+| `playability_session.py` | 05 (05.7) | `--live`: guided 16-segment hit-type protocol in record mode (needs a person with sticks); `--synthetic`: self-test through every synthetic scenario |
+| `induced_loss_test.py` | 05 (05.8) | `--live`: occlusion safety test on a recorded session (needs a person); `--synthetic`: 100/200/300/500 ms occlusions injected, zero non-VALID commits asserted |
+| `timing_summary.py` | 05 (05.4, 05.9) | README §5.3 decomposition of a session's `timing.jsonl` with labels and the `L_sys_est` term list (`L_sys_est` PENDING until Phase 04's audio latency is measured) |
+| `shadow_compare.py` | 05 (05.10) | informal B-vs-A comparison on a session (lead time, commit advance, timing error; "developer sanity check — not an experimental result") |
+| `rule_baseline_sensitivity.py` | 05 (05.2, 05.6) | SYNTHETIC sensitivity grid of the rule arm (motion model × filter × τ_commit × p_commit); not tuning |
+| `render_session_frames.py` | 05 | render commit/candidate frames of a recorded session with zones, tips and predictions for manual review |
 
 `tools/annotate_tip.py` (Task 03.10) is the manual tip-annotation tool (person-dependent; `--synthetic` writes a labelled SYNTHETIC self-test file the benchmark refuses by default). Every measurement script has a `--synthetic` self-test mode used by `tests/scripts/`; real runs write `experiments/<YYYYMMDD>-<HHMM>-<slug>/` (git-ignored) and their numbers are quoted with the run id in the camera profile.

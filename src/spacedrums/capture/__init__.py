@@ -1,7 +1,9 @@
 """Layer L1: timestamped webcam capture, fixed playing ROI, bounded queue (Phase 02).
 
 Produces ``FrameSample`` (contracts.md section 3.1) through :class:`LiveFrameSource`
-(``FrameSource`` interface). Imports only layer L0 (architecture.md section 2.2).
+(``FrameSource`` interface) and, since Phase 05, replays recorded sessions through
+:class:`ReplayFrameSource` (record/replay symmetry, architecture.md section 12). Imports only
+layer L0 (architecture.md section 2.2).
 """
 
 from spacedrums.capture.backend import (
@@ -13,6 +15,7 @@ from spacedrums.capture.backend import (
     SyntheticCamera,
 )
 from spacedrums.capture.frame_queue import BoundedFrameQueue
+from spacedrums.capture.replay import ReplayFrameSource
 from spacedrums.capture.roi import (
     Roi,
     crop_roi,
@@ -39,6 +42,7 @@ __all__ = [
     "NegotiatedMode",
     "OpenCvCamera",
     "RawFrame",
+    "ReplayFrameSource",
     "Roi",
     "StallDetector",
     "SyntheticCamera",

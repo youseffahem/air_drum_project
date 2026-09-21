@@ -1,6 +1,6 @@
 # Space Drums — Causality, Parity and Conformance Test Specifications
 
-**Phase:** 01 — Tasks 01.6 (causality contract), 01.9 (parity), 01.5 (conformance) · **Status:** specifications are IMPLEMENTED as documents; the tests themselves are PLANNED and are executed by the phases named in each section. `TEST-SCHEMA-1` (contracts.md §5) is the only test that runs today.
+**Phase:** 01 — Tasks 01.6 (causality contract), 01.9 (parity), 01.5 (conformance) · **Status:** specifications are IMPLEMENTED as documents; the tests themselves are PLANNED and are executed by the phases named in each section. `TEST-SCHEMA-1` (contracts.md §5) ran first; Phase 03 executed `TEST-CAUSAL-1/2` for the tracker, Phase 05 for the rule-based `Anticipator` (`tests/prediction/test_causal_anticipator.py`) and the `CommitPolicy` (`tests/commit/test_causal_commit.py`, declared time-bounded `N_eff`; open episodes stated as a limitation) — results in `docs/gates/phase-05-gate.md` §4; the informal replay-determinism check of Task 05.5 is `tests/app/test_app_recorder_summary.py`.
 **Cited by:** Phase 03 (tracker), 05 (rule-based anticipator, commit policy), 08 (features), 09 (simulator, GBDT), 10–12 (models), 13 (live replay + parity), 16–20 (re-runs after threading / integration changes); integrity checklist item I-3.
 
 ---

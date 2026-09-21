@@ -1,0 +1,238 @@
+# Space Drums — Phase 05 PROTOTYPE CANDIDATE configuration (Task 05.6).
+#
+# STATUS: candidate. This is the full resolved document the playable prototype loads
+# (`python -m spacedrums.app.main --config configs/prototype.candidate.yaml`). It combines the HW-01
+# camera fragment (Phase 02), the Phase 03 hands/stick/tracking blocks, the Phase 04 MVP-4 zone layout
+# and audio blocks, and the Phase 05 geometry / anticipator / commit / arms blocks.
+#
+# EVERY NUMBER IS A CANDIDATE. Phase 05 records these values as *playability candidates* for Phase 06
+# recording; none was tuned on data (the developer tuning session of Task 05.6 is PENDING: it needs a
+# person with sticks at the camera — see docs/reports/phase-05-playability.md). Research thresholds are
+# re-derived in Phases 09/18 on participant data. Frame-period arithmetic: 1/30 s (not a measurement).
+# Schema 1.3 (ADR-0018): adds the optional `geometry` block (`v_min`).
+
+meta:
+  schema_version: "1.3"
+  created: "2026-09-21"
+  phase: "05"
+  description: "Phase 05 playable-prototype candidate: HW-01 camera fragment + MVP-4 zones + rule-based arm B (CV) + commit policy. Playability candidates only; NOT tuned on data; NOT frozen for citation."
+  supersedes: null
+  status: candidate
+
+camera_profile:
+  profile_id: hw01-integrated-webcam-v0
+  device:
+    index: 0                   # inspected: the only camera index that opens (scripts/enumerate_cameras.py)
+    name: "Integrated Webcam"  # inspected (Windows PnP)
+    backend: DSHOW             # candidate, chosen from the Phase 02 backend comparison (camera profile section 4)
+  resolution_px: [640, 480]    # candidate baseline (the only resolution both backends deliver at ~30 FPS uncompressed)
+  requested_fps: 30            # REQUESTED mode (Q23 baseline). Delivered FPS lives in native_fps_measured only.
+  pixel_format: null           # backend default (YUY2 on DSHOW at 640x480); MJPG is not honoured by DSHOW on HW-01
+  exposure:
+    mode: MANUAL               # candidate: auto-exposure caps the sensor at ~10 FPS in dim light (camera profile section 5)
+    value: -6                  # candidate: DirectShow log2 scale, 2^-6 s = 15.6 ms; per-lighting values in the profile
+  timestamp_source: GRAB_RETURN  # DSHOW exposes no driver timestamp; stamp taken after the blocking retrieve()
+  grab_return_bias_s: null     # MUST stay null until Task 02.8 measures it (then {value_s, run_id, method})
+  native_fps_measured: null    # MUST stay null until a Task 02.4 run is cited (then {value_fps, run_id, method})
+  queue:
+    max_frames: 2              # candidate (Task 02.3: 1-2 frames)
+    drop_policy: DROP_OLDEST
+    stall_factor: 2.0          # candidate
+
+roi:
+  px: [40, 20, 560, 440]       # candidate: 640x480 frame minus a 40/20 px margin; Task 02.7 + Phase 03 Task 03.11 decide
+
+hands:                          # (schema 1.2, Phase 03 Task 03.1, ADR-0014) hand-landmark estimator; all candidates
+  detector: mediapipe-hand-landmarker
+  model_asset_id: mediapipe-hand-landmarker-float16-v1   # assets/models/manifest.json (fetch script pins the SHA-256)
+  running_mode: VIDEO           # candidate: VIDEO (estimator carries its hand ROI causally) vs IMAGE (per frame)
+  num_hands: 2                  # candidate; only LEFT/RIGHT are ever emitted
+  min_hand_detection_confidence: 0.5   # candidate (estimator default)
+  min_hand_presence_confidence: 0.5    # candidate (estimator default)
+  min_tracking_confidence: 0.5         # candidate (estimator default; VIDEO mode only)
+  input: ROI                    # the fixed ROI crop is what the estimator sees (Phase 02 ROI policy)
+  swap_handedness: false        # DECIDED 2026-09-21 (owner check, HW-01 image not mirrored): estimator label = anatomical hand
+  identity:                     # (Task 03.2) LEFT/RIGHT identity assignment; all candidates
+    mode: TEMPORAL              # RAW = estimator label only (03.1 baseline); TEMPORAL = label + wrist continuity
+    gate_distance: 0.15         # candidate: ROI-normalized wrist displacement per frame accepted as continuity
+    max_gap_s: 0.25             # candidate: continuity memory (~7 frames at 30 FPS, arithmetic)
+    w_label: 0.5                # candidate: label weight; continuity weight = 1 - w_label
+    ambiguity_margin: 0.15      # candidate: best-vs-second assignment margin below which both hands are AMBIGUOUS
+    ambiguous_score_cap: 0.5    # candidate: must satisfy tracking.c_min (0.3) <= cap < tracking.c_valid (0.6) -> DEGRADED at most
+  grip:                         # (Task 03.3) grip reference point / direction prior; all candidates
+    point_weights: { index_mcp: 0.4, thumb_ip: 0.2, thumb_tip: 0.2, middle_mcp: 0.2 }   # candidate fulcrum estimate
+    direction: KNUCKLE_ROW      # candidate chosen on dev-capture overlays (alternatives: WRIST_TO_GRIP, INDEX_MCP_TO_PIP)
+    min_direction_span: 0.005   # candidate: ROI-normalized; shorter baseline -> no direction prior
+
+stick:                          # (schema 1.2, Phase 03 Tasks 03.4-03.9, ADR-0015) markerless stick pipeline; all candidates
+  method_id: GEOM               # live method; MARKER = fallback/benchmark ONLY (logs a warning; REQ-211)
+  search_region:
+    length_factor: 4.0          # candidate: x hand span forward along the grip direction prior
+    width_factor: 1.2           # candidate: x hand span
+    back_factor: 0.5            # candidate: x hand span behind the grip point
+    min_span_px: 8.0            # candidate
+  segment:
+    blur_ksize: 3               # candidate
+    canny_low: 40.0             # candidate
+    canny_high: 120.0           # candidate
+    close_ksize: 3              # candidate (dev sweep on exp-5: 3 > 1 for axis-found rate)
+    min_component_px: 25        # candidate
+    min_elongation: 2.0         # candidate (dev sweep on exp-5: 2.0 > 3.0)
+    angle_tol_rad: 0.7          # candidate
+    max_components: 4           # candidate
+  axis:
+    method: RANSAC              # candidate (dev sweep on exp-5: RANSAC >= PCA > HOUGH on axis-found rate)
+    grip_tolerance_factor: 0.6  # candidate: x hand span
+    inlier_dist_px: 2.0         # candidate: floor of the inlier band
+    inlier_dist_factor: 0.3     # candidate: x hand span (both stick edges)
+    min_inliers: 20             # candidate
+    ransac_iters: 64            # candidate
+    seed: 0                     # deterministic per call
+    support_gap_factor: 0.5     # candidate: x hand span
+    hough_threshold: 15         # candidate (HOUGH only)
+    hough_min_len_px: 15.0      # candidate (HOUGH only)
+    hough_max_gap_px: 6.0       # candidate (HOUGH only)
+  geom:
+    l_prior: 0.27               # candidate: ROI-HEIGHT units; Phase 02 d100: 120 px / 440 px (protocol table)
+    no_axis_confidence_factor: 0.4   # candidate
+    refine_online: false        # pure per-frame estimator (TipEstimator Protocol); true = causal running L
+    refine_alpha: 0.05          # candidate
+    refine_min_axis_confidence: 0.7  # candidate
+    refine_support_range: [0.6, 1.4]  # candidate
+  axis_refined:
+    max_deviation_factor: 0.35  # candidate: x L
+    min_support_factor: 0.5     # candidate: x L
+    fallback_confidence_factor: 0.6  # candidate
+  marker:                       # FALLBACK / BENCHMARK ONLY; placeholder range for a green band, NOT calibrated
+    hsv_low: [35, 80, 80]
+    hsv_high: [85, 255, 255]
+    min_area_px: 12
+    search: SEARCH_REGION
+    axis_consistency_px: 12.0
+    reference_area_px: 120
+
+geometry:                       # (schema 1.3, ADR-0018) Phase 04 valid-entry test threshold
+  v_min: 0.15                   # candidate: minimum inward crossing speed (ROI-norm/s); Phase 04 scripts used 0.1; PROVISIONAL
+
+zones:
+  - zone_id: hihat
+    name: Hi-Hat
+    trigger_type: HAND_TIP
+    shape: {type: ELLIPSE, center: [0.20, 0.32], rx: 0.13, ry: 0.07, angle_rad: 0.0}
+    impact_surface: {type: ARC, center: [0.20, 0.32], rx: 0.13, ry: 0.07, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}
+    inward_normal: [0.0, 1.0]
+    sample_id: tr505-hihat-closed
+    gain_curve_id: default
+  - zone_id: snare
+    name: Snare
+    trigger_type: HAND_TIP
+    shape: {type: ELLIPSE, center: [0.40, 0.68], rx: 0.16, ry: 0.10, angle_rad: 0.0}
+    impact_surface: {type: ARC, center: [0.40, 0.68], rx: 0.16, ry: 0.10, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}
+    inward_normal: [0.0, 1.0]
+    sample_id: tr505-snare
+    gain_curve_id: default
+  - zone_id: tom1
+    name: Tom 1
+    trigger_type: HAND_TIP
+    shape: {type: ELLIPSE, center: [0.50, 0.38], rx: 0.13, ry: 0.08, angle_rad: 0.0}
+    impact_surface: {type: ARC, center: [0.50, 0.38], rx: 0.13, ry: 0.08, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}
+    inward_normal: [0.0, 1.0]
+    sample_id: tr505-tom-h
+    gain_curve_id: default
+  - zone_id: crash_ride
+    name: Crash/Ride
+    trigger_type: HAND_TIP
+    shape: {type: ELLIPSE, center: [0.80, 0.29], rx: 0.16, ry: 0.065, angle_rad: 0.12}
+    impact_surface: {type: ARC, center: [0.80, 0.29], rx: 0.16, ry: 0.065, angle_rad: 0.12, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}
+    inward_normal: [-0.1197122073, 0.9928086359]
+    sample_id: tr505-crash
+    gain_curve_id: default
+
+tracking:
+  tracker_id: example-tracker
+  c_valid: 0.6                  # candidate (README §8 c_valid)
+  c_min: 0.3                    # candidate (README §8 c_min)
+  g_max_frames: 3               # candidate (README §8 g_max)
+  age_max_s: 0.5                # candidate (README §8 age_max)
+  history_n: 16                 # candidate (README §14 history window N; TEST-CAUSAL-2 window)
+  filter:
+    type: kalman_cv             # candidate (Task 03.12 synthetic benchmark, ADR-0016); alpha_beta | kalman_cv | kalman_ca
+    params:                     # all candidates; validated by spacedrums.tracking.filter
+      q: 5.0                    # process noise intensity
+      r_base: 0.0001            # measurement variance at confidence 1 (scaled by 1 / confidence)
+      c_floor: 0.2              # confidence floor for the noise scaling
+      bridge_decay: 0.7         # DEGRADED bridge confidence multiplier per predicted frame (state machine)
+      acquire_on_degraded: false  # a DEGRADED-level observation does not re-acquire from INVALID/STALE
+      angle_alpha: 0.6          # scalar axis-angle filter
+      angle_beta: 0.3
+      causal_tolerance: 0.000001  # TEST-CAUSAL-2 declared tolerance (ROI-normalized units)
+
+anticipator:                    # Baseline B (rule-based anticipation); all values PROVISIONAL playability candidates
+  type: rule
+  anticipator_id: rule-cv-v1
+  K: 6                          # candidate: prediction steps (horizon H = K * dt_step_s = 0.2 s, arithmetic)
+  dt_step_s: 0.0333333          # candidate: one 30 FPS frame period (arithmetic, not a measurement)
+  rule:
+    motion_model: CV            # candidate: CV vs CA is Phase 09's decision on data; CA implemented too
+    params:                     # validated by spacedrums.prediction.RuleSettings (unknown keys rejected)
+      n_min_frames: 2           # candidate: live history needed before predicting (2 = one velocity estimate)
+      v_min_predict: 0.2        # candidate: |v| below this -> no prediction (stopped / very slow stick)
+      a_max: 60.0               # candidate: |a| above this -> no CA prediction (unreliable extrapolation)
+      direction_window_frames: 3  # candidate: m frames for the direction-consistency gate
+      speed_prob_lo: 0.2        # candidate: speed gate is 0 at/below this |v| ...
+      speed_prob_hi: 1.5        # candidate: ... and 1 at/above this |v| (ROI-norm/s)
+      combine: product          # candidate: product | min of the gates (monotone either way)
+      ca_acceleration_source: state_or_finite_difference
+      provisional: true         # every value above is a playability candidate
+  model: null
+  fallback: null
+
+commit:                         # shared commit policy (Task 05.3); all values PROVISIONAL playability candidates
+  commit_policy_id: commit-v1
+  tti_commit_s: 0.05            # candidate: tau_commit (commit when the predicted impact is within 50 ms)
+  p_commit: 0.5                 # candidate: minimum strike_probability (rule arm heuristic)
+  n_confirm_frames: 0           # candidate: 0 = no ARMED persistence requirement
+  refractory_zone_s: 0.10       # candidate: r_zone per (hand, zone)
+  refractory_hand_s: 0.04       # candidate: r_hand per hand (rapid alternating on different zones stays possible)
+  allow_degraded_commits: false # README section 8 default; enabling is an explicit experiment (Phase 17)
+  stale_prediction_tolerance_s: 0.02   # candidate: also the release time for an unobserved predicted crossing
+  max_dropped_since_last: 1     # candidate: frame-drop guard
+
+audio:
+  audio_profile_id: example-audio-profile
+  device:
+    name: null
+    host_api: null              # Pending Benchmark (Phase 04)
+  sample_rate_hz: 48000         # candidate
+  buffer_frames: 128            # candidate (buffer size B; measured latency decides)
+  sample_bank:
+    path: assets/samples        # created in Phase 04
+    manifest: assets/samples/recorded-manifest.json
+  gain:
+    curves:
+      - gain_curve_id: default
+        type: LINEAR_CLIPPED    # candidate (Phase 04 Task 04.10)
+        proxy_min: 0.5          # candidate; intensity proxy units (ROI-normalized/s), not force
+        proxy_max: 4.0          # candidate
+        gain_min: 0.2           # candidate
+        gain_max: 1.0           # candidate
+
+debug:
+  overlay:
+    enabled: true
+    show_landmarks: true
+    show_stick: true
+    show_zones: true
+    show_track_state: true
+    show_prediction: true
+    show_candidates: true
+    show_commits: true
+    show_timing: true
+  record_mode:
+    enabled: false
+    output_dir: data/sessions
+    store_crop: FULL
+
+arms:                           # runtime switch: `a` / `b` keys in the app; the other arm runs as shadow
+  active: A                     # candidate default for the first playability session (reactive = safe reference)
+  shadow: [B]

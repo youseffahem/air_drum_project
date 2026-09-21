@@ -2,7 +2,8 @@
 
 Phase 02 implements the first producer, so the first record here is ``FrameSample`` (section 3.1)
 plus its ``ImageRef``. Phase 03 adds ``HandObservation`` (3.2, Task 03.1), ``StickObservation``
-(3.3, Tasks 03.7-03.9) and ``TrackState`` (3.4, Tasks 03.12-03.13). Every other record
+(3.3, Tasks 03.7-03.9) and ``TrackState`` (3.4, Tasks 03.12-03.13); Phase 04 the geometry/audio
+records; Phase 05 ``TimingRecord`` (3.10, Task 05.4). Every other record
 (``KinematicFeatures`` ... ``TimingRecord``) is added by the phase that first *produces* it
 (contracts.md: "the JSON Schema is the contract, the class is an implementation"), and each class
 must:
@@ -758,6 +759,13 @@ class StrikeCandidate:
             "t_candidate": float(self.t_candidate),
         }
 
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> StrikeCandidate:
+        if d.get("schema_version") != cls.SCHEMA_VERSION:
+            raise ValueError("unsupported StrikeCandidate schema_version")
+        return cls(**{k: (tuple(v) if k in ("impact_position", "crossing_velocity") else v)
+                      for k, v in d.items() if k != "schema_version"})
+
 
 @dataclass(frozen=True)
 class CommittedStrike:
@@ -811,6 +819,12 @@ class CommittedStrike:
             "commit_policy_id": self.commit_policy_id,
         }
 
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> CommittedStrike:
+        if d.get("schema_version") != cls.SCHEMA_VERSION:
+            raise ValueError("unsupported CommittedStrike schema_version")
+        return cls(**{k: v for k, v in d.items() if k != "schema_version"})
+
 
 @dataclass(frozen=True)
 class AudioEvent:
@@ -842,6 +856,106 @@ class AudioEvent:
             "audio_profile_id": self.audio_profile_id,
         }
 
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> AudioEvent:
+        if d.get("schema_version") != cls.SCHEMA_VERSION:
+            raise ValueError("unsupported AudioEvent schema_version")
+        return cls(**{k: v for k, v in d.items() if k != "schema_version"})
+
+
+@dataclass(frozen=True)
+class TimingRecord:
+    """README section 5.2 stamps for one frame (``kind = FRAME``) or one committed strike
+    (``kind = STRIKE``), on ``t_mono`` (``timing-record.schema.json``; contracts.md 3.10). Phase 05.
+
+    Invariants mirroring the schema's ``if/then`` rules: ``STRIKE`` requires ``strike_id``,
+    ``hand_id`` and ``t_commit``; ``FRAME`` carries null ``strike_id``/``hand_id``. Latency
+    components are never stored here (they are derived by the consumer, README section 5.3).
+    ``t_audio_out`` / ``t_acoustic_onset`` are **external measurements only** and stay null
+    unless an external instrument produced them (Phase 18); ``t_audio_out_est`` is the software
+    estimate and is null when no MEASURED output latency exists for the audio profile.
+    """
+
+    SCHEMA_VERSION = _TIMING_RECORD_SCHEMA_VERSION
+
+    kind: str
+    frame_id: int
+    strike_id: str | None
+    hand_id: HandId | None
+    arm: Arm | None
+    t_capture: float
+    t_frame_available: float
+    t_tracking_done: float | None
+    t_features_done: float | None
+    t_inference_done: float | None
+    t_candidate: float | None
+    t_commit: float | None
+    t_audio_scheduled: float | None
+    t_audio_out_est: float | None
+    t_audio_out: float | None
+    t_acoustic_onset: float | None
+    t_impact_est: float | None
+    t_impact_pred: float | None
+    t_impact_phys: float | None
+    hardware_id: str
+    config_hash: str
+    clock_id: str
+
+    def __post_init__(self) -> None:
+        if self.kind not in ("FRAME", "STRIKE"):
+            raise ValueError("TimingRecord.kind must be FRAME or STRIKE")
+        if self.frame_id < 0:
+            raise ValueError("frame_id must be >= 0")
+        if self.hand_id is not None:
+            object.__setattr__(self, "hand_id", HandId(self.hand_id))
+        if self.arm is not None:
+            object.__setattr__(self, "arm", Arm(self.arm))
+        if self.kind == "STRIKE":
+            if not self.strike_id or self.hand_id is None or self.t_commit is None:
+                raise ValueError("STRIKE timing record requires strike_id, hand_id and t_commit")
+        elif self.strike_id is not None or self.hand_id is not None:
+            raise ValueError("FRAME timing record carries null strike_id and hand_id")
+        if not self.hardware_id or not self.clock_id or not self.config_hash.startswith("sha256:"):
+            raise ValueError("hardware_id, clock_id and a sha256: config_hash are required")
+        if not (self.t_capture <= self.t_frame_available):
+            raise ValueError("t_capture must be <= t_frame_available")
+
+    def to_dict(self) -> dict[str, Any]:
+        def f(v: float | None) -> float | None:
+            return None if v is None else float(v)
+
+        return {
+            "schema_version": self.SCHEMA_VERSION,
+            "kind": self.kind,
+            "frame_id": self.frame_id,
+            "strike_id": self.strike_id,
+            "hand_id": str(self.hand_id) if self.hand_id is not None else None,
+            "arm": str(self.arm) if self.arm is not None else None,
+            "t_capture": float(self.t_capture),
+            "t_frame_available": float(self.t_frame_available),
+            "t_tracking_done": f(self.t_tracking_done),
+            "t_features_done": f(self.t_features_done),
+            "t_inference_done": f(self.t_inference_done),
+            "t_candidate": f(self.t_candidate),
+            "t_commit": f(self.t_commit),
+            "t_audio_scheduled": f(self.t_audio_scheduled),
+            "t_audio_out_est": f(self.t_audio_out_est),
+            "t_audio_out": f(self.t_audio_out),
+            "t_acoustic_onset": f(self.t_acoustic_onset),
+            "t_impact_est": f(self.t_impact_est),
+            "t_impact_pred": f(self.t_impact_pred),
+            "t_impact_phys": f(self.t_impact_phys),
+            "hardware_id": self.hardware_id,
+            "config_hash": self.config_hash,
+            "clock_id": self.clock_id,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> TimingRecord:
+        if d.get("schema_version") != cls.SCHEMA_VERSION:
+            raise ValueError(f"unsupported TimingRecord schema_version {d.get('schema_version')!r}")
+        return cls(**{k: v for k, v in d.items() if k != "schema_version"})
+
 
 __all__ = [
     "AudioEvent",
@@ -853,6 +967,7 @@ __all__ = [
     "N_HAND_LANDMARKS",
     "StickObservation",
     "StrikeCandidate",
+    "TimingRecord",
     "TrackState",
     "TrajectoryAux",
     "TrajectoryPrediction",
