@@ -4,10 +4,10 @@
 |---|---|
 | Status | **PARTIAL — factorial PENDING.** The distance × lighting protocol (`docs/protocols/camera-distance-benchmark.md` §7, Phase 02 Task 02.7 tracking columns) needs a person at the camera for a movement script per cell; no new recording was made in Phase 03 (owner instruction). What could be measured from the existing captures is below and is labelled; the recommendation is recorded as **ADR-0017 (Proposed)**. |
 | Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
-| Runs | `20260921-1405-p03-tip-benchmark` (distance stills, IMAGE mode), `20260921-1403-p03-tip-benchmark` (swing captures), Task 03.1 runs `20260921-1003/1004-p03-hands-check-*`, Task 03.2 runs `20260921-1046-*` |
+| Runs | clean-tree (commit `1917788…`, `git_dirty: false`): `20260921-1449-p03-tip-benchmark` (swing captures + distance stills, IMAGE mode for stills), `20260921-1447/1448/1452-p03-hands-check-*`; development originals: `20260921-1405`, `1403`, `1003/1004`, `1046-*` — identical detection outputs (benchmark report §6) |
 | Tooling | `scripts/benchmark_tip_methods.py --distance` (stills) and `--capture <cell>` (movement-script cells); fills presence rate, axis confidence, support, override/ambiguity rates, tracker histogram; tip error once annotated |
 
-## 1. Distance rows (single Phase 02 stills, L2, exposure −6, DSHOW 640×480, IMAGE-mode landmarker) — MEASURED, 1 frame each
+## 1. Distance rows (single Phase 02 stills, L2, exposure −6, DSHOW 640×480, IMAGE-mode landmarker) — MEASURED, 1 frame each (clean-tree run `20260921-1449-p03-tip-benchmark`; identical to the development run)
 
 | distance (m) | visibility (Phase 02, owner) | landmarks LEFT / RIGHT | handedness score L / R | hand span px L / R | axis found L / R | axis confidence L / R | axis support px L / R | tracking quality |
 |---|---|---|---|---|---|---|---|---|
