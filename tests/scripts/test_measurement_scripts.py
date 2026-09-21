@@ -190,3 +190,14 @@ def test_measure_stage_latency_synthetic(tmp_path):
     assert m["synthetic"] is True and m["frames_measured"] == 15
     assert set(m["stages"]) >= {"hands", "stick_GEOM", "stick_AXIS_REFINED", "stick_MARKER", "tracking"}
     assert m["sum_of_stage_p50_s"] > 0 and m["frame_period_s_arithmetic"] > 0
+
+
+def test_measure_audio_latency_synthetic(tmp_path):
+    """Phase 04 detector self-test is explicitly synthetic and never physical evidence."""
+    run_dir = _run([str(SCRIPTS / "measure_audio_latency.py"), "--synthetic",
+                    "--buffer-frames", "128", "--trials", "30"], tmp_path)
+    rec = _check_run(run_dir, "04.9")
+    metrics = rec["metrics"]
+    assert metrics["evidence_label"] == "SYNTHETIC"
+    assert metrics["detected_trials"] == 30
+    assert metrics["median_s"] == pytest.approx(0.017, abs=1 / 48_000)

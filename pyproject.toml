@@ -11,14 +11,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spacedrums"
-version = "0.3.0"
+version = "0.4.0"
 description = "Space Drums: causal temporal strike anticipation for webcam air drumming (graduation project)"
 readme = "src/spacedrums/README.md"
 requires-python = ">=3.11,<3.12"
 license = { text = "Proprietary - graduation project; see repository" }
 dependencies = [
     "numpy>=1.26,<3",
+    "scipy>=1.11",
     "opencv-python>=4.9",
+    "sounddevice>=0.4.6",
+    "soundfile>=0.12",
     "PyYAML>=6.0",
     "jsonschema>=4.21",
 ]

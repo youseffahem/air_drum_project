@@ -2,7 +2,15 @@
 
 ## Status
 
-Planned
+**IMPLEMENTED; proposed FAIL at the exit gate** (2026-09-21). Tasks 04.1–04.8 and
+04.10–04.11 have implementation and automated evidence. Task 04.9's measurement machinery is
+implemented and self-tested, but a valid post-DAC audio-output latency and evidence-based buffer
+choice are **PENDING**, so acceptance criterion 6 and the Definition of Done are not met: HW-01
+microphone/loopback attempts failed the consistency/observability requirements and were not
+promoted to latency evidence. All development runs are dirty-tree runs because the owner explicitly
+prohibited a commit. Per the gate procedure, downstream work must not start. See
+`docs/gates/phase-04-gate.md`,
+`docs/reports/phase-04-geometry-audio.md`, and `docs/audio-profile-hw01-realtek.md`.
 
 ## Purpose
 
@@ -235,6 +243,8 @@ device clock ◄─► t_mono mapping (measured offset/drift)
 ## Exit Gate
 
 Reviewer verifies geometry tests and audio latency measurement. PASS → Phase 05 may start once Phase 03 has also passed.
+
+Gate record: `docs/gates/phase-04-gate.md` — **proposed FAIL**, 2026-09-21; owner review pending.
 
 ## What Must NOT Be Done Yet
 

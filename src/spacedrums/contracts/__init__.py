@@ -16,25 +16,40 @@ from spacedrums.contracts.enums import (
     TrackStatus,
     TriggerType,
 )
-from spacedrums.contracts.interfaces import FrameSource, TipEstimator, Tracker
+from spacedrums.contracts.interfaces import (
+    AudioScheduler,
+    FrameSource,
+    Geometry,
+    TipEstimator,
+    Tracker,
+)
 from spacedrums.contracts.records import (
     N_HAND_LANDMARKS,
+    AudioEvent,
+    CommittedStrike,
     FrameSample,
     HandObservation,
     HistoryRef,
     ImageRef,
     StickObservation,
+    StrikeCandidate,
     TrackState,
+    TrajectoryAux,
+    TrajectoryPrediction,
 )
 from spacedrums.contracts.values import FrameView
 
 __all__ = [
+    "AudioEvent",
+    "AudioScheduler",
     "Arm",
     "CandidateDerivation",
     "CandidateSource",
+    "CommittedStrike",
     "FrameSample",
     "FrameSource",
     "FrameView",
+    "Geometry",
     "HandId",
     "HandObservation",
     "HistoryRef",
@@ -44,11 +59,14 @@ __all__ = [
     "N_HAND_LANDMARKS",
     "ResetReason",
     "StickObservation",
+    "StrikeCandidate",
     "TimestampSource",
     "TipEstimator",
     "TipMethod",
     "TrackState",
     "TrackStatus",
+    "TrajectoryAux",
+    "TrajectoryPrediction",
     "Tracker",
     "TriggerType",
 ]

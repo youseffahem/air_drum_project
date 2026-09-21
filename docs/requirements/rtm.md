@@ -31,7 +31,7 @@
 | Q1 | REQ-001 | Software-only virtual drumming: single webcam + CV tracks **ordinary** drumsticks; estimates stick-tip motion; detects or predicts imminent virtual strikes; maps to zones; plays drum sounds in real time. Main contribution is Causal Temporal Strike Anticipation. | F/R | 01, 05, 13, 20 | review (01), system test (05, 13, 20) | PLANNED — P01 spec: `docs/architecture/architecture.md` §1, §4, §11 — gate pending |
 | Q2 | REQ-002 | Allow playing a virtual kit without an electronic kit; research focus: reduce *perceived* Action-to-Sound Latency by predicting an imminent strike before the actual/virtual impact. | R | 10, 18 | measurement (18, external timing) | PLANNED |
 | Q3 | REQ-003 | Primary user: beginners, students, hobbyists, users without a real kit, using ordinary sticks + webcam. | C | 06, 22 | review (protocol difficulty in 06; demo framing in 22) | PLANNED |
-| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED — P01: `architecture.md` §3; P02 contribution: stand-here guide `src/spacedrums/ui/guide.py` (`TEST-UI-1`, screenshot `docs/figures/phase-02/`) — gate pending |
+| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED overall — P02 guide IMPLEMENTED; P04 contribution IMPLEMENTED: zone display + synthetic geometry→candidate→schedule→mixer integration (`tests/audio/test_scheduler_integration.py`); live commit flow remains Phase 05 |
 | Q5 | REQ-005 | Contribution = causal temporal prediction of strikes from camera-derived hand/stick motion. Must clearly measure **Prediction Lead Time, Timing Error, False Positives**, and the effect of prediction on **Effective System Latency**. | R | 09, 10, 18 | measurement (harness 09; final 18) | PLANNED |
 | Q6 | REQ-006 | Both research project and usable system; research is primary; system must be usable enough to demonstrate real-time virtual drumming. | C | 05, 20, 22 | review + system test | PLANNED |
 
@@ -43,22 +43,22 @@
 | Q8 | REQ-008 | Sticks contain **no** special hardware (no IMUs, ESP32, electronics). See REQ-201/202/203. | X | 00 (register), 03 | review | PLANNED |
 | Q9 | REQ-009 | **Markerless tracking is the primary goal.** Colored tape/markers only as a fallback or benchmark condition if markerless proves unreliable. | C | 03, 18 | benchmark (03 tip-method comparison); review (labelling of marker condition, 18) | PLANNED |
 | Q10 | REQ-010 | Both hands **and** sticks must be tracked; motion must be understood quickly enough to predict the upcoming strike. | F | 03 | test + measurement (tracking latency, 03) | PLANNED |
-| Q11 | REQ-011 | Either hand may hit any zone, unless future experiments show hand–zone assignment improves reliability. | F | 04, 05, 18 | test (04/05: no hand–zone restriction); review (18: revisit) | PLANNED |
+| Q11 | REQ-011 | Either hand may hit any zone, unless future experiments show hand–zone assignment improves reliability. | F | 04, 05, 18 | test (04/05: no hand–zone restriction); review (18: revisit) | IMPLEMENTED P04 — registry default + loader guard; tests |
 | Q12 | REQ-012 | Support individual hits, alternating R/L, repeated hits, rapid consecutive hits, and simultaneous / near-simultaneous hits when the pipeline can reliably support them. | F | 05, 06, 17 | system test (05); protocol coverage (06); failure-injection (17) | PLANNED |
 | Q13 | REQ-013 | Target speed: realistic beginner/intermediate drumming. Max BPM / hit rate is **To Be Experimentally Determined** with real sticks. | R | 05, 18 | measurement | PLANNED |
-| Q14 | REQ-014 | Intensity estimated from kinematics (e.g. velocity near predicted impact); explicitly an **intensity proxy**, not force; V1 maps it to volume / MIDI-like velocity. | F | 04, 07, 11 | test (04 gain mapping); review (07 GT-proxy definition); measurement (11 agreement) | PLANNED |
-| Q15 | REQ-015 | Distinguish drum **zones**, not articulation types (rim/center/edge = future work unless research-relevant). | C | 04, 07 | review | PLANNED |
+| Q14 | REQ-014 | Intensity estimated from kinematics (e.g. velocity near predicted impact); explicitly an **intensity proxy**, not force; V1 maps it to volume / MIDI-like velocity. | F | 04, 07, 11 | test (04 gain mapping); review (07 GT-proxy definition); measurement (11 agreement) | IMPLEMENTED P04 mapping; validation PENDING P07/11 |
+| Q15 | REQ-015 | Distinguish drum **zones**, not articulation types (rim/center/edge = future work unless research-relevant). | C | 04, 07 | review | IMPLEMENTED P04 — stable zone ids only; no articulation path |
 
 ### C — Virtual Drum Kit
 
 | Q# | REQ | Requirement | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|---|
-| Q16 | REQ-016 | MVP ≈ **4 zones**; V1 target ≈ **7 zones**; exact final arrangement confirmed before implementation (→ ADR-0003). | F | 04, 14 | review (ADR-0003, zone layout config) | PLANNED |
-| Q17 | REQ-017 | Initial kit: Snare, Hi-Hat, Tom 1, Tom 2, Floor Tom, Crash/Ride. Kick requires a separate decision (foot tracking out of V1). | F | 04 | review (zone registry contents) | PLANNED |
-| Q18 | REQ-018 | Drum zones are initially **fixed**. | C | 04, 14 | test (zone geometry deterministic across a session) | PLANNED |
+| Q16 | REQ-016 | MVP ≈ **4 zones**; V1 target ≈ **7 zones**; exact final arrangement confirmed before implementation (→ ADR-0003). | F | 04, 14 | review (ADR-0003, zone layout config) | IMPLEMENTED candidate 4/7 configs; positions and seventh identity PENDING |
+| Q17 | REQ-017 | Initial kit: Snare, Hi-Hat, Tom 1, Tom 2, Floor Tom, Crash/Ride. Kick requires a separate decision (foot tracking out of V1). | F | 04 | review (zone registry contents) | IMPLEMENTED P04; seventh Ride split remains candidate; no kick |
+| Q18 | REQ-018 | Drum zones are initially **fixed**. | C | 04, 14 | test (zone geometry deterministic across a session) | IMPLEMENTED P04 immutable zone objects + registry |
 | Q19 | REQ-019 | User does **not** manually determine position; the system defines and displays the stand-here area directly in the webcam view. | F | 02, 14 | test (02 guide overlay; 14 fit check) | PLANNED — P02 evidence: `ui/guide.py` + `scripts/show_guide.py` (`TEST-UI-1`); ROI from config, no manual positioning — gate pending |
-| Q20 | REQ-020 | Clear **geometric** zones and low-latency interaction first; realistic kit visuals may be added later **without changing the core Detection/Prediction architecture**. | C | 04, 15, 22 | review (architecture untouched by UI work) | PLANNED |
-| Q21 | REQ-021 | **No depth estimation** in the initial version; 2-D camera coordinates + virtual geometry. Depth considered later only if experiments show necessity. | C | 01, 04 | review (coordinate convention README §7) | PLANNED — P01 spec: `architecture.md` §9, ADR-0005, `common.schema.json` point2 (2-D) — TEST-SCHEMA-1 pass 2026-09-20 — gate pending |
+| Q20 | REQ-020 | Clear **geometric** zones and low-latency interaction first; realistic kit visuals may be added later **without changing the core Detection/Prediction architecture**. | C | 04, 15, 22 | review (architecture untouched by UI work) | IMPLEMENTED P04 geometric overlay; screenshot/run `20260921-1527-p04-layout-render` |
+| Q21 | REQ-021 | **No depth estimation** in the initial version; 2-D camera coordinates + virtual geometry. Depth considered later only if experiments show necessity. | C | 01, 04 | review (coordinate convention README §7) | IMPLEMENTED P04 geometry remains 2-D ROI-normalized; no depth path |
 
 ### D — Camera & Computer Vision
 
@@ -88,10 +88,10 @@
 
 | Q# | REQ | Requirement | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|---|
-| Q36 | REQ-036 | A strike = the **first valid downward/inward entry or crossing** of the estimated tip trajectory through the boundary/interior of a zone, per the project's impact convention. | F | 04 | unit test | PLANNED |
-| Q37 | REQ-037 | Downward/inward entry is required; arbitrary upward crossings are **not** strikes. | F | 04 | unit test | PLANNED |
-| Q38 | REQ-038 | Retain estimated impact **position** and zone when available (supports timing/trajectory evaluation). | F | 04, 07 | test (04 output fields); review (07 labels include position) | PLANNED |
-| Q39 | REQ-039 | **Sub-frame impact timing**: interpolate between the two observations surrounding the crossing instead of taking the nearest frame. | F | 04 | unit test | PLANNED |
+| Q36 | REQ-036 | A strike = the **first valid downward/inward entry or crossing** of the estimated tip trajectory through the boundary/interior of a zone, per the project's impact convention. | F | 04 | unit test | IMPLEMENTED P04; `tests/geometry/test_intersect.py` |
+| Q37 | REQ-037 | Downward/inward entry is required; arbitrary upward crossings are **not** strikes. | F | 04 | unit test | IMPLEMENTED P04; inward dot-product and rejection tests |
+| Q38 | REQ-038 | Retain estimated impact **position** and zone when available (supports timing/trajectory evaluation). | F | 04, 07 | test (04 output fields); review (07 labels include position) | IMPLEMENTED P04 `StrikeCandidate`; label use PENDING P07 |
+| Q39 | REQ-039 | **Sub-frame impact timing**: interpolate between the two observations surrounding the crossing instead of taking the nearest frame. | F | 04 | unit test | IMPLEMENTED P04 analytic interpolation tests |
 | Q40 | REQ-040 | No fixed validated lead time; **maximise useful Prediction Lead Time while controlling FP and Timing Error**; candidate lead times determined experimentally. | R | 09, 10, 18 | measurement (threshold/horizon sweeps) | PLANNED |
 
 ### G — AI / Machine Learning
@@ -127,9 +127,9 @@
 |---|---|---|---|---|---|---|
 | Q51 | REQ-051 | Single drummer / single-user interaction only in V1. | C | 01, 03 | review | PLANNED — P01 spec: `architecture.md` §16 (single LEFT/RIGHT identity; no multi-user state) — gate pending |
 | Q52 | REQ-052 | Runs completely **offline / local**; no Cloud APIs or internet required. | C | 01, 13, 23 | review + test (no network calls; packaged bundle runs offline) | PLANNED — P01 spec: `architecture.md` §16 (no network dependency; local model path + hash) — gate pending |
-| Q53 | REQ-053 | Drum Engine plays **local recorded drum samples**, not runtime synthesis. | F | 04 | test | PLANNED |
+| Q53 | REQ-053 | Drum Engine plays **local recorded drum samples**, not runtime synthesis. | F | 04 | test | IMPLEMENTED P04 public-domain prerecorded TR-505 bank; hashes/licence recorded |
 | Q54 | REQ-054 | MIDI not required for core MVP; advanced / future feature. | X | 00 (register) | review | PLANNED |
-| Q55 | REQ-055 | Kick/foot **not in V1** unless scope explicitly expanded; architecture must **not make future kick/foot impossible**. | C | 01, 04 | review (zone registry extensibility) | PLANNED — P01 spec: `architecture.md` §10, ADR-0011; config schema rejects FOOT (TEST-SCHEMA-1) — gate pending |
+| Q55 | REQ-055 | Kick/foot **not in V1** unless scope explicitly expanded; architecture must **not make future kick/foot impossible**. | C | 01, 04 | review (zone registry extensibility) | IMPLEMENTED architecture P04: open trigger enum contract, generic point trajectories; FOOT still invalid; no kick implementation |
 | Q56 | REQ-056 | Changing drum sounds preferably possible in a later UI/config stage; **not a core research requirement**. | F (low) | 14, 20 | review | PLANNED |
 | Q57 | REQ-057 | Calibration Wizard determines camera/playing area and zone positions; not needed in the earliest prototype. | F | 14 | test | PLANNED |
 | Q58 | REQ-058 | Debug / Developer Overlay exposes: tracking state, hand landmarks, stick-tip position, stick velocity, prediction, predicted trajectory, drum zone, Time-to-Impact, commit decisions, timing information. | F | 15 | test + review (all 10 items present) | PLANNED |
@@ -156,13 +156,13 @@ Source: `project-discovery.md` → "Confirmed Core Architecture" and "Core Resea
 | REQ-107 | Causal Temporal Tracking | F | 03 | test (causality) | PLANNED |
 | REQ-108 | Kinematic Features | F | 08, 13 | test (offline/online parity) | PLANNED |
 | REQ-109 | Future Trajectory Prediction | R | 10, 11, 12 | measurement | PLANNED |
-| REQ-110 | Virtual Drum Geometry | F | 04 | unit test | PLANNED |
-| REQ-111 | Predicted Trajectory / Zone Intersection | F | 04 | unit test (same routine for observed and predicted trajectories) | PLANNED |
+| REQ-110 | Virtual Drum Geometry | F | 04 | unit test | IMPLEMENTED P04 geometry suite |
+| REQ-111 | Predicted Trajectory / Zone Intersection | F | 04 | unit test (same routine for observed and predicted trajectories) | IMPLEMENTED P04 equivalence test |
 | REQ-112 | Strike Prediction | F/R | 05 (rule-based), 10 (model) | measurement | PLANNED |
 | REQ-113 | Time-to-Impact | F/R | 05, 10 | measurement | PLANNED |
 | REQ-114 | Commit / Refractory / Duplicate Suppression | F | 05 | test (invariants: one commit per episode; refractory) | PLANNED |
-| REQ-115 | Drum Engine | F | 04 | test | PLANNED |
-| REQ-116 | Audio Scheduling (→ Drum Sound) | F | 04 | measurement (audio output latency) | PLANNED |
+| REQ-115 | Drum Engine | F | 04 | test | IMPLEMENTED P04 bank/device/mixer/gain suites |
+| REQ-116 | Audio Scheduling (→ Drum Sound) | F | 04 | measurement (audio output latency) | PENDING — scheduler/mixer IMPLEMENTED; valid physical output-latency measurement unavailable |
 | REQ-117 | **Core Research Direction:** causal temporal prediction of future stick trajectory from monocular webcam hand/stick motion, then geometry-based impact determination and latency-aware audio scheduling; evaluate whether it provides useful lead time and reduces effective latency vs reactive detection with acceptable FP/TE. | R | 10, 18 | measurement | PLANNED |
 
 ---

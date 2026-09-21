@@ -18,5 +18,10 @@ One-off tools. Run from the repository root with the development venv (`.venv\Sc
 | `benchmark_tip_methods.py` | 03 (03.10, 03.11, 03.13, 03.15) | all three tip methods + one tracker per hand per method on the same replayed frames; per-method rates, agreement, tracker traces, distance-still rows (`--distance`), overlays; tip error only where `tools/annotate_tip.py` annotations exist (else PENDING) |
 | `measure_stage_latency.py` | 03 (03.14) | per-stage processing time (hands, stick per method, tracking) on a dev capture replayed from memory; sum vs frame period |
 | `hands_landmark_check.py` | 03 (03.1, 03.2) | estimator wrapper + identity assignment on dev captures: per-frame timing, presence per hand (N reported), schema validation of every record, identity events/rates (`--identity-mode RAW\|TEMPORAL`), overlay PNG; `--synthetic` self-test (incl. a SYNTHETIC crossing) |
+| `fetch_drum_samples.py` | 04 (04.6) | fetch or offline-verify the hash-pinned public-domain prerecorded TR-505 runtime bank |
+| `generate_sample_bank.py` | 04 (04.6) | regenerate deterministic SYNTHETIC WAV fixtures used only by tests |
+| `measure_audio_latency.py` | 04 (04.7, 04.9) | self-test the detector with injected delay or attempt synchronized microphone/digital-loopback output-latency capture; rejected attempts remain PENDING |
+| `measure_geometry_audio_compute.py` | 04 (04.3, 04.8) | profile geometry intersection plus scheduling on labelled SYNTHETIC trajectories |
+| `render_zone_layout.py` | 04 (04.11) | render candidate zones/surfaces/normals on a SYNTHETIC blank ROI and profile overlay cost |
 
 `tools/annotate_tip.py` (Task 03.10) is the manual tip-annotation tool (person-dependent; `--synthetic` writes a labelled SYNTHETIC self-test file the benchmark refuses by default). Every measurement script has a `--synthetic` self-test mode used by `tests/scripts/`; real runs write `experiments/<YYYYMMDD>-<HHMM>-<slug>/` (git-ignored) and their numbers are quoted with the run id in the camera profile.

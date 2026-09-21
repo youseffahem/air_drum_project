@@ -15,8 +15,16 @@ from __future__ import annotations
 from collections.abc import Iterator, Sequence
 from typing import Protocol, runtime_checkable
 
-from spacedrums.contracts.enums import ResetReason, TipMethod
-from spacedrums.contracts.records import FrameSample, HandObservation, StickObservation, TrackState
+from spacedrums.contracts.enums import CandidateSource, HandId, ResetReason, TipMethod
+from spacedrums.contracts.records import (
+    AudioEvent,
+    CommittedStrike,
+    FrameSample,
+    HandObservation,
+    StickObservation,
+    StrikeCandidate,
+    TrackState,
+)
 from spacedrums.contracts.values import FrameView
 
 
@@ -58,8 +66,9 @@ class Tracker(Protocol):
 
     tracker_id: str
 
-    def update(self, hand_obs: HandObservation, stick_obs: StickObservation,
-               t_capture: float) -> TrackState: ...
+    def update(
+        self, hand_obs: HandObservation, stick_obs: StickObservation, t_capture: float
+    ) -> TrackState: ...
 
     def reset(self, reason: ResetReason) -> None: ...
 
@@ -67,4 +76,30 @@ class Tracker(Protocol):
     def history(self) -> Sequence[TrackState]: ...
 
 
-__all__ = ["FrameSource", "TipEstimator", "Tracker"]
+@runtime_checkable
+class Geometry(Protocol):
+    """Causal observed/predicted trajectory intersection (Phase 04)."""
+
+    def intersect(
+        self,
+        trajectory: Sequence[object],
+        *,
+        source: CandidateSource,
+        frame_id: int,
+        hand_id: HandId,
+        t_capture: float,
+        anticipator_id: str | None = None,
+        strike_probability: float | None = None,
+        intensity_proxy: float | None = None,
+        t_candidate: float | None = None,
+    ) -> StrikeCandidate | None: ...
+
+
+@runtime_checkable
+class AudioScheduler(Protocol):
+    """Schedules a non-shadow Phase 05 commit without knowing commit policy internals."""
+
+    def schedule(self, committed: CommittedStrike) -> AudioEvent: ...
+
+
+__all__ = ["AudioScheduler", "FrameSource", "Geometry", "TipEstimator", "Tracker"]

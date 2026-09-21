@@ -111,25 +111,25 @@ zones:                          # MVP set per ADR-0003; positions are candidates
     name: Hi-Hat
     trigger_type: HAND_TIP
     shape: { type: ELLIPSE, center: [0.20, 0.30], rx: 0.12, ry: 0.06, angle_rad: 0.0 }   # candidate
-    impact_surface: { type: SEGMENT, p0: [0.08, 0.30], p1: [0.32, 0.30] }                 # candidate
+    impact_surface: { type: ARC, center: [0.20, 0.30], rx: 0.12, ry: 0.06, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586 } # candidate
     inward_normal: [0.0, 1.0]   # +y = downward in the image frame (ADR-0005)
-    sample_id: example-hihat-sample
+    sample_id: tr505-hihat-closed
     gain_curve_id: default
   - zone_id: snare
     name: Snare
     trigger_type: HAND_TIP
     shape: { type: ELLIPSE, center: [0.40, 0.65], rx: 0.14, ry: 0.08, angle_rad: 0.0 }   # candidate
-    impact_surface: { type: SEGMENT, p0: [0.26, 0.65], p1: [0.54, 0.65] }                 # candidate
+    impact_surface: { type: ARC, center: [0.40, 0.65], rx: 0.14, ry: 0.08, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586 } # candidate
     inward_normal: [0.0, 1.0]
-    sample_id: example-snare-sample
+    sample_id: tr505-snare
     gain_curve_id: default
   - zone_id: tom1
     name: Tom 1
     trigger_type: HAND_TIP
     shape: { type: ELLIPSE, center: [0.55, 0.35], rx: 0.11, ry: 0.06, angle_rad: 0.0 }   # candidate
-    impact_surface: { type: SEGMENT, p0: [0.44, 0.35], p1: [0.66, 0.35] }                 # candidate
+    impact_surface: { type: ARC, center: [0.55, 0.35], rx: 0.11, ry: 0.06, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586 } # candidate
     inward_normal: [0.0, 1.0]
-    sample_id: example-tom1-sample
+    sample_id: tr505-tom-h
     gain_curve_id: default
   - zone_id: crash_ride
     name: Crash/Ride
@@ -138,7 +138,7 @@ zones:                          # MVP set per ADR-0003; positions are candidates
     shape: { type: POLYGON, points: [[0.72, 0.22], [0.95, 0.22], [0.95, 0.40], [0.72, 0.40]] }  # candidate
     impact_surface: { type: SEGMENT, p0: [0.72, 0.22], p1: [0.95, 0.22] }                        # candidate
     inward_normal: [0.0, 1.0]
-    sample_id: example-crash-sample
+    sample_id: tr505-crash
     gain_curve_id: default
   # OOS-REF:REQ-207 — a future kick zone would use a reserved trigger_type (e.g. FOOT) added by
   # schema bump + ADR (ADR-0011). It is NOT expressible in schema 1.0 and must not appear here.
@@ -193,7 +193,7 @@ audio:
   buffer_frames: 128            # candidate (buffer size B; measured latency decides)
   sample_bank:
     path: assets/samples        # created in Phase 04
-    manifest: assets/samples/manifest.json
+    manifest: assets/samples/recorded-manifest.json
   gain:
     curves:
       - gain_curve_id: default

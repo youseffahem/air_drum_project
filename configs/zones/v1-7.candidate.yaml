@@ -1,0 +1,16 @@
+# Phase 04 candidate fragment. The seventh zone is a candidate Ride split; owner decision remains open.
+meta:
+  schema_version: "1.2"
+  created: "2026-09-21"
+  phase: "04"
+  description: "V1 seven-zone candidate; Ride split is an unresolved owner choice."
+  supersedes: null
+  status: candidate
+zones:
+  - {zone_id: hihat, name: Hi-Hat, trigger_type: HAND_TIP, shape: {type: ELLIPSE, center: [0.15, 0.31], rx: 0.11, ry: 0.065, angle_rad: 0.0}, impact_surface: {type: ARC, center: [0.15, 0.31], rx: 0.11, ry: 0.065, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}, inward_normal: [0.0, 1.0], sample_id: tr505-hihat-closed, gain_curve_id: default}
+  - {zone_id: snare, name: Snare, trigger_type: HAND_TIP, shape: {type: ELLIPSE, center: [0.34, 0.68], rx: 0.14, ry: 0.09, angle_rad: 0.0}, impact_surface: {type: ARC, center: [0.34, 0.68], rx: 0.14, ry: 0.09, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}, inward_normal: [0.0, 1.0], sample_id: tr505-snare, gain_curve_id: default}
+  - {zone_id: tom1, name: Tom 1, trigger_type: HAND_TIP, shape: {type: ELLIPSE, center: [0.42, 0.38], rx: 0.11, ry: 0.07, angle_rad: 0.0}, impact_surface: {type: ARC, center: [0.42, 0.38], rx: 0.11, ry: 0.07, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}, inward_normal: [0.0, 1.0], sample_id: tr505-tom-h, gain_curve_id: default}
+  - {zone_id: tom2, name: Tom 2, trigger_type: HAND_TIP, shape: {type: ELLIPSE, center: [0.60, 0.40], rx: 0.11, ry: 0.07, angle_rad: 0.0}, impact_surface: {type: ARC, center: [0.60, 0.40], rx: 0.11, ry: 0.07, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}, inward_normal: [0.0, 1.0], sample_id: tr505-tom-m, gain_curve_id: default}
+  - {zone_id: floor_tom, name: Floor Tom, trigger_type: HAND_TIP, shape: {type: ELLIPSE, center: [0.70, 0.70], rx: 0.14, ry: 0.09, angle_rad: 0.0}, impact_surface: {type: ARC, center: [0.70, 0.70], rx: 0.14, ry: 0.09, angle_rad: 0.0, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}, inward_normal: [0.0, 1.0], sample_id: tr505-tom-l, gain_curve_id: default}
+  - {zone_id: crash_ride, name: Crash, trigger_type: HAND_TIP, shape: {type: ELLIPSE, center: [0.82, 0.27], rx: 0.14, ry: 0.055, angle_rad: 0.12}, impact_surface: {type: ARC, center: [0.82, 0.27], rx: 0.14, ry: 0.055, angle_rad: 0.12, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}, inward_normal: [-0.1197122073, 0.9928086359], sample_id: tr505-crash, gain_curve_id: default}
+  - {zone_id: ride, name: Ride (candidate seventh zone), trigger_type: HAND_TIP, shape: {type: ELLIPSE, center: [0.83, 0.48], rx: 0.13, ry: 0.055, angle_rad: -0.08}, impact_surface: {type: ARC, center: [0.83, 0.48], rx: 0.13, ry: 0.055, angle_rad: -0.08, theta_start_rad: 3.141592653589793, theta_end_rad: 6.283185307179586}, inward_normal: [0.0799146940, 0.9968017063], sample_id: tr505-ride, gain_curve_id: default}

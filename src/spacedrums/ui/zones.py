@@ -1,0 +1,83 @@
+"""Clear geometric zone overlay for Phase 04 (no realistic drum-kit visuals)."""
+
+from __future__ import annotations
+
+import math
+from collections.abc import Mapping
+
+import cv2
+import numpy as np
+
+from spacedrums.geometry import Arc, Ellipse, Segment, ZoneRegistry
+
+
+def _px(point: tuple[float, float], width: int, height: int) -> tuple[int, int]:
+    return (round(point[0] * (width - 1)), round(point[1] * (height - 1)))
+
+
+def draw_zones(
+    image: np.ndarray,
+    registry: ZoneRegistry,
+    *,
+    impact_points: Mapping[str, tuple[float, float]] | None = None,
+) -> np.ndarray:
+    """Draw shapes, impact surfaces, inward normals and optional observed impact points."""
+    out = image.copy()
+    height, width = out.shape[:2]
+    impact_points = impact_points or {}
+    for zone in registry:
+        color = (80, 210, 245)
+        if isinstance(zone.shape, Ellipse):
+            center = _px(zone.shape.center, width, height)
+            axes = (max(1, round(zone.shape.rx * width)), max(1, round(zone.shape.ry * height)))
+            cv2.ellipse(out, center, axes, math.degrees(zone.shape.angle_rad), 0, 360, color, 2, cv2.LINE_AA)
+            label_at = (center[0] - axes[0], center[1] + axes[1] + 18)
+        else:
+            pts = np.asarray([_px(p, width, height) for p in zone.shape.points], np.int32)
+            cv2.polylines(out, [pts], True, color, 2, cv2.LINE_AA)
+            label_at = tuple(pts[np.argmax(pts[:, 1])])
+        if isinstance(zone.impact_surface, Segment):
+            a, b = zone.impact_surface.p0, zone.impact_surface.p1
+        else:
+            arc: Arc = zone.impact_surface
+            theta = np.linspace(arc.theta_start_rad, arc.theta_end_rad, 65)
+            pts = np.asarray([_px(arc.point_at(float(t)), width, height) for t in theta], np.int32)
+            cv2.polylines(out, [pts], False, (40, 70, 255), 3, cv2.LINE_AA)
+            a, b = arc.point_at(arc.theta_start_rad), arc.point_at(arc.theta_end_rad)
+        if isinstance(zone.impact_surface, Segment):
+            cv2.line(out, _px(a, width, height), _px(b, width, height), (40, 70, 255), 3, cv2.LINE_AA)
+        midpoint = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+        end = (midpoint[0] + zone.inward_normal[0] * 0.045, midpoint[1] + zone.inward_normal[1] * 0.045)
+        cv2.arrowedLine(
+            out,
+            _px(midpoint, width, height),
+            _px(end, width, height),
+            (60, 230, 90),
+            2,
+            cv2.LINE_AA,
+            tipLength=0.35,
+        )
+        cv2.putText(
+            out,
+            zone.name,
+            (int(label_at[0]), int(label_at[1])),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.48,
+            (235, 235, 235),
+            1,
+            cv2.LINE_AA,
+        )
+        if zone.zone_id in impact_points:
+            cv2.drawMarker(
+                out,
+                _px(impact_points[zone.zone_id], width, height),
+                (255, 255, 255),
+                cv2.MARKER_CROSS,
+                14,
+                2,
+                cv2.LINE_AA,
+            )
+    return out
+
+
+__all__ = ["draw_zones"]
