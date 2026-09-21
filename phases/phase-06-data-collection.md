@@ -2,7 +2,7 @@
 
 ## Status
 
-**IMPLEMENTED (machinery: Tasks 06.1–06.9); pilot and campaign PENDING (Tasks 06.10–06.11 not performed); proposed PASS-WITH-CONDITIONS at the exit gate** (2026-09-22). The recording tool, structured protocol (v0.1-draft), `SessionMetadata` schema + validator, operator checklist + participant instructions, microphone-capture + sync machinery, session verification, unusable-recording policy and raw-manifest builder exist with tests (532 project-wide, 47 new) and were validated end to end on SYNTHETIC input (full protocol, run `20260921-2351-p06-record-synthetic`) and on an existing DEV CAPTURE (real frames, run `20260921-2352-p06-record-devcapture`; re-track DECISION-IDENTICAL, run `20260921-2352-p06-regenerate-session`). **No pilot and no participant was recorded**: no person was at the camera, the owner decided that no new recording is made in this phase, and the ethics question is still open. Protocol v1.0 freeze, thresholds, pad+mic go/no-go, `ds-raw-v1.0`, all counts and the campaign report are **PENDING / NOT VALIDATED**. See `docs/gates/phase-06-gate.md`, `docs/reports/phase-06-pilot.md`, `docs/reports/phase-06-campaign.md`, ADR-0019.
+**IMPLEMENTED (machinery: Tasks 06.1–06.9); pilot and campaign PENDING (Tasks 06.10–06.11 not performed); proposed PASS-WITH-CONDITIONS at the exit gate** (2026-09-22). The recording tool, structured protocol (v0.1-draft), `SessionMetadata` schema + validator, operator checklist + participant instructions, microphone-capture + sync machinery, session verification, unusable-recording policy and raw-manifest builder exist with tests (532 project-wide, 47 new) and were validated end to end on SYNTHETIC input (full protocol, run `20260922-0040-p06-record-synthetic`) and on an existing DEV CAPTURE (real frames, run `20260922-0041-p06-record-devcapture`; re-track DECISION-IDENTICAL, run `20260922-0041-p06-regenerate-session`). **No pilot and no participant was recorded**: no person was at the camera, the owner decided that no new recording is made in this phase, and the ethics question is still open. Protocol v1.0 freeze, thresholds, pad+mic go/no-go, `ds-raw-v1.0`, all counts and the campaign report are **PENDING / NOT VALIDATED**. See `docs/gates/phase-06-gate.md`, `docs/reports/phase-06-pilot.md`, `docs/reports/phase-06-campaign.md`, ADR-0019.
 
 ## Purpose
 
@@ -238,7 +238,7 @@ Participant ──► consent (paper/digital, ID → pseudonym) ──► setup 
 
 Reviewer verifies protocol, policy, pilot report, campaign report, manifest, and consent completeness. PASS → Phase 07.
 
-Gate record: `docs/gates/phase-06-gate.md` — **proposed PASS-WITH-CONDITIONS** (C-06-1 pilot + v1.0 freeze, C-06-2 thresholds from the pilot, C-06-3 pad+mic go/no-go, C-06-4 campaign + `ds-raw-v1.0`, C-06-5 owner decisions, C-06-6 clean-tree reruns), 2026-09-22; owner review pending. Criterion 1 MET; 2–3 PARTIAL; 4–5 NOT MET / PENDING.
+Gate record: `docs/gates/phase-06-gate.md` — **proposed PASS-WITH-CONDITIONS** (C-06-1 pilot + v1.0 freeze, C-06-2 thresholds from the pilot, C-06-3 pad+mic go/no-go, C-06-4 campaign + `ds-raw-v1.0`, C-06-5 owner decisions; C-06-6 clean-tree reruns CLOSED 2026-09-22 on `b864276…`), 2026-09-22; owner review pending. Criterion 1 MET; 2–3 PARTIAL; 4–5 NOT MET / PENDING.
 
 ## What Must NOT Be Done Yet
 
