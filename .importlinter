@@ -2,9 +2,9 @@
 # Enforced by import-linter (`lint-imports`) in tests/architecture/test_import_layers.py from
 # Phase 02 on; a violation fails the gate (integrity item I-2). Layers in parentheses are
 # optional: the package does not exist yet and the contract needs no edit when its phase adds it.
-# The forbidden-import contracts for not-yet-existing packages (prediction -> geometry,
-# commit -> perception) are added by the phase that creates the source package (05), because
-# import-linter cannot reference a module that does not exist.
+# The forbidden-import contracts prediction -> geometry ("no-peek") and commit -> perception
+# ("commit-blind") were added by Phase 05 together with the packages they constrain
+# (architecture.md section 2.4).
 
 [importlinter]
 root_package = spacedrums
@@ -13,10 +13,10 @@ root_package = spacedrums
 name = Space Drums pipeline layers
 type = layers
 layers =
-    (spacedrums.app)
+    spacedrums.app
     spacedrums.ui | (spacedrums.eval) | (spacedrums.data) | (spacedrums.calib)
-    (spacedrums.commit) | (spacedrums.audio)
-    (spacedrums.prediction)
+    spacedrums.commit | (spacedrums.audio)
+    spacedrums.prediction
     (spacedrums.features) | (spacedrums.geometry)
     (spacedrums.tracking)
     (spacedrums.stick)
@@ -53,3 +53,22 @@ source_modules =
     spacedrums.capture
 forbidden_modules =
     spacedrums.ui
+
+[importlinter:contract:no-peek]
+name = prediction must not import geometry (a predictor cannot peek at zones)
+type = forbidden
+source_modules =
+    spacedrums.prediction
+forbidden_modules =
+    spacedrums.geometry
+
+[importlinter:contract:commit-blind]
+name = commit sees only StrikeCandidate + TrackState (never perception, prediction or features)
+type = forbidden
+source_modules =
+    spacedrums.commit
+forbidden_modules =
+    spacedrums.hands
+    spacedrums.stick
+    spacedrums.prediction
+    spacedrums.features

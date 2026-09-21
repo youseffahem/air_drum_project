@@ -24,6 +24,7 @@ from spacedrums.contracts.records import (
     StickObservation,
     StrikeCandidate,
     TrackState,
+    TrajectoryPrediction,
 )
 from spacedrums.contracts.values import FrameView
 
@@ -96,10 +97,51 @@ class Geometry(Protocol):
 
 
 @runtime_checkable
+class Anticipator(Protocol):
+    """architecture.md section 11: causal per-hand anticipator (Phase 05 rule-based B; Phases 09-13 C-*).
+
+    ``predict`` receives the tracker's causal history (oldest first, every ``t_capture`` <= the
+    current frame's) and optional features; there is no look-ahead argument. It returns ``None``
+    when it declines (insufficient history, status not VALID/DEGRADED, warm-up) and never raises
+    on ``INVALID``/``STALE`` input (``TEST-CONFORM-3``, ``TEST-CAUSAL-1/2``). ``model_hash`` is
+    ``None`` for rule-based implementations.
+    """
+
+    anticipator_id: str
+    model_hash: str | None
+
+    def predict(
+        self, track_history: Sequence[TrackState], features: object | None = None
+    ) -> TrajectoryPrediction | None: ...
+
+    def reset(self, reason: ResetReason) -> None: ...
+
+
+@runtime_checkable
+class CommitPolicy(Protocol):
+    """architecture.md section 11: per-hand, per-frame commit decision (Phase 05).
+
+    Source-agnostic: reads ``strike_probability``, ``tti``, ``t_impact_pred``/``t_impact_est``,
+    zone and hand of each candidate plus the hand's ``TrackState`` and ``t_now``; never the arm.
+    Never emits a ``CommittedStrike`` while ``track_state.status`` is outside the allowed set
+    (``TEST-CONFORM-5``); ``reset`` follows the reset matrix (architecture.md section 6.2).
+    """
+
+    commit_policy_id: str
+
+    def step(
+        self, candidates: Sequence[StrikeCandidate], track_state: TrackState, t_now: float
+    ) -> list[CommittedStrike]: ...
+
+    def reset(self, reason: ResetReason) -> None: ...
+
+
+@runtime_checkable
 class AudioScheduler(Protocol):
     """Schedules a non-shadow Phase 05 commit without knowing commit policy internals."""
 
     def schedule(self, committed: CommittedStrike) -> AudioEvent: ...
 
 
-__all__ = ["AudioScheduler", "FrameSource", "Geometry", "TipEstimator", "Tracker"]
+__all__ = ["Anticipator", "AudioScheduler", "CommitPolicy", "FrameSource", "Geometry", "TipEstimator",
+           "Tracker"]

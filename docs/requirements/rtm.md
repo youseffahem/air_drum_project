@@ -31,9 +31,9 @@
 | Q1 | REQ-001 | Software-only virtual drumming: single webcam + CV tracks **ordinary** drumsticks; estimates stick-tip motion; detects or predicts imminent virtual strikes; maps to zones; plays drum sounds in real time. Main contribution is Causal Temporal Strike Anticipation. | F/R | 01, 05, 13, 20 | review (01), system test (05, 13, 20) | PLANNED — P01 spec: `docs/architecture/architecture.md` §1, §4, §11 — gate pending |
 | Q2 | REQ-002 | Allow playing a virtual kit without an electronic kit; research focus: reduce *perceived* Action-to-Sound Latency by predicting an imminent strike before the actual/virtual impact. | R | 10, 18 | measurement (18, external timing) | PLANNED |
 | Q3 | REQ-003 | Primary user: beginners, students, hobbyists, users without a real kit, using ordinary sticks + webcam. | C | 06, 22 | review (protocol difficulty in 06; demo framing in 22) | PLANNED |
-| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED overall — P02 guide IMPLEMENTED; P04 contribution IMPLEMENTED: zone display + synthetic geometry→candidate→schedule→mixer integration (`tests/audio/test_scheduler_integration.py`); live commit flow remains Phase 05 |
+| Q4 | REQ-004 | Launch-to-first-sound flow: dedicated on-screen "stand here" area → detect/track hands + sticks → virtual zones displayed → user moves stick toward a zone → system estimates/predicts strike → commit → schedule → play sound. | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | PLANNED overall — P02 guide IMPLEMENTED; P04 contribution IMPLEMENTED: zone display + synthetic geometry→candidate→schedule→mixer integration (`tests/audio/test_scheduler_integration.py`); P05: full flow IMPLEMENTED in `spacedrums.app` (tracking → A/B → commit → schedule; `tests/app/`), live system test with a person PENDING (gate C-05-1) |
 | Q5 | REQ-005 | Contribution = causal temporal prediction of strikes from camera-derived hand/stick motion. Must clearly measure **Prediction Lead Time, Timing Error, False Positives**, and the effect of prediction on **Effective System Latency**. | R | 09, 10, 18 | measurement (harness 09; final 18) | PLANNED |
-| Q6 | REQ-006 | Both research project and usable system; research is primary; system must be usable enough to demonstrate real-time virtual drumming. | C | 05, 20, 22 | review + system test | PLANNED |
+| Q6 | REQ-006 | Both research project and usable system; research is primary; system must be usable enough to demonstrate real-time virtual drumming. | C | 05, 20, 22 | review + system test | PLANNED — P05 prototype IMPLEMENTED (`spacedrums.app.main`); usability demonstration PENDING (C-05-1) |
 
 ### B — Drumming Experience
 
@@ -44,8 +44,8 @@
 | Q9 | REQ-009 | **Markerless tracking is the primary goal.** Colored tape/markers only as a fallback or benchmark condition if markerless proves unreliable. | C | 03, 18 | benchmark (03 tip-method comparison); review (labelling of marker condition, 18) | PLANNED |
 | Q10 | REQ-010 | Both hands **and** sticks must be tracked; motion must be understood quickly enough to predict the upcoming strike. | F | 03 | test + measurement (tracking latency, 03) | PLANNED |
 | Q11 | REQ-011 | Either hand may hit any zone, unless future experiments show hand–zone assignment improves reliability. | F | 04, 05, 18 | test (04/05: no hand–zone restriction); review (18: revisit) | IMPLEMENTED P04 — registry default + loader guard; tests |
-| Q12 | REQ-012 | Support individual hits, alternating R/L, repeated hits, rapid consecutive hits, and simultaneous / near-simultaneous hits when the pipeline can reliably support them. | F | 05, 06, 17 | system test (05); protocol coverage (06); failure-injection (17) | PLANNED |
-| Q13 | REQ-013 | Target speed: realistic beginner/intermediate drumming. Max BPM / hit rate is **To Be Experimentally Determined** with real sticks. | R | 05, 18 | measurement | PLANNED |
+| Q12 | REQ-012 | Support individual hits, alternating R/L, repeated hits, rapid consecutive hits, and simultaneous / near-simultaneous hits when the pipeline can reliably support them. | F | 05, 06, 17 | system test (05); protocol coverage (06); failure-injection (17) | PLANNED — P05: every hit type exercised on SYNTHETIC sequences (`tests/app/test_app_pipeline.py`, run `20260921-1917-p05-playability-synthetic`); live protocol `scripts/playability_session.py --live` PENDING (C-05-1) |
+| Q13 | REQ-013 | Target speed: realistic beginner/intermediate drumming. Max BPM / hit rate is **To Be Experimentally Determined** with real sticks. | R | 05, 18 | measurement | PLANNED — P05 protocol has a repeated-increasing-rate segment; max rate PENDING (C-05-1) |
 | Q14 | REQ-014 | Intensity estimated from kinematics (e.g. velocity near predicted impact); explicitly an **intensity proxy**, not force; V1 maps it to volume / MIDI-like velocity. | F | 04, 07, 11 | test (04 gain mapping); review (07 GT-proxy definition); measurement (11 agreement) | IMPLEMENTED P04 mapping; validation PENDING P07/11 |
 | Q15 | REQ-015 | Distinguish drum **zones**, not articulation types (rim/center/edge = future work unless research-relevant). | C | 04, 07 | review | IMPLEMENTED P04 — stable zone ids only; no articulation path |
 
@@ -82,7 +82,7 @@
 | Q32 | REQ-032 | Assume a natural grip; allow reasonable variation in grip and stick orientation. | C | 03, 06 | test (03); protocol (06 records grip variation) | PLANNED |
 | Q33 | REQ-033 | Automatically identify left/right hands; **each hand has independent Tracking, Kinematic, and Prediction State**. | F | 01, 03 | review (01 contracts); test (03) | PLANNED — P01 spec: `architecture.md` §3, §6 (ownership + reset matrix), ADR-0006 — gate pending |
 | Q34 | REQ-034 | Tolerate short tracking interruptions using the available **causal** state when safe; **never use future information**; reset Predictor/Feature History when tracking becomes invalid or stale. | F | 03, 17 | test (causality invariance, README §13; state-machine tests) | PLANNED |
-| Q35 | REQ-035 | On tracking loss of ~100–300 ms: enter safe **Invalid** state; reset history when necessary; re-enable prediction when valid tracking returns; **never fabricate a strike** during loss. | F | 03, 05, 17 | failure-injection test (17); test (03/05) | PLANNED |
+| Q35 | REQ-035 | On tracking loss of ~100–300 ms: enter safe **Invalid** state; reset history when necessary; re-enable prediction when valid tracking returns; **never fabricate a strike** during loss. | F | 03, 05, 17 | failure-injection test (17); test (03/05) | PLANNED — P03 state machine; P05 commit policy refuses every candidate while status ≠ VALID (`TEST-CONFORM-5` property test), synthetic induced-loss run `20260921-1918-p05-induced-loss-synthetic`: 0 commits on non-VALID frames (24/24); live induced-loss test PENDING (C-05-2) |
 
 ### F — Impact & Strike Definition
 
@@ -100,7 +100,7 @@
 |---|---|---|---|---|---|---|
 | Q41 | REQ-041 | Multi-task targets: strike-within-horizon, Time-to-Impact, impact zone, impact position (when useful), intensity proxy. **Main direction: Future Trajectory Prediction.** | R | 10, 11 | measurement (per-task metrics) | PLANNED |
 | Q42 | REQ-042 | **Trajectory first**: Past Motion → Future Trajectory → Virtual Drum Geometry → Strike. Predicted strike is determined when the predicted trajectory intersects a zone per impact geometry. | C/R | 10, 13 | review + test (geometry code path shared with Phase 04, unchanged) | PLANNED |
-| Q43 | REQ-043 | Preferred: a causal temporal model over recent hand/stick motion; **simpler baselines remain available for comparison**. | R | 05, 09, 10 | review (baselines A, B, C-GBDT exist) | PLANNED |
+| Q43 | REQ-043 | Preferred: a causal temporal model over recent hand/stick motion; **simpler baselines remain available for comparison**. | R | 05, 09, 10 | review (baselines A, B, C-GBDT exist) | PLANNED — P05: baselines A (reactive) and B (rule-based CV/CA) IMPLEMENTED under one commit policy (`spacedrums.prediction`, `spacedrums.commit`) |
 | Q44 | REQ-044 | Evaluate GBDT baseline, GRU, TCN, and (optional, if computationally justified) Tiny Transformer. **Select on validation performance AND real-time CPU inference cost.** | R | 09, 10, 12, 13 | measurement (multi-criteria selection ADR) | PLANNED |
 | Q45 | REQ-045 | Metrics: Prediction Lead Time, FP rate, FN rate, Timing Error, Zone Accuracy, Trajectory Error, Intensity Error / Proxy Agreement, Inference Latency, End-to-End / Effective Latency where measurable. **Primary figure: Useful Prediction Lead Time vs False-Positive behaviour.** | R | 09, 18 | measurement (harness implements README §10) | PLANNED |
 
@@ -117,7 +117,7 @@
 
 | Q# | REQ | Requirement | Type | Owning phase(s) | Verification | Status |
 |---|---|---|---|---|---|---|
-| Q50 | REQ-050a | Real-time webcam-based virtual drumming works reliably enough to demonstrate actual strikes with ordinary sticks. | R | 05, 20, 22 | system test + demo rehearsal | PLANNED |
+| Q50 | REQ-050a | Real-time webcam-based virtual drumming works reliably enough to demonstrate actual strikes with ordinary sticks. | R | 05, 20, 22 | system test + demo rehearsal | PLANNED — P05 prototype IMPLEMENTED; demonstration with ordinary sticks PENDING (C-05-1) |
 | Q50 | REQ-050b | Temporal prediction demonstrates **useful, measurable Prediction Lead Time vs the Reactive Baseline** without unacceptable False Positives. | R | 10, 18 | measurement | PLANNED |
 | Q50 | REQ-050c | Scientifically defensible evaluation of whether prediction improves Action-to-Sound timing, **with limitations documented**. | R | 18, 21 | measurement + review (claims audit) | PLANNED |
 
@@ -158,9 +158,9 @@ Source: `project-discovery.md` → "Confirmed Core Architecture" and "Core Resea
 | REQ-109 | Future Trajectory Prediction | R | 10, 11, 12 | measurement | PLANNED |
 | REQ-110 | Virtual Drum Geometry | F | 04 | unit test | IMPLEMENTED P04 geometry suite |
 | REQ-111 | Predicted Trajectory / Zone Intersection | F | 04 | unit test (same routine for observed and predicted trajectories) | IMPLEMENTED P04 equivalence test |
-| REQ-112 | Strike Prediction | F/R | 05 (rule-based), 10 (model) | measurement | PLANNED |
-| REQ-113 | Time-to-Impact | F/R | 05, 10 | measurement | PLANNED |
-| REQ-114 | Commit / Refractory / Duplicate Suppression | F | 05 | test (invariants: one commit per episode; refractory) | PLANNED |
+| REQ-112 | Strike Prediction | F/R | 05 (rule-based), 10 (model) | measurement | PLANNED — P05 rule-based prediction IMPLEMENTED (`TrajectoryPrediction` → geometry → `StrikeCandidate(RULE)`); measurement on real strokes PENDING |
+| REQ-113 | Time-to-Impact | F/R | 05, 10 | measurement | PLANNED — P05 `tti = t_impact_pred − t_ref` produced and gated (`tti_commit_s`); measurement PENDING |
+| REQ-114 | Commit / Refractory / Duplicate Suppression | F | 05 | test (invariants: one commit per episode; refractory) | PLANNED — P05 IMPLEMENTED with tests (`tests/commit/`: one commit per episode, refractory per zone/hand, property test) — gate pending |
 | REQ-115 | Drum Engine | F | 04 | test | IMPLEMENTED P04 bank/device/mixer/gain suites |
 | REQ-116 | Audio Scheduling (→ Drum Sound) | F | 04 | measurement (audio output latency) | PENDING — scheduler/mixer IMPLEMENTED; valid physical output-latency measurement unavailable |
 | REQ-117 | **Core Research Direction:** causal temporal prediction of future stick trajectory from monocular webcam hand/stick motion, then geometry-based impact determination and latency-aware audio scheduling; evaluate whether it provides useful lead time and reduces effective latency vs reactive detection with acceptable FP/TE. | R | 10, 18 | measurement | PLANNED |

@@ -1,7 +1,5 @@
 # spacedrums.prediction
 
-**Status:** PLANNED - empty stub, no code (Phase 00, Task 00.4).
+**Status:** rule-based arm B IMPLEMENTED (Phase 05, Task 05.2; ADR-0018): `AnticipatorBase` (common gates, decline reasons, declared `TEST-CAUSAL-2` window) and `RuleBasedAnticipator` (CV / CA extrapolation from the tracker's causal history, heuristic monotone `strike_probability`, `RuleSettings.from_config` validating `anticipator.rule.params`). Learned arms (C-GBDT, C-GRU/TCN/MT/TT): Phases 09–12.
 
-Anticipator implementations: rule-based (B), GBDT (C-GBDT), temporal models (C-GRU / C-TCN / C-MT / C-TT). Owners: Phases 05, 09, 10-12.
-
-See docs/repo-layout.md section 2 for the pipeline-stage mapping. Code may only be added by the owning phase.
+Layer L5: imports L0 and tracking types; **never** `geometry` (import-linter contract `no-peek`). Tests: `tests/prediction/` (analytic crossing vs synthetic parabola, conformance `TEST-CONFORM-3`, gate monotonicity, failure cases, `TEST-CAUSAL-1/2`). Every threshold is a playability candidate (`configs/prototype.candidate.yaml`).

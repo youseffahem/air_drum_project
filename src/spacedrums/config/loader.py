@@ -173,6 +173,9 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
         if block in cfg and version in ("1.0", "1.1"):
             problems.append(f"{block} block requires meta.schema_version >= 1.2 "
                             f"(document declares {version})")
+    # Phase 05 (ADR-0018): the geometry block (v_min) exists from schema 1.3
+    if "geometry" in cfg and version in ("1.0", "1.1", "1.2"):
+        problems.append(f"geometry block requires meta.schema_version >= 1.3 (document declares {version})")
     # Phase 03 Task 03.2: an AMBIGUOUS identity may be DEGRADED at most, never VALID (README section 8)
     ident = cfg.get("hands", {}).get("identity", {})
     cap = ident.get("ambiguous_score_cap")

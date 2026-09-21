@@ -184,7 +184,23 @@ def test_hands_block_optional_for_older_documents(validator, config_example):
     del cfg["hands"]
     cfg["meta"]["schema_version"] = "1.1"
     assert is_valid(v, cfg)  # 1.0 / 1.1 documents stay valid (additive minor bump)
+    cfg["meta"]["schema_version"] = "1.4"  # unknown version rejected (1.3 exists since Phase 05, ADR-0018)
+    assert not is_valid(v, cfg)
+
+
+def test_geometry_block_is_optional_and_validated(validator, config_example):
+    """Schema 1.3 (Phase 05, ADR-0018): optional geometry block with v_min >= 0; unknown keys rejected."""
+    v = validator("config")
+    cfg = copy.deepcopy(config_example)
+    assert "geometry" not in cfg and is_valid(v, cfg)  # 1.2 example has no geometry block and stays valid
     cfg["meta"]["schema_version"] = "1.3"
+    cfg["geometry"] = {"v_min": 0.15}
+    assert is_valid(v, cfg)
+    cfg["geometry"] = {"v_min": -0.1}
+    assert not is_valid(v, cfg)
+    cfg["geometry"] = {"v_min": 0.15, "v_max": 1.0}
+    assert not is_valid(v, cfg)
+    cfg["geometry"] = {}
     assert not is_valid(v, cfg)
 
 

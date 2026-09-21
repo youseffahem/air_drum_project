@@ -15,6 +15,11 @@ Phase 02 confirms the ADR-0004 candidate ``time.perf_counter`` on HW-01: it is
 
 CPU-time and sleep helpers live here too so that ``time`` is imported in exactly one
 place; they are *not* timestamps and must never be stored in a record.
+
+Phase 05 adds the sibling modules ``spacedrums.timing.records`` (``TimingCollector``),
+``spacedrums.timing.logger`` (JSONL record streams with ``RecordStreamHeader``) and
+``spacedrums.timing.decomposition`` (README section 5.3 components from ``TimingRecord``s). They are
+imported by their full module path so this clock module stays import-free of them.
 """
 
 from __future__ import annotations

@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+**IMPLEMENTED (machine-executable scope); person-dependent measurements PENDING; proposed PASS-WITH-CONDITIONS at the exit gate** (2026-09-21). Tasks 05.1–05.5 have implementation and automated evidence (485 tests pass; `TEST-CAUSAL-1/2` on the rule-based anticipator and the commit policy; deterministic replay; synthetic induced-loss test with zero commits on non-VALID frames). Tasks 05.6–05.10 have their machinery, SYNTHETIC self-tests and replays of the existing developer captures, but the developer session with sticks, the live induced-loss test, the tuning log and the software-stamped `L_sys` decomposition (which also needs the Phase 04 audio-output latency, still PENDING) were **not** performed: no person was at the camera and no new recording was made. Phase 05 was executed on the owner's instruction while the Phase 04 gate proposes FAIL; that evidence is not reinterpreted here. See `docs/gates/phase-05-gate.md`, `docs/reports/phase-05-playability.md`, ADR-0018.
 
 ## Purpose
 
@@ -233,6 +233,8 @@ Both arms may run simultaneously with one *active* (commits sound) and the other
 ## Exit Gate
 
 Reviewer verifies playability report, safety test, and timing instrumentation. PASS → Phase 06 may start.
+
+Gate record: `docs/gates/phase-05-gate.md` — **proposed PASS-WITH-CONDITIONS** (C-05-1…C-05-5: live playability session, live induced-loss test, `L_sys_est` after Phase 04 criterion 6, tuning session, clean-tree reruns), 2026-09-21; owner review pending.
 
 ## What Must NOT Be Done Yet
 

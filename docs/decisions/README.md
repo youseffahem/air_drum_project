@@ -23,5 +23,6 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0015](ADR-0015-primary-tip-method.md) | Markerless stick pipeline (`stick` block) and primary tip method — **provisional `GEOM`** pending the annotated benchmark (gate C-03-1 PENDING) | Accepted (pipeline) / Provisional (primary method) | 2026-09-21 | 03 |
 | [ADR-0016](ADR-0016-filter-choice.md) | Per-hand causal filter (`kalman_cv` candidate) and README §8 state machine; TEST-CAUSAL-2 `N_eff` declaration rule | Accepted (thresholds = candidates) | 2026-09-21 | 03 |
 | [ADR-0017](ADR-0017-roi-distance.md) | ROI / user distance for data collection: keep 1.0 m, 640×480, exposure −5 at L2; factorial PENDING (gate C-03-3) | Proposed (recommendation) | 2026-09-21 | 03 |
+| [ADR-0018](ADR-0018-rule-baseline-commit-policy.md) | Rule-based arm B (CV/CA extrapolation, heuristic probability), shared commit policy + episode rule for anticipatory commits, per-arm shadow logging, replay `t_now`, unmeasured audio-latency handling, config schema 1.3 (`geometry.v_min`) | Proposed (thresholds = playability candidates; tuning PENDING) | 2026-09-21 | 05 |
 
-Next free number: **ADR-0018**.
+Next free number: **ADR-0019**.
