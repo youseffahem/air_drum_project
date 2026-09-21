@@ -3,7 +3,7 @@
 **Phase:** 02 — Task 02.10 · **Status:** MEASURED for the quantities marked MEASURED below (development hardware, 2026-09-21, developer lighting condition L0); PENDING for the quantities that need a person at the camera (§7, §8) or an external instrument (§6 bias). Nothing here is VALIDATED (no independent repeat session yet; reproducibility-policy §6 "live captures").
 **Config fragment:** [`../configs/camera/hw01-integrated-webcam.candidate.yaml`](../configs/camera/hw01-integrated-webcam.candidate.yaml) (`profile_id: hw01-integrated-webcam-v0`, status *candidate*).
 **Decisions:** [ADR-0013](decisions/ADR-0013-capture-backend-timestamp-policy.md). **Hardware:** [`hardware-inventory.md`](hardware-inventory.md) HW-01. **Protocols:** [`protocols/`](protocols/).
-**Runs:** every number below names its `run_id` (`experiments/<run_id>/run.json`, git-ignored on HW-01; the gate record lists them). All runs: `git_sha 568eca92…` with a **dirty** tree (the Phase 02 code that measures is the code being added; see gate record §6), Python 3.11.9, OpenCV 5.0.0, `cv2` threads 8, clock `perf_counter` = `QueryPerformanceCounter()` (1e-7 s), laptop plugged in, Windows power scheme *Balanced*.
+**Runs:** every number below names its `run_id` (`experiments/<run_id>/run.json`, git-ignored on HW-01; the gate record lists them). The Phase 02 development runs carry `git_sha 568eca92…` with a **dirty** tree (the Phase 02 code that measures is the code being added; see gate record §6); the baseline-mode FPS cells were **re-run on the committed tree** `13f0f3394fc699bb2e12eb10ae0f1da6c0ce2f61` with `git_dirty: false` (§3, runs `…-clean`). Python 3.11.9, OpenCV 5.0.0, `cv2` threads 8, clock `perf_counter` = `QueryPerformanceCounter()` (1e-7 s), laptop plugged in, Windows power scheme *Balanced*.
 
 Labels: **MEASURED** (method + run id), **inspected** (read from the OS/driver), **advertised** (claimed by the driver, not verified), **candidate** (a choice, not a result), **PENDING** (not yet measured, reason given).
 
@@ -65,6 +65,17 @@ Method: `scripts/measure_fps.py`; each cell 60 s (auto-exposure cells 30 s), rep
 
 ¹ Against the *requested* 60 FPS nominal (16.7 ms), every ~33 ms interval counts as a gap and every ~66 ms one as a stall: this is the measured evidence that **the 60 FPS request is not delivered** (identical delivery to the 30 FPS request in every statistic).
 
+**Clean-tree confirmation of the baseline cells (gate condition C-3, 2026-09-21 09:31–09:36, owner-instructed).** Same script, same arguments and therefore identical `config_hash` values as the corresponding development runs (`7538c06c…` DSHOW, `8cceef09…` MSMF); `git_sha 13f0f3394fc699bb2e12eb10ae0f1da6c0ce2f61`, **`git_dirty: false`**; 640×480 @30, MANUAL −6, 60 s × 2. These are the runs to cite for the baseline delivered rate.
+
+| Backend | Run | Repeat | **Delivered FPS** | Unique frames / 60 s | Interval std / p1 / p50 / p99 / max (ms) | Gaps / stalls | Queue drops | **Duplicates refused** | Hand-over lag p50 (ms) | Capture-thread CPU |
+|---|---|---|---|---|---|---|---|---|---|---|
+| DSHOW | `20260921-0931-p02-fps-dshow-manual-clean` | r1 | **30.16** | 1801 | 5.32 / 21.84 / 32.04 / 49.97 / 64.9 | 18 / 0 | 0 | 0 | 0.2 | 0.4 % |
+| DSHOW | same | r2 | **30.18** | 1802 | 4.72 / 25.29 / 32.02 / 50.24 / 59.7 | 21 / 0 | 0 | 0 | 0.2 | 0.3 % |
+| MSMF | `20260921-0933-p02-fps-msmf-manual-clean` | r1 | **29.03** | 1732 | 6.23 / 31.48 / 33.33 / 66.67 / 79.5 | 60 / 34 | 0 | 59 | 43.3 | 0.4 % |
+| MSMF | same | r2 | **29.06** | 1734 | 6.11 / 31.17 / 33.33 / 66.67 / — | 57 / 37 | 0 | 57 | 43.7 | 0.3 % |
+
+The clean runs agree with the development runs within 0.05 FPS in every cell and reproduce the qualitative pattern: DSHOW delivers every sensor frame once (0 duplicates, sub-millisecond hand-over); MSMF pads ~57–59 byte-identical frames per minute, which capture refuses and counts, and hands frames over ~43 ms late (identity clock map, slope − 1 = −3.1e-6 in r1). No timestamp clamp occurred in the clean cells (the single policy-switch clamp of the development MSMF cells did not recur). Lighting: L2 (room light on, 09:31), not L0 — as expected under manual exposure the FPS/duplicate figures are unchanged.
+
 Findings (all MEASURED, this hardware, this lighting):
 
 - **Baseline mode, 640×480 requested 30 FPS:** DSHOW delivers **30.15–30.18 FPS** with no duplicates and a 32.0 ms median interval (p99 ≈ 49 ms, i.e. ~1 in 100 intervals is a skipped sensor frame); MSMF delivers **29.06–29.10 FPS** on a strict 33.33 ms driver cadence with ~56 padded (byte-identical) frames per minute refused, so ~1 interval per second is 66.7 ms. Repeats agree within 0.05 FPS.
@@ -74,7 +85,7 @@ Findings (all MEASURED, this hardware, this lighting):
 - Queue drops: 0 in every cell (the consumer kept up with a trivial workload); drop counters are nevertheless reported everywhere. `clamped_timestamps`: 0 on DSHOW; **1 per MSMF cell** — the single frame at which the per-frame policy switches from `GRAB_RETURN` (mapper warm-up) to `DRIVER_MAPPED` and the driver stamp precedes the last grab stamp (documented, expected; it produces one 0 ms interval that is visible as `min_s = 0` in those cells and does not affect p1/p50/p99).
 - Capture-thread CPU: ≤ 1 % at 640×480, 2–3 % at 720p on MSMF (decode), HW-01.
 
-**Config field:** `native_fps_measured` may now be filled as `{value_fps: 30.15, run_id: "20260921-0249-p02-fps-dshow-manual", method: "measure_fps.py cell 640x480@30-MANUAL-r1, unique-frame (N-1)/span"}` **once the fragment is frozen** (`meta.status: frozen`); it stays `null` in the candidate fragment because candidate files may not carry cited measurements (ADR-0010).
+**Config field:** `native_fps_measured` stays `null` in the candidate fragment because candidate files may not carry cited measurements (ADR-0010 §3). When the fragment is frozen (`capture.hw01.v1.yaml`, `meta.status: frozen`) it is filled from the clean run: `{value_fps: 30.16, run_id: "20260921-0931-p02-fps-dshow-manual-clean", method: "measure_fps.py cell 640x480@30-MANUAL-r1, unique-frame (N-1)/span, git_dirty false"}`. **Freezing is deferred (2026-09-21):** a frozen file would also pin the ROI and backend (Phase 03 Task 03.11 decides them) and `exposure.value` (−6 in the fragment and in the clean runs, while the owner selected −5 for L2 in §5.1); freezing before those are settled would force an immediate v2. The clean runs remain citable from this profile in the meantime.
 
 ## 4. Timestamp source and mapping residual — MEASURED (Task 02.2)
 
@@ -169,4 +180,4 @@ All runs: 2026-09-21, 02:40–03:20 local time, night; room lighting not set or 
 - Capture latency is bounded, not determined: the display term and the exposure phase are inside the bound.
 - The 1280×720 modes were measured but not chosen; the 848×480 / 960×540 MJPG modes on DSHOW were only probed (§2), not measured for 60 s — a Phase 03 option if 640×480 proves too coarse.
 - Exposure values are backend-specific integers on a log2 scale; the profile does not claim absolute exposure times beyond the DirectShow convention (2^value s).
-- All runs were taken on a dirty git tree (the code under test) — they are MEASURED for this phase's purposes and are re-run on the committed tree if any of them is ever promoted (gate record §6, follow-up).
+- The development runs were taken on a dirty git tree (the code under test). The baseline-mode FPS cells (640×480 @30, both backends) were re-run on the committed tree with `git_dirty: false` (§3, C-3) and are the citable ones; the 60 FPS attempt, the 720p cells, the auto-exposure cells, the exposure inspection and the flash-latency runs were **not** re-run on the clean tree and remain dirty-tree MEASURED evidence for this phase's engineering decisions (integrity I-11; re-run before any thesis citation).
