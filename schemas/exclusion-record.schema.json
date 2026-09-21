@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/exclusion-record.schema.json",
+  "title": "ExclusionRecord",
+  "description": "One rule-based exclusion of the unusable-recording policy (Phase 06, Task 06.8; docs/policies/unusable-recording-policy.md). Excluded material is quarantined, never deleted (except on withdrawal), listed with its reason, and never enters train/val/test. Written into verify.json by verify_session and aggregated into data/manifests/<version>.exclusions.jsonl by the manifest builder.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "exclusion_id", "session_id", "participant_id", "level", "segment_id", "take", "reason_codes", "reason_text", "decided_by", "rule_id", "thresholds_hash", "decided_at", "status"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "exclusion_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "session_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "participant_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "level": { "type": "string", "enum": ["SEGMENT", "SESSION"] },
+    "segment_id": { "type": ["string", "null"] },
+    "take": { "type": ["integer", "null"], "minimum": 1 },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "enum": ["LOW_TRACKING_VALIDITY", "FPS_DEVIATION", "SYNC_FAILURE", "PROTOCOL_VIOLATION", "TOO_FEW_FRAMES", "RETAKEN", "CONSENT_INCOMPLETE", "SESSION_RULE", "METADATA_UNRECOVERABLE", "FILES_MISSING", "SCHEMA_INVALID", "CONFIG_HASH_MISMATCH", "FRAME_ORDER", "OPERATOR", "OTHER"] }
+    },
+    "reason_text": { "type": "string" },
+    "decided_by": { "type": "string", "enum": ["RULE", "OPERATOR", "OWNER"] },
+    "rule_id": { "type": "string", "minLength": 1 },
+    "thresholds_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+    "decided_at": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["QUARANTINED", "WITHDRAWN", "REINSTATED"] }
+  },
+  "allOf": [
+    { "if": { "properties": { "level": { "const": "SEGMENT" } } }, "then": { "properties": { "segment_id": { "type": "string" }, "take": { "type": "integer" } } }, "else": { "properties": { "segment_id": { "type": "null" }, "take": { "type": "null" } } } }
+  ]
+}

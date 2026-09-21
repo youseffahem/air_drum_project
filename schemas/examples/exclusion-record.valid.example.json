@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "exclusion_id": "excl-synthetic-example-s01_warmup-t1",
+  "session_id": "synthetic-example",
+  "participant_id": "SYNTHETIC",
+  "level": "SEGMENT",
+  "segment_id": "s01_warmup",
+  "take": 1,
+  "reason_codes": [
+    "LOW_TRACKING_VALIDITY"
+  ],
+  "reason_text": "SYNTHETIC example: tracking validity LEFT 0.1 < q_seg 0.6",
+  "decided_by": "RULE",
+  "rule_id": "unusable-recording-policy-v0.1",
+  "thresholds_hash": "sha256:aa4e3f97ae6f3dedc843003bd88760eb129c0c432cf5ad479501a59cec1026e6",
+  "decided_at": "2026-09-21T23:13:44+03:00",
+  "status": "QUARANTINED"
+}

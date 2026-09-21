@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/session-metadata.schema.json",
+  "title": "SessionMetadata",
+  "description": "One recording session (Phase 06, Task 06.4; reserved by Phase 01 in docs/architecture/contracts.md section 6). Written as <session_dir>/metadata.json by the Phase 06 recorder and consumed by Phases 07-19. The record classifies the session by session_kind: SYNTHETIC (generated observations, never a recording), DEV_CAPTURE (developer-only material replayed or recorded on the development machine, never participant data), PILOT (pilot volunteer under the protocol; enters a dataset only with signed consent) and PARTICIPANT (consented participant of the campaign). The conditional rules below make a DEV_CAPTURE or SYNTHETIC session structurally unable to carry a participant pseudonym, a participant dataset version or a consent record, so developer material can never be silently promoted to participant data (integrity item I-4). Fields whose value would have to be invented carry an explicit NOT_COLLECTED / null / PENDING representation; a value is never guessed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "dataset_version", "session_kind", "session_id", "participant_id", "participant_meta",
+    "session_index", "date", "started_at", "t_mono_at_start", "finished_at", "location_tag",
+    "hardware_id", "camera_profile_id", "audio_profile_id", "measured_fps", "roi_px", "distance_mark",
+    "lighting", "background", "stick_description", "tip_method_active", "tip_method_condition",
+    "arm_active", "arms_shadow", "fallback_events", "config_hash", "git_sha", "clock_id", "zone_layout_id",
+    "protocol", "segments", "pad_mic", "has_phys_gt", "audio_track_ref", "audio_alignment_residual_s",
+    "capture_stats", "video", "consent_status", "consent_record_id", "source", "generator",
+    "operator_notes", "quality_flags"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^(ds-none-v0\\.0|ds-raw-v[0-9]+\\.[0-9]+(-[a-z0-9]+)*)$",
+      "description": "ds-none-v0.0 until the session is listed in a raw manifest; then the manifest's version. Participant / pilot sessions use ds-raw-v<M>.<m>[-pilot]; SYNTHETIC and DEV_CAPTURE sessions may only appear in ds-raw-v0.0-selftest* manifests (enforced below)."
+    },
+    "session_kind": {
+      "type": "string",
+      "enum": ["SYNTHETIC", "DEV_CAPTURE", "PILOT", "PARTICIPANT"]
+    },
+    "session_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "P<NN>-S<N> (participant), PILOT<NN>-S<N> (pilot), dev-<slug> (developer), synthetic-<slug> (synthetic); docs/repo-layout.md section 3.5." },
+    "participant_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "Pseudonym P<NN> (participant), PILOT<NN> (pilot), the literal DEV (developer material) or SYNTHETIC. Never a name." },
+    "participant_meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handedness", "experience", "height_range", "source"],
+      "properties": {
+        "handedness": { "type": "string", "enum": ["RIGHT", "LEFT", "MIXED", "NOT_COLLECTED"] },
+        "experience": { "type": "string", "enum": ["NONE", "SOME", "REGULAR", "NOT_COLLECTED"], "description": "Self-reported drumming experience (consent form Part D)." },
+        "height_range": { "type": "string", "enum": ["UNDER_160", "160_175", "175_190", "OVER_190", "NOT_COLLECTED"], "description": "Optional, consent-gated (cm)." },
+        "source": { "type": "string", "enum": ["CONSENT_FORM_PART_D", "OPERATOR", "NOT_COLLECTED", "NOT_APPLICABLE"] }
+      }
+    },
+    "session_index": { "type": "integer", "minimum": 1 },
+    "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "started_at": { "type": "string", "format": "date-time", "description": "Wall clock at session start (ADR-0004: recorded once, never used inside records)." },
+    "t_mono_at_start": { "$ref": "common.schema.json#/$defs/t_mono", "description": "t_mono at the started_at instant (alignment of records to wall-clock time)." },
+    "finished_at": { "type": ["string", "null"], "format": "date-time" },
+    "location_tag": { "type": "string", "minLength": 1 },
+    "hardware_id": { "type": "string", "pattern": "^HW-[0-9]{2}$" },
+    "camera_profile_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "audio_profile_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "measured_fps": {
+      "description": "Delivered frame rate of THIS session as computed by the verification script from the recorded t_capture values (Phase 02 method: unique delivered frames). Null until verify_session has run. Never the requested mode.",
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value_fps", "method", "source"],
+          "properties": {
+            "value_fps": { "type": "number", "minimum": 0 },
+            "method": { "type": "string", "minLength": 1 },
+            "source": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "roi_px": { "$ref": "common.schema.json#/$defs/rect_px" },
+    "distance_mark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "nominal_distance_m", "second_mark_label", "second_mark_nominal_distance_m"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "description": "Floor-mark id used for the core segments (e.g. D100 from ADR-0017)." },
+        "nominal_distance_m": { "type": ["number", "null"], "minimum": 0, "description": "Nominal camera-to-mark distance of the mark (a set-up value, not a measurement of the participant)." },
+        "second_mark_label": { "type": ["string", "null"] },
+        "second_mark_nominal_distance_m": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "lighting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "mean_luminance_auto", "auto_exposure_unique_fps", "exposure_used", "flicker_note", "second_condition_id"],
+      "properties": {
+        "id": { "type": "string", "enum": ["L0", "L1", "L2", "L3", "L4", "L5", "SYNTHETIC"], "description": "docs/protocols/lighting-checklist.md; L0 only for developer material; SYNTHETIC only for session_kind SYNTHETIC." },
+        "description": { "type": "string" },
+        "mean_luminance_auto": { "type": ["number", "null"] },
+        "auto_exposure_unique_fps": { "type": ["number", "null"] },
+        "exposure_used": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "object", "additionalProperties": false, "required": ["mode", "value"], "properties": { "mode": { "type": "string", "enum": ["AUTO", "MANUAL"] }, "value": { "type": ["number", "null"] } } }
+          ]
+        },
+        "flicker_note": { "type": "string" },
+        "second_condition_id": { "type": ["string", "null"], "enum": ["L0", "L1", "L2", "L3", "L4", "L5", null], "description": "Lighting id of the LIGHTING_VARIATION segment, if recorded." }
+      }
+    },
+    "background": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "people_present", "description"],
+      "properties": {
+        "tag": { "type": "string", "enum": ["CLEAN", "CLUTTER", "PEOPLE", "CLUTTER_PEOPLE", "SYNTHETIC", "UNSPECIFIED"] },
+        "people_present": { "type": ["boolean", "null"], "description": "Q28/Q29: other people moving in the background; null = not recorded." },
+        "description": { "type": "string" }
+      }
+    },
+    "stick_description": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["colour", "length_class", "marker", "ownership"],
+      "properties": {
+        "colour": { "type": "string" },
+        "length_class": { "type": "string", "enum": ["SHORT", "STANDARD", "LONG", "UNSPECIFIED", "NONE"] },
+        "marker": { "type": "string", "enum": ["NONE", "TAPE"], "description": "TAPE only in an explicitly tagged MARKER benchmark block (REQ-211)." },
+        "ownership": { "type": "string", "enum": ["OWN", "PROJECT", "NONE"] }
+      }
+    },
+    "tip_method_active": { "$ref": "common.schema.json#/$defs/tip_method" },
+    "tip_method_condition": { "type": "string", "enum": ["MARKERLESS", "MARKER"], "description": "REQ-211 / integrity I-7: MARKER iff tip_method_active is MARKER." },
+    "arm_active": { "$ref": "common.schema.json#/$defs/arm" },
+    "arms_shadow": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/arm" } },
+    "fallback_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["t", "kind", "note"],
+        "properties": {
+          "t": { "$ref": "common.schema.json#/$defs/t_mono" },
+          "kind": { "type": "string", "minLength": 1 },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "config_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+    "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "clock_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "zone_layout_id": { "$ref": "common.schema.json#/$defs/identifier", "description": "Identifies the zone layout in force (config zones block); the geometry itself lives in config.snapshot.yaml." },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_id", "version", "seed", "seed_source", "zone_order", "options"],
+      "properties": {
+        "protocol_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "version": { "type": "string", "minLength": 1, "description": "Protocol version the session was recorded with (draft until the pilot freezes v1.0)." },
+        "seed": { "type": "integer", "minimum": 0 },
+        "seed_source": { "type": "string", "minLength": 1 },
+        "zone_order": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/zone_id" } },
+        "options": { "type": "object" }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "description": "Recorded segment markers on t_mono in recording order. A repeated segment_id is a re-take (take increases; the failed take is kept and flagged, Task 06.8). Reserved shape of contracts.md section 6 plus the Phase 06 fields.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["segment_id", "type", "take", "t_start", "t_end", "condition", "pad_zone_id", "status", "cue", "zone_ids", "hands", "tempo_bpm", "notes", "quick_check"],
+        "properties": {
+          "segment_id": { "$ref": "common.schema.json#/$defs/identifier" },
+          "type": { "type": "string", "enum": ["WARMUP", "SINGLE_HITS", "ALTERNATING_ONE_ZONE", "ALTERNATING_TWO_ZONES", "TEMPO", "RAPID", "NEAR_SIMULTANEOUS", "MOVE_BETWEEN_ZONES", "FAKE_SWING", "STOP_BEFORE_IMPACT", "OCCLUSION", "TRACKING_INTERRUPTION", "DISTANCE_VARIATION", "LIGHTING_VARIATION", "PAD_MIC", "FREE_PLAY"] },
+          "take": { "type": "integer", "minimum": 1 },
+          "t_start": { "$ref": "common.schema.json#/$defs/t_mono" },
+          "t_end": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Null only for a segment cut off by a crash (status ABORTED)." },
+          "condition": { "type": "string", "enum": ["AIR", "PAD"] },
+          "pad_zone_id": { "anyOf": [ { "$ref": "common.schema.json#/$defs/zone_id" }, { "type": "null" } ] },
+          "status": { "type": "string", "enum": ["RECORDED", "RETAKEN", "ABORTED", "SKIPPED"], "description": "RETAKEN = this take was followed by another take of the same segment (kept, flagged)." },
+          "cue": { "type": "string" },
+          "zone_ids": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/zone_id" } },
+          "hands": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/hand_id" } },
+          "tempo_bpm": { "type": ["integer", "null"], "minimum": 1 },
+          "notes": { "type": "string" },
+          "quick_check": {
+            "description": "Post-segment quick check computed by the recorder from the frames of the segment (Task 06.1). Null when the segment was not closed. Authoritative values come from verify_session.",
+            "anyOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["n_frames", "duration_s", "fps_est", "dropped", "tracking_validity", "verdict"],
+                "properties": {
+                  "n_frames": { "type": "integer", "minimum": 0 },
+                  "duration_s": { "type": "number", "minimum": 0 },
+                  "fps_est": { "type": ["number", "null"], "minimum": 0 },
+                  "dropped": { "type": "integer", "minimum": 0 },
+                  "tracking_validity": { "type": "object", "additionalProperties": false, "properties": { "LEFT": { "type": ["number", "null"] }, "RIGHT": { "type": ["number", "null"] } } },
+                  "verdict": { "type": "string", "enum": ["OK", "REVIEW", "NO_FRAMES"] }
+                }
+              }
+            ]
+          }
+        },
+        "allOf": [
+          { "if": { "properties": { "condition": { "const": "PAD" } } }, "then": { "properties": { "pad_zone_id": { "type": "string" } } }, "else": { "properties": { "pad_zone_id": { "type": "null" } } } },
+          { "if": { "properties": { "type": { "const": "PAD_MIC" } } }, "then": { "properties": { "condition": { "const": "PAD" } } } }
+        ]
+      }
+    },
+    "pad_mic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "zone_id", "sync_markers", "audio_track"],
+      "properties": {
+        "present": { "type": "boolean" },
+        "zone_id": { "anyOf": [ { "$ref": "common.schema.json#/$defs/zone_id" }, { "type": "null" } ] },
+        "sync_markers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["marker_id", "kind", "t_mono", "segment_id", "note"],
+            "properties": {
+              "marker_id": { "$ref": "common.schema.json#/$defs/identifier" },
+              "kind": { "type": "string", "enum": ["CLAP", "FLASH", "CLICK"] },
+              "t_mono": { "$ref": "common.schema.json#/$defs/t_mono", "description": "Operator-marked instant on t_mono (key press); the acoustic onset is matched to it by the sync check." },
+              "segment_id": { "type": ["string", "null"] },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "audio_track": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sample_rate_hz", "channels", "dtype", "n_samples", "t_mono_first_sample", "clock_fit", "device", "sha256"],
+              "properties": {
+                "path": { "type": "string", "minLength": 1 },
+                "sample_rate_hz": { "type": "integer", "minimum": 1 },
+                "channels": { "type": "integer", "minimum": 1 },
+                "dtype": { "type": "string", "minLength": 1 },
+                "n_samples": { "type": "integer", "minimum": 0 },
+                "t_mono_first_sample": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+                "clock_fit": { "anyOf": [ { "type": "null" }, { "type": "object", "additionalProperties": false, "required": ["offset_s", "slope", "residual_rms_s", "n"], "properties": { "offset_s": { "type": "number" }, "slope": { "type": "number" }, "residual_rms_s": { "type": "number", "minimum": 0 }, "n": { "type": "integer", "minimum": 0 } } } ] },
+                "device": { "type": "string" },
+                "sha256": { "anyOf": [ { "$ref": "common.schema.json#/$defs/sha256" }, { "type": "null" } ] }
+              }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "present": { "const": true } } }, "then": { "properties": { "zone_id": { "type": "string" } } }, "else": { "properties": { "zone_id": { "type": "null" }, "audio_track": { "type": "null" }, "sync_markers": { "maxItems": 0 } } } }
+      ]
+    },
+    "has_phys_gt": { "type": "boolean", "description": "Availability flag only (contracts.md section 6): true iff a microphone track mapped onto t_mono exists (audio_track_ref non-null, alignment residual recorded) AND at least one segment has condition PAD. Never implies that a particular strike has physical ground truth." },
+    "audio_track_ref": { "type": ["string", "null"] },
+    "audio_alignment_residual_s": { "type": ["number", "null"], "minimum": 0 },
+    "capture_stats": {
+      "description": "spacedrums.capture.CaptureStats.to_dict() of the live capture (null for replayed / synthetic sessions, where no live capture happened).",
+      "anyOf": [
+        { "type": "null" },
+        { "type": "object", "additionalProperties": false, "required": ["delivered", "dropped", "stalled", "duplicates", "fps_measured", "interval_p50", "interval_p99", "clamped_timestamps"], "properties": { "delivered": { "type": "integer", "minimum": 0 }, "dropped": { "type": "integer", "minimum": 0 }, "stalled": { "type": "integer", "minimum": 0 }, "duplicates": { "type": "integer", "minimum": 0 }, "fps_measured": { "type": ["number", "null"] }, "interval_p50": { "type": ["number", "null"] }, "interval_p99": { "type": ["number", "null"] }, "clamped_timestamps": { "type": "integer", "minimum": 0 } } }
+      ]
+    },
+    "video": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["container", "codec", "lossless", "crop", "frame_size_px", "parameters"],
+      "properties": {
+        "container": { "type": "string", "enum": ["PNG_SEQUENCE", "MKV", "AVI", "MP4"] },
+        "codec": { "type": "string", "minLength": 1 },
+        "lossless": { "type": "boolean", "description": "architecture.md section 12.2: the encoder must be lossless or its codec/parameters recorded (ADR-0019)." },
+        "crop": { "type": "string", "enum": ["FULL", "ROI"] },
+        "frame_size_px": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2 },
+        "parameters": { "type": "object" }
+      }
+    },
+    "consent_status": { "type": "string", "enum": ["SIGNED", "PENDING", "NOT_REQUIRED", "WITHDRAWN"], "description": "NOT_REQUIRED only for SYNTHETIC / DEV_CAPTURE sessions. A PARTICIPANT session requires SIGNED. WITHDRAWN = participant withdrew (files deleted; manifest carries a withdrawal record)." },
+    "consent_record_id": { "type": ["string", "null"], "description": "Id of the signed consent form kept separately from the recordings (never the form itself)." },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "detail"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["LIVE", "REPLAY", "SYNTHETIC"], "description": "LIVE = camera; REPLAY = existing frames re-processed (dev-capture ingest check); SYNTHETIC = generated observations, no pixels." },
+        "detail": { "type": "object" }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "version"],
+      "properties": {
+        "tool": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "operator_notes": { "type": "string" },
+    "quality_flags": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "session_kind": { "const": "PARTICIPANT" } } },
+      "then": {
+        "properties": {
+          "participant_id": { "pattern": "^P[0-9]{2}$" },
+          "session_id": { "pattern": "^P[0-9]{2}-S[0-9]+$" },
+          "consent_status": { "enum": ["SIGNED", "WITHDRAWN"] },
+          "consent_record_id": { "type": "string", "minLength": 1 },
+          "dataset_version": { "pattern": "^(ds-none-v0\\.0|ds-raw-v[0-9]+\\.[0-9]+)$" },
+          "source": { "properties": { "kind": { "const": "LIVE" } } },
+          "lighting": { "properties": { "id": { "enum": ["L1", "L2", "L3", "L4", "L5"] } } },
+          "background": { "properties": { "tag": { "enum": ["CLEAN", "CLUTTER", "PEOPLE", "CLUTTER_PEOPLE"] } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "session_kind": { "const": "PILOT" } } },
+      "then": {
+        "properties": {
+          "participant_id": { "pattern": "^PILOT[0-9]{2}$" },
+          "session_id": { "pattern": "^PILOT[0-9]{2}-S[0-9]+$" },
+          "consent_status": { "enum": ["SIGNED", "PENDING", "WITHDRAWN"] },
+          "dataset_version": { "pattern": "^(ds-none-v0\\.0|ds-raw-v[0-9]+\\.[0-9]+-pilot)$" },
+          "source": { "properties": { "kind": { "const": "LIVE" } } },
+          "lighting": { "properties": { "id": { "enum": ["L1", "L2", "L3", "L4", "L5"] } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "session_kind": { "const": "DEV_CAPTURE" } } },
+      "then": {
+        "properties": {
+          "participant_id": { "const": "DEV" },
+          "session_id": { "pattern": "^dev-[a-z0-9][a-z0-9-]*$" },
+          "consent_status": { "const": "NOT_REQUIRED" },
+          "consent_record_id": { "type": "null" },
+          "dataset_version": { "pattern": "^(ds-none-v0\\.0|ds-raw-v0\\.0-selftest(-[a-z0-9]+)*)$" },
+          "participant_meta": { "properties": { "source": { "enum": ["NOT_COLLECTED", "NOT_APPLICABLE"] } } },
+          "source": { "properties": { "kind": { "enum": ["LIVE", "REPLAY"] } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "session_kind": { "const": "SYNTHETIC" } } },
+      "then": {
+        "properties": {
+          "participant_id": { "const": "SYNTHETIC" },
+          "session_id": { "pattern": "^synthetic-[a-z0-9][a-z0-9-]*$" },
+          "consent_status": { "const": "NOT_REQUIRED" },
+          "consent_record_id": { "type": "null" },
+          "dataset_version": { "pattern": "^(ds-none-v0\\.0|ds-raw-v0\\.0-selftest(-[a-z0-9]+)*)$" },
+          "participant_meta": { "properties": { "source": { "const": "NOT_APPLICABLE" } } },
+          "source": { "properties": { "kind": { "const": "SYNTHETIC" } } },
+          "lighting": { "properties": { "id": { "const": "SYNTHETIC" } } },
+          "background": { "properties": { "tag": { "const": "SYNTHETIC" } } },
+          "capture_stats": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "has_phys_gt": { "const": true } } },
+      "then": {
+        "properties": {
+          "audio_track_ref": { "type": "string", "minLength": 1 },
+          "audio_alignment_residual_s": { "type": "number" },
+          "pad_mic": { "properties": { "present": { "const": true } } },
+          "segments": { "contains": { "properties": { "condition": { "const": "PAD" } } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "tip_method_active": { "const": "MARKER" } } },
+      "then": { "properties": { "tip_method_condition": { "const": "MARKER" } } },
+      "else": { "properties": { "tip_method_condition": { "const": "MARKERLESS" } } }
+    }
+  ]
+}

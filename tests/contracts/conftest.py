@@ -34,6 +34,14 @@ RECORD_SCHEMAS = [
     "record-stream-header",
 ]
 
+# Phase 06 dataset documents (not per-frame records): docs/architecture/contracts.md section 6.
+DATASET_SCHEMAS = [
+    "session-metadata",
+    "session-verification",
+    "exclusion-record",
+    "raw-manifest",
+]
+
 
 @pytest.fixture(scope="session")
 def schemas() -> dict[str, dict]:

@@ -3,6 +3,8 @@
 **Phase:** 00 — Task 00.4 · **Status:** IMPLEMENTED (skeleton directories with README stubs; first package code since Phase 02)
 **Depends on:** Task 00.3 ([`environment.md`](environment.md)). Phase 01 may amend this layout by ADR (Phase 00 risk: "over-specifying before contracts exist" — layout is deliberately minimal).
 
+> **Amended by Phase 06 (2026-09-22, [ADR-0019](decisions/ADR-0019-raw-retention-storage-versioning.md)):** first code in `src/spacedrums/data/{protocol,metadata,recorder,audio_capture,validation,manifest}.py`; `schemas/{session-metadata,session-verification,exclusion-record,raw-manifest}.schema.json` + SYNTHETIC examples; `scripts/{_p06,record_session,verify_session,build_raw_manifest,session_checklist,regenerate_session}.py`; `tests/data/` (+ `data_helpers.py`), `tests/scripts/test_phase06_scripts.py`; `docs/protocols/{recording-protocol,participant-instructions,operator-checklist}.md`; `docs/policies/` (new: `unusable-recording-policy.md`); `docs/reports/phase-06-{pilot,campaign}.md`; `data/raw/<participant>/<session>/` (git-ignored sessions) and `data/manifests/` (**tracked**: manifests + exclusion logs + README; `.gitignore` exception). Marked *(P06)* below.
+>
 > **Amended by Phase 05 (2026-09-21, [ADR-0018](decisions/ADR-0018-rule-baseline-commit-policy.md)):** module code in `src/spacedrums/{prediction,commit,app}/`, `src/spacedrums/timing/{records,logger,decomposition}.py`, `src/spacedrums/capture/replay.py`; `configs/prototype.candidate.yaml` (schema 1.3); `scripts/{_p05,playability_session,induced_loss_test,timing_summary,shadow_compare,rule_baseline_sensitivity,render_session_frames}.py`; `tests/{prediction,commit,app}/` + `tests/timing/test_timing_records.py`, `tests/capture/test_replay_source.py`, `tests/scripts/test_phase05_scripts.py`; `docs/figures/phase-05/`; `docs/reports/phase-05-playability.md`; `data/dev-sessions/` (git-ignored developer sessions). Marked *(P05)* below.
 >
 > **Amended by Phase 03 (2026-09-21, [ADR-0014](decisions/ADR-0014-hand-landmarker-wrapper.md), [ADR-0015](decisions/ADR-0015-primary-tip-method.md), [ADR-0016](decisions/ADR-0016-filter-choice.md)):** module code in `src/spacedrums/{hands,stick,tracking}/` and `ui/overlay.py`; `tools/annotate_tip.py` (the phase document's annotation tool; `tools/` created); `scripts/benchmark_tip_methods.py`, `scripts/measure_stage_latency.py`; `tests/{hands,stick,tracking}/`; `data/dev-annotations/` (git-ignored, developer annotations); `docs/decisions/ADR-0015…0017`; first `hands` code in `src/spacedrums/hands/`; `assets/models/` (pinned MediaPipe task file + `manifest.json` with SHA-256, fetched once by `scripts/fetch_hand_landmarker_model.py`); `scripts/_devcapture.py` (dev-capture replay reader, script helper) + `scripts/hands_landmark_check.py`; `tests/hands/`; `docs/reports/` (task evidence notes and, later, the phase benchmark reports). Config schema 1.2. Marked *(P03)* below.
@@ -21,6 +23,7 @@ air_drum_project/
 │   ├── requirements/             # rtm.md, out-of-scope.md
 │   ├── decisions/                # ADR-NNNN-<slug>.md + README.md (index)
 │   ├── ethics/                   # information-sheet.md, consent-form.md, ethics-approval-note.md
+│   ├── policies/                 # (P06) unusable-recording-policy.md
 │   ├── gates/                    # gate-procedure.md, gate-record-template.md, phase-XX-gate.md
 │   ├── architecture/             # (P01) architecture.md, contracts.md, causality-tests.md
 │   ├── protocols/                # (P02) lighting-checklist, camera-distance-benchmark, capture-latency-flash-method, exposure-blur-procedure
@@ -48,7 +51,7 @@ air_drum_project/
 ├── tools/                        # (P03) interactive developer tools: annotate_tip.py (manual tip reference for Task 03.10)
 ├── assets/                       # (P03) models/ (pinned MediaPipe task file + manifest); (P04) samples/
 ├── experiments/                  # run directories (git-ignored except README.md)
-├── data/                         # datasets & recordings (git-ignored except README.md; manifest-tracked); (P02) dev-captures/ for developer-only captures
+├── data/                         # datasets & recordings (git-ignored except README.md; manifest-tracked); (P02) dev-captures/ for developer-only captures; (P06) raw/<participant>/<session>/ (ignored) + manifests/ (tracked)
 ├── pyproject.toml                # (P01) tool configuration; (P02) [project] table + setuptools backend
 ├── .importlinter                 # (P02) allowed-dependency layers contract (architecture.md section 2.4)
 ├── requirements.in / requirements.lock

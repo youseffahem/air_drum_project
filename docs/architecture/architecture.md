@@ -430,7 +430,9 @@ The live app (Phase 05) can run in *record mode*, persisting into `data/sessions
 | `timing.jsonl` | `TimingRecord`s (FRAME and STRIKE) | derived (live stamps; historical, not regenerable identically) |
 | `audio_track.<ext>` | optional microphone track for the practice-pad condition (ADR-0002) | raw |
 | `config.snapshot.yaml` + `config_hash` | resolved config in force | provenance |
-| `session.json` | `SessionMetadata` (Phase 06) | provenance |
+| `session.json` | Phase 05 developer-session provenance (arm, source, counters) — **not** the `SessionMetadata` | provenance |
+| `metadata.json` | `SessionMetadata` (Phase 06, `schemas/session-metadata.schema.json`, ADR-0019): session kind, participant pseudonym, protocol version + seed, segment markers on `t_capture`, pad/mic block, `has_phys_gt`, consent status | provenance |
+| `verify.json`, `checklist.json`, `audio_track.wav` | Phase 06 verification document, operator checklist, optional microphone track (ADR-0002) | derived / provenance / raw |
 
 Rules: dropped frames are not recorded (there is nothing to record) but their count is; a record stream is written even when empty (header only) so absence is explicit; the video encoder must be lossless or its codec/parameters recorded in `SessionMetadata`, because tracking results depend on it (Phase 06 decision, recorded there).
 

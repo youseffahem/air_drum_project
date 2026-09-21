@@ -1,0 +1,248 @@
+{
+  "schema_version": "1.0",
+  "dataset_version": "ds-none-v0.0",
+  "session_kind": "SYNTHETIC",
+  "session_id": "synthetic-example",
+  "participant_id": "SYNTHETIC",
+  "participant_meta": {
+    "handedness": "NOT_COLLECTED",
+    "experience": "NOT_COLLECTED",
+    "height_range": "NOT_COLLECTED",
+    "source": "NOT_APPLICABLE"
+  },
+  "session_index": 1,
+  "date": "2026-09-21",
+  "started_at": "2026-09-21T23:13:20+03:00",
+  "t_mono_at_start": 100.0,
+  "finished_at": "2026-09-21T23:13:34+03:00",
+  "location_tag": "none (synthetic)",
+  "hardware_id": "HW-01",
+  "camera_profile_id": "synthetic-camera",
+  "audio_profile_id": "example-audio-profile",
+  "measured_fps": null,
+  "roi_px": [
+    40,
+    20,
+    560,
+    440
+  ],
+  "distance_mark": {
+    "label": "none (synthetic)",
+    "nominal_distance_m": null,
+    "second_mark_label": null,
+    "second_mark_nominal_distance_m": null
+  },
+  "lighting": {
+    "id": "SYNTHETIC",
+    "description": "no camera: generated observations",
+    "mean_luminance_auto": null,
+    "auto_exposure_unique_fps": null,
+    "exposure_used": null,
+    "flicker_note": "",
+    "second_condition_id": null
+  },
+  "background": {
+    "tag": "SYNTHETIC",
+    "people_present": null,
+    "description": "no camera"
+  },
+  "stick_description": {
+    "colour": "",
+    "length_class": "NONE",
+    "marker": "NONE",
+    "ownership": "NONE"
+  },
+  "tip_method_active": "GEOM",
+  "tip_method_condition": "MARKERLESS",
+  "arm_active": "A",
+  "arms_shadow": [
+    "B"
+  ],
+  "fallback_events": [],
+  "config_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "git_sha": "0000000000000000000000000000000000000000",
+  "clock_id": "perf_counter",
+  "zone_layout_id": "4-zones:hihat,snare,tom1,crash_ride",
+  "protocol": {
+    "protocol_id": "spacedrums-recording-protocol",
+    "version": "0.1-draft",
+    "seed": 88514780,
+    "seed_source": "participant_id+session_index",
+    "zone_order": [
+      "hihat",
+      "crash_ride",
+      "tom1",
+      "snare"
+    ],
+    "options": {
+      "include_distance_variation": true,
+      "include_lighting_variation": true,
+      "include_pad_mic": true,
+      "pad_zone_id": "snare",
+      "include_free_play": false,
+      "duration_scale": 0.1,
+      "primary_zone": "snare",
+      "secondary_zone": "hihat"
+    }
+  },
+  "segments": [
+    {
+      "segment_id": "s01_warmup",
+      "type": "WARMUP",
+      "take": 1,
+      "t_start": 100.0,
+      "t_end": 102.03333333333322,
+      "condition": "AIR",
+      "pad_zone_id": null,
+      "status": "RECORDED",
+      "cue": "WARM-UP: move the sticks freely, do NOT strike any zone",
+      "zone_ids": [],
+      "hands": [
+        "LEFT",
+        "RIGHT"
+      ],
+      "tempo_bpm": null,
+      "notes": "SYNTHETIC example record for the schema tests; not data",
+      "quick_check": {
+        "n_frames": 61,
+        "duration_s": 1.9999999999998863,
+        "fps_est": 30.000000000001705,
+        "dropped": 0,
+        "tracking_validity": {
+          "LEFT": 1.0,
+          "RIGHT": 1.0
+        },
+        "verdict": "OK"
+      }
+    },
+    {
+      "segment_id": "s02_single_hihat_R",
+      "type": "SINGLE_HITS",
+      "take": 1,
+      "t_start": 102.03333333333322,
+      "t_end": 103.26666666666648,
+      "condition": "AIR",
+      "pad_zone_id": null,
+      "status": "RECORDED",
+      "cue": "SINGLE hits on HI-HAT, RIGHT hand, about one per second",
+      "zone_ids": [
+        "hihat"
+      ],
+      "hands": [
+        "RIGHT"
+      ],
+      "tempo_bpm": null,
+      "notes": "",
+      "quick_check": {
+        "n_frames": 37,
+        "duration_s": 1.1999999999999318,
+        "fps_est": 30.000000000001705,
+        "dropped": 0,
+        "tracking_validity": {
+          "LEFT": 1.0,
+          "RIGHT": 1.0
+        },
+        "verdict": "OK"
+      }
+    },
+    {
+      "segment_id": "s25_pad_mic",
+      "type": "PAD_MIC",
+      "take": 1,
+      "t_start": 134.89999999999802,
+      "t_end": 137.69999999999786,
+      "condition": "PAD",
+      "pad_zone_id": "snare",
+      "status": "RECORDED",
+      "cue": "PRACTICE PAD at SNARE: operator claps for sync, then single hits on the pad, operator claps again",
+      "zone_ids": [
+        "snare"
+      ],
+      "hands": [
+        "LEFT",
+        "RIGHT"
+      ],
+      "tempo_bpm": null,
+      "notes": "",
+      "quick_check": {
+        "n_frames": 84,
+        "duration_s": 2.7666666666665094,
+        "fps_est": 30.000000000001705,
+        "dropped": 0,
+        "tracking_validity": {
+          "LEFT": 1.0,
+          "RIGHT": 1.0
+        },
+        "verdict": "OK"
+      }
+    }
+  ],
+  "pad_mic": {
+    "present": true,
+    "zone_id": "snare",
+    "sync_markers": [
+      {
+        "marker_id": "sync-001",
+        "kind": "CLAP",
+        "t_mono": 135.39999999999802,
+        "segment_id": "s25_pad_mic",
+        "note": "SYNTHETIC marker"
+      },
+      {
+        "marker_id": "sync-002",
+        "kind": "CLAP",
+        "t_mono": 137.19999999999786,
+        "segment_id": "s25_pad_mic",
+        "note": "SYNTHETIC marker"
+      }
+    ],
+    "audio_track": {
+      "path": "audio_track.wav",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "dtype": "pcm16",
+      "n_samples": 1833600,
+      "t_mono_first_sample": 100.0,
+      "clock_fit": {
+        "offset_s": 1000.0,
+        "slope": 1.0,
+        "residual_rms_s": 3.6361117655407895e-14,
+        "n": 256
+      },
+      "device": "SYNTHETIC click generator (no microphone)",
+      "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "has_phys_gt": true,
+  "audio_track_ref": "audio_track.wav",
+  "audio_alignment_residual_s": 0.01000000000206569,
+  "capture_stats": null,
+  "video": {
+    "container": "PNG_SEQUENCE",
+    "codec": "png",
+    "lossless": true,
+    "crop": "FULL",
+    "frame_size_px": [
+      640,
+      480
+    ],
+    "parameters": {
+      "cv2_imwrite_png_compression": 1,
+      "note": "ADR-0019: intra-frame lossless"
+    }
+  },
+  "consent_status": "NOT_REQUIRED",
+  "consent_record_id": null,
+  "source": {
+    "kind": "SYNTHETIC",
+    "detail": {
+      "generator": "example"
+    }
+  },
+  "generator": {
+    "tool": "spacedrums.data.recorder",
+    "version": "0.6.0"
+  },
+  "operator_notes": "SYNTHETIC example document for TEST-SCHEMA-1; contains no measurement",
+  "quality_flags": []
+}
