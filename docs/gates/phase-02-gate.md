@@ -5,10 +5,10 @@
 | Phase | 02 — Camera Capture & Computer Vision Prototype |
 | Phase document | `phases/phase-02-camera-capture.md` |
 | Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
-| Reviewer(s) | Project owner — **review pending** (gate-procedure §4: a gate is not passed by the submitter alone) |
-| Review date | — (submitted 2026-09-21) |
-| Code state | HEAD `568eca92f9491dbde86e36521c0cda0a34496733` ("phase 1"); Phase 02 artefacts **uncommitted** (dirty: yes — 18 modified, 40 new paths) at the owner's instruction ("do not commit, tag, or push"). Every measurement run therefore records `git_dirty: true` (see §6, D-1). |
-| **Verdict (proposed by the submitter)** | **PASS-WITH-CONDITIONS** — acceptance criteria 1–6 MET (5 and 6 with explicitly PENDING entries: FOV, tracking-quality columns, grab-return bias, processing FPS). Remaining conditions (§8): C-1 FOV part, C-3 clean-tree re-run, C-4 decision. The owner decides. |
+| Reviewer(s) | Gate review performed by Claude **on the project owner's explicit instruction** (2026-09-21, scope in §11); project owner countersignature **pending** (gate-procedure §4: a gate is not passed by the submitter alone — the verdict below becomes effective on the owner's signature in §9) |
+| Review date | 2026-09-21 |
+| Code state | Phase 02 tree committed and pushed by the owner as `13f0f3394fc699bb2e12eb10ae0f1da6c0ce2f61` ("phase 2", `origin/main`). Development measurement runs were taken before that commit on `568eca92…` with `git_dirty: true` (D-1); the baseline FPS cells were re-run on `13f0f33…` with `git_dirty: false` (C-3, §4). Tag `gate-02-pass` not yet created (after signature). |
+| **Verdict** | **PASS-WITH-CONDITIONS** — all six acceptance criteria MET against the evidence (§2; 5 and 6 with explicitly PENDING entries that name their resolving phase); integrity checklist has no NO (§5); Definition of Done satisfied for the machine-executable scope, with the person-dependent and instrument-dependent items honestly PENDING. Conditions in §8: C-1 (FOV, deferred, not a Phase 03 blocker), C-4/O-1 (repository-artefact decision), C-5 (frozen capture config at the Phase 03 gate). Effective on owner signature (§9). Phase 03 may start once signed. |
 
 ## 1. Artefacts produced
 
@@ -65,7 +65,8 @@ All on HW-01, 2026-09-21, lighting L0 (dark room, screen at 0 % brightness — p
 
 | Quantity | Label | Value | run_id | Method | Hardware id |
 |---|---|---|---|---|---|
-| Delivered native FPS, 640×480 @30 | Measured | DSHOW 30.15 / 30.18; MSMF 29.08 / 29.08 | `20260921-0249-p02-fps-dshow-manual`, `20260921-0240-p02-fps-msmf-manual` | `measure_fps.py`, 60 s cells ×2, unique-frame (N−1)/span, manual exposure −6 | HW-01 |
+| Delivered native FPS, 640×480 @30 — **clean tree (C-3)** | Measured, `git_dirty: false`, git_sha `13f0f33…` | DSHOW **30.16 / 30.18** (1801 / 1802 unique, 0 drops, 0 duplicates); MSMF **29.03 / 29.06** (1732 / 1734 unique, 0 drops, 59 / 57 duplicates refused) | `20260921-0931-p02-fps-dshow-manual-clean`, `20260921-0933-p02-fps-msmf-manual-clean` | `measure_fps.py`, 60 s cells ×2, unique-frame (N−1)/span, manual exposure −6; identical `config_hash` to the development runs | HW-01 |
+| Delivered native FPS, 640×480 @30 — development runs | Measured (dirty tree) | DSHOW 30.15 / 30.18; MSMF 29.08 / 29.08 | `20260921-0249-p02-fps-dshow-manual`, `20260921-0240-p02-fps-msmf-manual` | same | HW-01 |
 | Delivered FPS with 60 requested (all modes) | Measured | 29.06–30.18 (identical to the 30 FPS request) → 60 FPS not delivered | same runs | same | HW-01 |
 | Delivered FPS, 1280×720 @30 | Measured | MSMF 29.06–29.10; DSHOW 10.06 (YUY2) | same runs | same | HW-01 |
 | Frame-interval jitter (std / p1 / p99), 640×480 @30 | Measured | DSHOW 4.5–4.6 / 28.3–28.8 / 48.6–49.0 ms; MSMF 6.0–6.2 / 31.6–31.7 / 66.7 ms | same runs | same | HW-01 |
@@ -85,28 +86,28 @@ All on HW-01, 2026-09-21, lighting L0 (dark room, screen at 0 % brightness — p
 | Enumerated modes | inspected / advertised | camera profile §2 | `20260921-0300-p02-enumerate-cameras` | `enumerate_cameras.py` | HW-01 |
 | ABORTED runs (not citable) | — | `20260921-0305-p02-latency-dshow`, `…-0306-p02-latency-msmf`, `…-0310-p02-latency-dshow` (flash undetectable at −6 / baseline before settling; marked ABORTED with a note) | — | — | — |
 
-## 5. Integrity checklist
+## 5. Integrity checklist (filled at the review, 2026-09-21)
 
 | # | Item | YES / NO / N/A | Evidence / reason |
 |---|---|---|---|
 | I-1 | Every number labelled | YES | Camera profile: every value MEASURED/inspected/advertised/candidate/PENDING with run ids; config fragment keeps `native_fps_measured` and `grab_return_bias_s` null (candidate file rule); protocol documents carry only candidate thresholds and arithmetic examples labelled as such. |
-| I-2 | No implementation claim without tests | YES | 191 tests pass (§3); every IMPLEMENTED artefact has a test id; scripts have synthetic self-tests. |
+| I-2 | No implementation claim without tests | YES | Re-run at the review on the committed tree `13f0f33…`: 191 collected / 191 passed, `ruff` clean, `validate_contracts.py` PASS, `lint-imports` 4 kept / 0 broken, `env_smoke.py` PASS; every IMPLEMENTED artefact has a test id; scripts have synthetic self-tests. |
 | I-3 | No causal component consumes future frames | N/A (no causal component in capture) | `LiveFrameSource` delivers frames in capture order; no look-ahead exists; `TEST-CAUSAL-*` start in Phase 03. |
 | I-4 | No fabricated data | YES | All numbers come from executed runs on HW-01 with `run.json`; aborted runs are marked ABORTED, not deleted (one directory that never received a `run.json` was removed and is listed in D-6); synthetic self-test runs write to temp directories or carry `-synthetic` in their slug and are never cited; the two synthetic dev captures were deleted; the person-dependent measurements are PENDING, not invented. |
 | I-5 | FPS reported as native only | YES | Delivered FPS from unique-frame `t_capture` spans; padded duplicates refused and counted (591 in 30 s under auto-exposure would otherwise have read as 30 FPS); 60 FPS requests reported as not delivered; requested vs delivered kept in separate fields (schema). |
-| I-6 | No "latency reduced" claim | YES | Grep of Phase 02 documents: only "capture latency", "upper bound", "hand-over lag"; no effective-latency or lead-time statement. |
+| I-6 | No "latency reduced" claim | YES | Reviewer grep (reduce/reduced/faster than/before impact/guarantee) over the camera profile, protocols, ADR-0013 and this record: no hit; every latency figure is labelled *upper bound incl. display latency* and none is called `L_sys`. |
 | I-7 | Marker condition labelled | N/A | No tracking. |
 | I-8 | Participant-level split confirmed | N/A | No ML, no data. |
 | I-9 | Scope respected | YES | No sensor, marker, depth, MIDI, cloud or multi-user element; `OOS-REF` tags unchanged; enums extended only via ADR-0013 (config keys, not scope). |
-| I-10 | Status vocabulary correct | YES | Phase document `## Status` = IMPLEMENTED + MEASURED, PENDING items named; RTM rows keep PLANNED with evidence pointers until the owner signs; artefact table §1 labelled. |
-| I-11 | Reproducibility fields complete | **YES with a stated gap** | Every `run.json` validates against the experiment-log schema, has config snapshot + hash, lock hash, hardware snapshot (CPU, RAM, OS, power). Gap: `git_dirty: true` on all runs (D-1) — they are MEASURED for the phase's engineering decisions; the policy forbids citing dirty runs as MEASURED in a thesis or for VALIDATED, so re-running the cited cells on the committed tree is condition C-3. |
-| I-12 | Limitations stated | YES | Camera profile §10; protocol limitation sections; lighting condition L0 attached to every table; latency bound explained. |
+| I-10 | Status vocabulary correct | YES | Phase document `## Status` = IMPLEMENTED + MEASURED with the gate verdict; every PENDING item names its resolving phase (FOV → C-1/owner, tracking vs distance and ROI → Phase 03 Task 03.11, grab-return bias → instrument, processing FPS → Phase 03/16, other lighting conditions → Phase 03/06); nothing VALIDATED; RTM rows advance only on the owner's signature (gate-procedure §4). |
+| I-11 | Reproducibility fields complete | **YES with a stated gap** | Every `run.json` validates against the experiment-log schema, has config snapshot + hash, lock hash, hardware snapshot (CPU, RAM, OS, power). The baseline FPS cells now have `git_dirty: false` runs on `13f0f33…` (C-3). Remaining gap: the 60 FPS / 720p / auto-exposure cells, the exposure inspection, the latency runs and the owner's L2 runs (`…-0904-…`, `…-0913-…`) were taken on the dirty tree and are cited only as this phase's engineering evidence; any thesis citation of them requires a clean-tree repeat. |
+| I-12 | Limitations stated | YES | Camera profile §10; protocol limitation sections; lighting condition (L0 / L2) attached to every table; latency bound explained; pixel-size columns of the distance table marked indicative only; owner's exposure selection recorded with the §3.6-literal alternative. |
 
 ## 6. Deviations from the phase document
 
 | Id | What | Why | Impact on dependents |
 |---|---|---|---|
-| D-1 | Measurement runs taken on a dirty tree (`git_dirty: true`). | The owner instructed "do not commit"; the measuring code is the code under submission. | Numbers serve Phase 03's mode/backend decision; a re-run on the committed tree (C-3) is required before any thesis citation or VALIDATED status. |
+| D-1 | Development measurement runs taken on a dirty tree (`git_dirty: true`). | The owner instructed "do not commit"; the measuring code is the code under submission. | Baseline FPS cells re-run clean on `13f0f33…` (C-3, closed); the other dirty runs serve Phase 03's mode/backend decision only and need a clean repeat before any thesis citation or VALIDATED status. |
 | D-2 | Runs live in `experiments/<run_id>/` (git-ignored) instead of `experiments/phase-02/*.json`. | `repo-layout.md` §3.3 + reproducibility policy (Phase 00) fix the run-directory rule; the phase document predates it. | Reviewer opens the run directories on HW-01; Open Question O-1 whether to un-ignore `run.json`. |
 | D-3 | Config schema minor bump 1.0 → 1.1 (`pixel_format`, `grab_return_bias_s`) and loader cross-field checks; `meta.schema_version` accepts both. | Reproducibility of the negotiated format (720p at 10 vs 30 FPS depends on it) and the bias field architecture.md §5.2 refers to; contracts.md §8 procedure followed (ADR-0013). | Phase 01 example config unchanged and still valid; 22 config tests pass. |
 | D-4 | Duplicate-frame refusal added to capture (not in the phase document). | MSMF pads the stream with byte-identical frames carrying fresh driver timestamps; counting them would violate I-5 and corrupt velocities. | `CaptureStats.duplicates` reported with every FPS figure; Phase 06 session metadata gains the field (reserved `capture_stats`). |
@@ -133,17 +134,39 @@ All on HW-01, 2026-09-21, lighting L0 (dark room, screen at 0 % brightness — p
 
 ## 8. Conditions (for PASS-WITH-CONDITIONS)
 
+Open at the verdict: **C-1 (FOV part), C-4/O-1, C-5**. Closed before the verdict: C-2, C-3 (kept below for the trail).
+
 | Condition | Owner | Must be closed by |
 |---|---|---|
 | C-1 — **visibility part closed 2026-09-21** (rows 0.8 / 1.0 / 1.5 / 2.2 m, all yes/yes; lens 0.75 m / 0°). *Correction to the earlier wording:* a partial/no answer can only appear closer than 0.8 m, so "extend outward until partial/no" was not a meaningful stop condition and is withdrawn. **Remaining:** FOV and visible playing area by the protocol §6 two-marks method (owner deferred it; ~5 min at the camera when convenient). Not a Phase 03 blocker: Phase 03 needs the captures (present), not the FOV number. | Project owner | Phase 03 gate (FOV) |
 | C-2 — **closed 2026-09-21.** Blur part: L2 inspect run `20260921-0904-p02-exposure-inspect`, captures `swing-L2-exp-5/-6/-7`, grades sharp/sharp/streaked, owner selected −5 (profile §5.1). Latency part: `20260921-0913-p02-latency-dshow` (DSHOW, GRAB_RETURN, −5, L2, screen at normal brightness): raw median 137.7 ms, p10 117.1, p90 159.6, min 105.4, max 553.1 ms, 27/30 detected (trials 8, 11, 24 not detected) — upper bound incl. display latency, not `L_sys` (profile §6). | Project owner | closed |
-| C-3: After committing the Phase 02 tree, re-run the cited FPS cells (`measure_fps.py`, DSHOW + MSMF, 640×480 @30, 60 s ×2) so the camera profile can cite `git_dirty: false` runs; then the fragment may be frozen (`capture.hw01.v1.yaml`) with `native_fps_measured` filled. | Project owner (or assistant on instruction) | Before any thesis citation; at the latest Phase 05 gate |
-| C-4: Decide O-1 (committing `run.json` files). | Project owner | Phase 03 start |
+| C-3 — **closed 2026-09-21** (re-run part): tree committed as `13f0f33…`, cells re-run with `git_dirty: false` — `20260921-0931-p02-fps-dshow-manual-clean` (30.16 / 30.18 FPS, 0 dup) and `20260921-0933-p02-fps-msmf-manual-clean` (29.03 / 29.06 FPS, 59 / 57 dup refused); profile §3 cites them. Freezing the fragment (`capture.hw01.v1.yaml` with `native_fps_measured`) is **deferred by design**: it would pin the ROI/backend (Phase 03 Task 03.11) and an exposure (−6) that differs from the owner's L2 selection (−5); the candidate fragment may not carry the value (ADR-0010). Freeze at the Phase 03 gate, v1. | Project owner | re-run: closed; freeze: Phase 03 gate |
+| C-4 / O-1: decide whether `experiments/*/run.json` + `config.resolved.yaml` are un-ignored and committed (reproducibility-policy change if yes). Repository-artefact decision; does not affect Phase 03's inputs. | Project owner | Phase 03 gate |
+| C-5: Freeze the capture configuration (`configs/camera/capture.hw01.v1.yaml`, `meta.status: frozen`, `native_fps_measured` from `20260921-0931-p02-fps-dshow-manual-clean`) once Phase 03 Task 03.11 has settled the ROI/backend and the exposure per lighting condition. | Phase 03 submitter + owner | Phase 03 gate |
 
 ## 9. Reviewer statement
 
-*(to be completed by the project owner)*
+Review performed 2026-09-21 by Claude on the project owner's explicit instruction ("Perform the Phase 02 owner review now using the existing evidence and gate procedure"), scope §11. Inspected against the evidence, not the descriptions: the six acceptance criteria of `phases/phase-02-camera-capture.md` (§2 above); the 17 run directories under `experiments/` (10 COMPLETED dirty-tree development runs, 3 ABORTED and labelled not citable, 2 owner runs under L2, 2 COMPLETED clean-tree runs with `git_dirty: false` on `13f0f33…`); the candidate config fragment (`native_fps_measured` and `grab_return_bias_s` confirmed `null`, status candidate); the dev captures (`distance/d080, d100, d150, d220` measured, `d120` dropped; `swing-L2-exp-5/-6/-7`); the guide screenshot; the camera profile's labels row by row. Ran: `pytest` (191/191), `ruff check .` (clean), `scripts/validate_contracts.py` (PASS), `lint-imports` (4/0), `scripts/env_smoke.py` (PASS), the I-6 keyword grep, a relative-link check (0 broken). Verified honestly PENDING and **not** inferred: FOV / visible playing area, tracking quality vs. distance and the final ROI (Phase 03), grab-return bias (instrument), processing FPS, lighting conditions other than L0/L2. Not verified: no new physical measurement was made; the owner's visibility answers and blur grades are taken as recorded in the side-cars.
+
+Verdict **PASS-WITH-CONDITIONS** (C-1 FOV, C-4/O-1, C-5), effective on the owner's signature (gate-procedure §4). On signature: RTM rows REQ-019, 022, 023, 024, 025, 026, 027, 101, 102 → IMPLEMENTED/MEASURED per their evidence pointers; tag `gate-02-pass`; Phase 03 may start with Task 03.1.
+
+Signed (owner): ____________________, YYYY-MM-DD
 
 Submitter's statement: everything in §1–§6 was executed in one assistant session on HW-01 on 2026-09-21 between 00:20 and 03:25 local time without a person at the camera. Inspected/run by the submitter: all tests (191 + 2 hardware), `ruff`, `validate_contracts.py`, `env_smoke.py`, `lint-imports`; 13 measurement run directories (10 COMPLETED, 3 ABORTED); the guide screenshot from the live webcam. Not done: anything requiring a person or an instrument (C-1, C-2 blur part), and no commit/tag/push.
 
-Signed (owner): ____________________, YYYY-MM-DD
+## 10. Follow-up obligations (not conditions on this phase's criteria)
+
+| Id | Obligation | Owner | By |
+|---|---|---|---|
+| F-1 | Sign §9, then tag `gate-02-pass`; also close the still-untagged Phase 00/01 gates (`gate-00-pass`, `gate-01-pass`) and Phase 00 C-3 / OQ-ENV-1/2. | Project owner | Phase 03 start |
+| F-2 | `scripts/distance_benchmark.py`: check the return value of `cv2.imwrite` and refuse to proceed when `frame.png` cannot be written (defect found during C-1: a locked file left a stale frame beside a fresh side-car). | Phase 03 submitter (any code change is a Phase 03+ commit) | Phase 03 gate |
+| F-3 | Move the config fragment's `exposure.value` to the owner's L2 selection (−5) or record why −6 stays, before the C-5 freeze. | Project owner | C-5 |
+| F-4 | Any thesis citation of the dirty-tree runs (60 FPS attempt, 720p, auto-exposure, exposure inspection, latency) requires a clean-tree repeat under a described lighting condition. | Phase 18/21 submitters | their gates |
+
+## 11. Review scope as instructed by the owner (2026-09-21)
+
+1. Review every acceptance criterion against the actual evidence — done, §2 (no criterion weakened, none deleted).
+2. Complete the integrity checklist per gate-procedure §3–§4 — done, §5 (no NO).
+3. Record the verdict in §9 — done: PASS-WITH-CONDITIONS, effective on owner signature.
+4. Preserve all PENDING items with their resolving phase; no FOV/tracking/bias value inferred — done (§2, §4, §7, §8).
+5. Commit only the Phase 02 documentation changes; no tag, no push, no Phase 03 work.

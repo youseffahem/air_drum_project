@@ -2,7 +2,7 @@
 
 ## Status
 
-IMPLEMENTED + MEASURED (development hardware HW-01, 2026-09-21) — awaiting Exit Gate review. Gate record: [`../docs/gates/phase-02-gate.md`](../docs/gates/phase-02-gate.md). Capture module, L0 packages (contracts/timing/config), guide overlay and measurement scripts exist with 191 passing tests; native FPS, jitter, duplicates, timestamp mapping, exposure controls and a capture-latency upper bound are MEASURED ([`../docs/camera-profile-hw01-integrated-webcam.md`](../docs/camera-profile-hw01-integrated-webcam.md)); the 60 FPS attempt is measured as **not delivered** on HW-01. Owner-executed on 2026-09-21 under L2: distance-benchmark visibility table (0.8/1.0/1.5/2.2 m, all inside the ROI), stick-swing blur check (−5 selected), latency re-run with the screen at normal brightness. **PENDING:** FOV / visible playing area (owner deferred), tracking-quality vs. distance and the final working distance/ROI (Phase 03 Task 03.11 with the real tracker), grab-return bias (instrument), processing FPS (Phase 03/16). Nothing is VALIDATED.
+IMPLEMENTED + MEASURED (development hardware HW-01, 2026-09-21) — gate reviewed 2026-09-21: **PASS-WITH-CONDITIONS** (C-1 FOV, C-4/O-1 repository artefacts, C-5 frozen capture config at the Phase 03 gate), effective on the owner's signature. Gate record: [`../docs/gates/phase-02-gate.md`](../docs/gates/phase-02-gate.md). Capture module, L0 packages (contracts/timing/config), guide overlay and measurement scripts exist with 191 passing tests; native FPS, jitter, duplicates, timestamp mapping, exposure controls and a capture-latency upper bound are MEASURED ([`../docs/camera-profile-hw01-integrated-webcam.md`](../docs/camera-profile-hw01-integrated-webcam.md)); the 60 FPS attempt is measured as **not delivered** on HW-01. Owner-executed on 2026-09-21 under L2: distance-benchmark visibility table (0.8/1.0/1.5/2.2 m, all inside the ROI), stick-swing blur check (−5 selected), latency re-run with the screen at normal brightness. **PENDING:** FOV / visible playing area (owner deferred), tracking-quality vs. distance and the final working distance/ROI (Phase 03 Task 03.11 with the real tracker), grab-return bias (instrument), processing FPS (Phase 03/16). Nothing is VALIDATED.
 
 ## Purpose
 
@@ -206,7 +206,7 @@ No values are written into this document. They are written into the camera profi
 
 Reviewer verifies the camera profile is fully labelled and the FPS/latency measurements exist. PASS → Phase 03 may start.
 
-Gate record: [`../docs/gates/phase-02-gate.md`](../docs/gates/phase-02-gate.md) — submitted 2026-09-21, verdict **pending owner review** (submitter proposes PASS-WITH-CONDITIONS: person-dependent measurements PENDING).
+Gate record: [`../docs/gates/phase-02-gate.md`](../docs/gates/phase-02-gate.md) — submitted and reviewed 2026-09-21, verdict **PASS-WITH-CONDITIONS** (effective on owner signature; conditions C-1 FOV, C-4/O-1, C-5).
 
 ## What Must NOT Be Done Yet
 
