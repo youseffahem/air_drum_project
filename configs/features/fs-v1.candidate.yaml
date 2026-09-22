@@ -1,0 +1,13 @@
+# Candidate group selection; window parameters are supplied by the experiment, never frozen here.
+meta:
+  schema_version: "1.4"
+  created: "2026-09-22"
+  phase: "08"
+  description: "Causal feature schema v1; no model or participant evidence."
+  supersedes: null
+  status: candidate
+features:
+  schema_id: fs-v1
+  groups: [POS, VEL, ACC, AXIS, HAND, ZONE, CONF, TIME]
+  epsilon: 0.000001
+  tts_clip_s: 2.0

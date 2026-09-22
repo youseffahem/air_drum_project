@@ -56,3 +56,12 @@ No substitute is offered. A machine pass over SYNTHETIC labels is not an annotat
 | Adjustment rate and the distribution of adjustments | `label_set.qc`, `stats.adjustment_rate` | MEASURED |
 
 Carried forward as condition **C-07-3**.
+
+
+## Clean-tree verification update — 2026-09-22
+
+Verified rerun: `20260922-2043-p07-clean-verification`, owner commit
+`1a8e790985bc97810eb28bd26ddc788136a16157`, `git_dirty: false`.
+Raw logs and regenerated outputs: `experiments/20260922-203551-p07-clean/`.
+See `docs/gates/phase-07-gate-r2.md`. C-07-7 CLOSED; all human/participant
+conditions remain PENDING. Historical outputs and evidence classes are preserved.

@@ -103,3 +103,12 @@ Labels: **65** · sessions: 1 · participants: 1 · metric-eligible: 64 · with 
 | distribution | 32 | 0.2062 | 1.2122 | 1.2122 | 1.2122 | 2.0618 |
 
 Ambiguous fraction: 0.0154 · excluded fraction: 0.0000 · adjustment rate: PENDING (nothing reviewed) · reviewed fraction: 0.0000
+
+
+## Clean-tree verification update — 2026-09-22
+
+Verified rerun: `20260922-2043-p07-clean-verification`, owner commit
+`1a8e790985bc97810eb28bd26ddc788136a16157`, `git_dirty: false`.
+Raw logs and regenerated outputs: `experiments/20260922-203551-p07-clean/`.
+See `docs/gates/phase-07-gate-r2.md`. C-07-7 CLOSED; all human/participant
+conditions remain PENDING. Historical outputs and evidence classes are preserved.

@@ -221,3 +221,8 @@ Reviewer verifies pre-registration precedence, completeness, labelling, reproduc
 
 - Validity/uncertainty of M1/M2 (Task 18.3).
 - Whether anticipatory sound changes user motion (observed in Task 18.5).
+
+Phase 08 target contract reference: `docs/features/feature-schema-v1.md`, “Window and target
+semantics”. Trajectory error is against future causal tracker output; strike timing is against
+geometric `t_impact_est`, with physical-reference interpretation only when separately validated.
+This reference does not start Phase 18 or claim evaluation results.

@@ -33,3 +33,12 @@
 > Table 1 isolates the interpolation estimator (24 events, no smoother). Table 2 shows the same strokes through the reference smoother `rts-kalman-cv-v1` (24 events); there the error also carries how the smoother treats the reversal at impact, which is Task 07.2's question (`docs/reports/phase-07-reference-smoother.md`).
 >
 > Measurement noise 0.0. The decision below is taken on **Table 1**, because that is the table that isolates the estimator under test.
+
+
+## Clean-tree verification update — 2026-09-22
+
+Verified rerun: `20260922-2043-p07-clean-verification`, owner commit
+`1a8e790985bc97810eb28bd26ddc788136a16157`, `git_dirty: false`.
+Raw logs and regenerated outputs: `experiments/20260922-203551-p07-clean/`.
+See `docs/gates/phase-07-gate-r2.md`. C-07-7 CLOSED; all human/participant
+conditions remain PENDING. Historical outputs and evidence classes are preserved.

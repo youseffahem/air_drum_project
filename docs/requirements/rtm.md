@@ -154,7 +154,7 @@ Source: `project-discovery.md` → "Confirmed Core Architecture" and "Core Resea
 | REQ-105 | Stick Axis Estimation | F | 03 | benchmark | PLANNED |
 | REQ-106 | Stick Tip Estimation | F | 03 | benchmark | PLANNED |
 | REQ-107 | Causal Temporal Tracking | F | 03 | test (causality) | PLANNED |
-| REQ-108 | Kinematic Features | F | 08, 13 | test (offline/online parity) | PLANNED |
+| REQ-108 | Kinematic Features | F | 08, 13 | test (offline/online parity) | IMPLEMENTED — Phase 08 machinery, causal tests and DEV/SYNTHETIC parity; participant-fold evidence PENDING; `docs/gates/phase-08-gate.md` (proposed FAIL for full phase) |
 | REQ-109 | Future Trajectory Prediction | R | 10, 11, 12 | measurement | PLANNED |
 | REQ-110 | Virtual Drum Geometry | F | 04 | unit test | IMPLEMENTED P04 geometry suite |
 | REQ-111 | Predicted Trajectory / Zone Intersection | F | 04 | unit test (same routine for observed and predicted trajectories) | IMPLEMENTED P04 equivalence test |
@@ -252,3 +252,5 @@ Used by Phases 21 and 23 to show each phase's requirement coverage. Each phase d
 - Adding, removing or re-wording a requirement requires an ADR in `docs/decisions/` and an update to this file in the same change.
 - Re-including any `REQ-2xx` item requires explicit scope expansion per `out-of-scope.md` §2.
 - Status columns are edited **only** with a link to evidence (test report, measurement record, gate record).
+
+Phase 08 contribution to REQ-060b / REQ-302: feature-level TEST-CAUSAL-1/2 implemented and passing in the gate evidence; system-level acceptance remains pending its later owning phases.

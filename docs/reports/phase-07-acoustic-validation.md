@@ -44,3 +44,12 @@ The schema goes further: a `SYNTHETIC` or `DEV_CAPTURE` label can **never** carr
 | Measure and record the microphone-path latency bound (currently the candidate `DEFAULT_MIC_LATENCY_BOUND_S = 5 ms`) | submitter | **C-07-5** |
 | Run `scripts/acoustic_onset.py --all` over the campaign; report bias, spread, fraction paired and the number of strikes covered | submitter | **C-07-5** |
 | If the condition is dropped: record "dropped" with the evidence; `t_impact_phys` stays null everywhere and the dataset card states that ground truth is geometric only (it already does) | project owner | **C-07-5** |
+
+
+## Clean-tree verification update — 2026-09-22
+
+Verified rerun: `20260922-2043-p07-clean-verification`, owner commit
+`1a8e790985bc97810eb28bd26ddc788136a16157`, `git_dirty: false`.
+Raw logs and regenerated outputs: `experiments/20260922-203551-p07-clean/`.
+See `docs/gates/phase-07-gate-r2.md`. C-07-7 CLOSED; all human/participant
+conditions remain PENDING. Historical outputs and evidence classes are preserved.

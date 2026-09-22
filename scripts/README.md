@@ -48,3 +48,14 @@ One-off tools. Run from the repository root with the development venv (`.venv\Sc
 | `reference_smoother_check.py` | 07 (07.2) | how each candidate reference smoother treats the velocity reversal at impact: entry survival, crossing bias/spread, depth error (SYNTHETIC) |
 
 `tools/review_labels.py` (Task 07.5) is the label review / QC tool: frame scrub with reference-tip, causal-tip, zone, impact-surface and `t_impact_est` overlays, accept / reject / adjust / defer / note keys, an append-only review log, and `--agreement` (Cohen's kappa on presence, |dt| on timing). `--selftest` runs a scripted, non-interactive pass so the round-trip is testable without a person; its numbers are SYNTHETIC machinery evidence and are never inter-annotator agreement. `tools/annotate_tip.py` (Task 03.10) is the manual tip-annotation tool (person-dependent; `--synthetic` writes a labelled SYNTHETIC self-test file the benchmark refuses by default). Every measurement script has a `--synthetic` self-test mode used by `tests/scripts/`; real runs write `experiments/<YYYYMMDD>-<HHMM>-<slug>/` (git-ignored) and their numbers are quoted with the run id in the camera profile.
+
+## Phase 08 feature tools
+
+`build_features.py` and `compute_norm_stats.py` accept a frozen participant manifest/split pair,
+or `--synthetic-fixture` for an explicitly labelled in-memory UNIT TEST fixture.
+Single existing DEV/SYNTHETIC session diagnostics use `--session PATH --labels PATH --selftest`.
+All runs require explicit `--n --k --h --h-max --stride --g-win --out`; existing output directories
+are not overwritten. `feature_latency.py --synthetic` measures CPU extraction cost.
+`verify_phase08.py --require-clean` executes the complete post-owner-commit gate verification
+without altering Git history. Omit `--require-clean` only for honest development verification.
+See `docs/features/feature-schema-v1.md` and the Phase 08 gate for exact commands and limitations.

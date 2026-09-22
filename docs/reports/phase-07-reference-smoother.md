@@ -34,3 +34,12 @@
 ## Decision
 
 Default for label generation: **`rts-kalman-cv-v1`, `q = 200`** — the smallest process noise in this set that keeps every synthetic entry, with a crossing bias below 1 ms. Recorded as a **candidate**: the choice between it and `savgol-centred-v1 (window 3)` cannot be made on synthetic strokes alone, and the phase document requires validation against manual annotations near impacts before the labels of a real dataset are frozen.
+
+
+## Clean-tree verification update — 2026-09-22
+
+Verified rerun: `20260922-2043-p07-clean-verification`, owner commit
+`1a8e790985bc97810eb28bd26ddc788136a16157`, `git_dirty: false`.
+Raw logs and regenerated outputs: `experiments/20260922-203551-p07-clean/`.
+See `docs/gates/phase-07-gate-r2.md`. C-07-7 CLOSED; all human/participant
+conditions remain PENDING. Historical outputs and evidence classes are preserved.
