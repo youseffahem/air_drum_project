@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "dataset_version": "ds-v0.0-selftest-example",
+  "labels_version": "labels-v1.0",
+  "source_kind": "SYNTHETIC",
+  "frozen": false,
+  "frozen_at": null,
+  "rule_id": "P07-SPLIT-1",
+  "P": 6,
+  "n_test": 1,
+  "K": 4,
+  "seed": 0,
+  "stratify_keys": [],
+  "participants": [
+    "SYNTHETIC-P01",
+    "SYNTHETIC-P02",
+    "SYNTHETIC-P03",
+    "SYNTHETIC-P04",
+    "SYNTHETIC-P05",
+    "SYNTHETIC-P06"
+  ],
+  "test_participants": [
+    "SYNTHETIC-P03"
+  ],
+  "dev_participants": [
+    "SYNTHETIC-P01",
+    "SYNTHETIC-P02",
+    "SYNTHETIC-P04",
+    "SYNTHETIC-P05",
+    "SYNTHETIC-P06"
+  ],
+  "sessions_by_participant": {
+    "SYNTHETIC-P01": [
+      "SYNTHETIC-P01-S1"
+    ],
+    "SYNTHETIC-P02": [
+      "SYNTHETIC-P02-S1"
+    ],
+    "SYNTHETIC-P03": [
+      "SYNTHETIC-P03-S1"
+    ],
+    "SYNTHETIC-P04": [
+      "SYNTHETIC-P04-S1"
+    ],
+    "SYNTHETIC-P05": [
+      "SYNTHETIC-P05-S1"
+    ],
+    "SYNTHETIC-P06": [
+      "SYNTHETIC-P06-S1"
+    ]
+  },
+  "leakage_checks": {
+    "participants_disjoint": true,
+    "sessions_disjoint": true,
+    "no_session_in_two_folds": true,
+    "test_not_in_any_fold": true,
+    "every_session_assigned": true,
+    "all_passed": true
+  },
+  "normalisation_rule": "Feature-normalisation statistics (Phase 08) are computed per fold on the TRAIN participants of that fold only - never on the validation participants, never on the held-out test participants, never on the whole dataset.",
+  "rationale": "Rule P07-SPLIT-1 with P = 6: n_test = 1, K = 4. one held-out participant; With a small participant count a fixed held-out test set is statistically weak: Phase 18 reports per-participant results and confidence intervals, and nested cross-validation stays on the table (phase document, Risks). No stratification was possible: the participant attributes were not collected.",
+  "label": "TEST / DEVELOPMENT ONLY - SYNTHETIC or DEV CAPTURE roster; never a participant split",
+  "split_kind": "CV_FOLDS",
+  "folds": [
+    {
+      "fold": 0,
+      "train_participants": [
+        "SYNTHETIC-P01",
+        "SYNTHETIC-P05",
+        "SYNTHETIC-P06"
+      ],
+      "val_participants": [
+        "SYNTHETIC-P02",
+        "SYNTHETIC-P04"
+      ],
+      "train_sessions": [
+        "SYNTHETIC-P01-S1",
+        "SYNTHETIC-P05-S1",
+        "SYNTHETIC-P06-S1"
+      ],
+      "val_sessions": [
+        "SYNTHETIC-P02-S1",
+        "SYNTHETIC-P04-S1"
+      ]
+    },
+    {
+      "fold": 1,
+      "train_participants": [
+        "SYNTHETIC-P01",
+        "SYNTHETIC-P02",
+        "SYNTHETIC-P04",
+        "SYNTHETIC-P06"
+      ],
+      "val_participants": [
+        "SYNTHETIC-P05"
+      ],
+      "train_sessions": [
+        "SYNTHETIC-P01-S1",
+        "SYNTHETIC-P02-S1",
+        "SYNTHETIC-P04-S1",
+        "SYNTHETIC-P06-S1"
+      ],
+      "val_sessions": [
+        "SYNTHETIC-P05-S1"
+      ]
+    },
+    {
+      "fold": 2,
+      "train_participants": [
+        "SYNTHETIC-P02",
+        "SYNTHETIC-P04",
+        "SYNTHETIC-P05",
+        "SYNTHETIC-P06"
+      ],
+      "val_participants": [
+        "SYNTHETIC-P01"
+      ],
+      "train_sessions": [
+        "SYNTHETIC-P02-S1",
+        "SYNTHETIC-P04-S1",
+        "SYNTHETIC-P05-S1",
+        "SYNTHETIC-P06-S1"
+      ],
+      "val_sessions": [
+        "SYNTHETIC-P01-S1"
+      ]
+    },
+    {
+      "fold": 3,
+      "train_participants": [
+        "SYNTHETIC-P01",
+        "SYNTHETIC-P02",
+        "SYNTHETIC-P04",
+        "SYNTHETIC-P05"
+      ],
+      "val_participants": [
+        "SYNTHETIC-P06"
+      ],
+      "train_sessions": [
+        "SYNTHETIC-P01-S1",
+        "SYNTHETIC-P02-S1",
+        "SYNTHETIC-P04-S1",
+        "SYNTHETIC-P05-S1"
+      ],
+      "val_sessions": [
+        "SYNTHETIC-P06-S1"
+      ]
+    }
+  ],
+  "split_hash": "sha256:c8db530d7055c0613e6e5ff00561ce7edcaee45e2793aa099dbbed69098a2db4"
+}

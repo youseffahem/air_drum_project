@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "kind": "ReferenceTrack",
+  "causal": false,
+  "labels_version": "labels-v1.0",
+  "dataset_version": "ds-v0.0-selftest-example",
+  "source_kind": "SYNTHETIC",
+  "session_id": "synthetic-example",
+  "participant_id": "SYNTHETIC",
+  "hand_id": "LEFT",
+  "method_id": "rts-kalman-cv-v1",
+  "method_params": {
+    "q": 200.0,
+    "r_base": 0.0001,
+    "c_floor": 0.2,
+    "p0_vel": 1.0,
+    "p0_acc": 10.0
+  },
+  "units": {
+    "time": "s",
+    "clock": "t_mono",
+    "position": "roi_norm",
+    "velocity": "roi_norm_per_s"
+  },
+  "source_stream": "records/StickObservation.jsonl",
+  "gap_policy": {
+    "max_gap_s": 0.2,
+    "interpolate_below_bound": true,
+    "loss_intervals": []
+  },
+  "n_samples": 117,
+  "config_hash": "sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85",
+  "git_sha": "0000000000000000000000000000000000000000",
+  "clock_id": "perf_counter",
+  "generator": {
+    "tool": "spacedrums.data.labels.generate",
+    "version": "0.7.0"
+  },
+  "label": "NON-CAUSAL OFFLINE LABEL SOURCE - never a model input"
+}

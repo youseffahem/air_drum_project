@@ -1,9 +1,17 @@
-"""Data-collection pipeline (Phase 06): recording protocol, guided recorder hooks, session metadata,
-microphone capture + sync check, session verification / unusable-recording policy, raw manifests.
+"""Dataset pipeline: Phase 06 collection (recording protocol, guided recorder hooks, session
+metadata, microphone capture + sync check, session verification / unusable-recording policy, raw
+manifests) and Phase 07 labelling (``labels`` subpackage: rules, non-causal reference smoother,
+label generator, validator, QC/review, acoustic pairing, statistics, labelled-dataset manifest and
+card) plus participant-level splits (``splits``).
 
-Phase 07 adds labelling, QC and participant-level splits here; none of that exists yet (phase
-document: "What Must NOT Be Done Yet"). Nothing in this package records a person by itself: the
-person-dependent live recording is reachable only through ``scripts/record_session.py --live``.
+Nothing in this package records a person by itself: the person-dependent live recording is
+reachable only through ``scripts/record_session.py --live``.
+
+Causality note: ``spacedrums.data.labels`` is the only place in the system allowed to use future
+frames (``docs/architecture/causality-tests.md`` section 1.1). The layer contract places
+``spacedrums.data`` above every causal stage and ``.importlinter`` additionally forbids the causal
+packages from importing ``spacedrums.data.labels`` by name, so a label artefact cannot reach a
+runtime component.
 """
 
 from spacedrums.data.audio_capture import AudioCapture, SyncResult, detect_onsets, sync_check
@@ -20,6 +28,7 @@ from spacedrums.data.protocol import (
     check_segment_markers,
 )
 from spacedrums.data.recorder import GuidedRecorder, QuickCheckThresholds
+from spacedrums.data.splits import Roster, build_split, plan_for, validate_split, write_split
 from spacedrums.data.validation import VerifyThresholds, validate_verification, verify_session
 
 __all__ = [
@@ -30,6 +39,7 @@ __all__ = [
     "GuidedRecorder",
     "Protocol",
     "QuickCheckThresholds",
+    "Roster",
     "SegmentCondition",
     "SegmentSpec",
     "SegmentType",
@@ -39,13 +49,17 @@ __all__ = [
     "VerifyThresholds",
     "build_protocol",
     "build_raw_manifest",
+    "build_split",
     "check_segment_markers",
     "detect_onsets",
+    "plan_for",
     "read_manifest",
     "sync_check",
     "validate_manifest",
     "validate_metadata",
+    "validate_split",
     "validate_verification",
     "verify_session",
     "write_manifest",
+    "write_split",
 ]

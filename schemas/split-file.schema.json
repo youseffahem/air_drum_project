@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/split-file.schema.json",
+  "title": "SplitFile",
+  "description": "Frozen participant-level split of a labelled dataset (Phase 07, Task 07.8; data/splits/<dataset_version>/{test_participants.json, cv_folds.json}). README section 13: sessions of a participant are never split, participant sets are disjoint, and feature-normalisation statistics are computed per fold on TRAIN participants only (the rule Phase 08 must obey). The same files are mandatory for Phases 09-19. The number of held-out test participants and K are functions of the actual participant count P, recorded here together with the rule that produced them (ADR-0021).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "split_kind", "dataset_version", "labels_version", "source_kind", "frozen", "frozen_at", "rule_id", "P", "n_test", "K", "seed", "stratify_keys", "participants", "test_participants", "dev_participants", "folds", "sessions_by_participant", "leakage_checks", "normalisation_rule", "rationale", "label", "split_hash"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "split_kind": { "type": "string", "enum": ["TEST_HOLDOUT", "CV_FOLDS"], "description": "Which file this is. Both are produced by one call so they can never disagree; both carry the same split_hash inputs." },
+    "dataset_version": { "$ref": "label-record.schema.json#/$defs/dataset_version" },
+    "labels_version": { "$ref": "label-record.schema.json#/$defs/labels_version" },
+    "source_kind": { "$ref": "label-record.schema.json#/$defs/source_kind" },
+    "frozen": { "type": "boolean", "description": "True only for a split of a participant dataset that the owner has frozen. A SYNTHETIC or DEV_CAPTURE split is never frozen: it is a self-test of the machinery." },
+    "frozen_at": { "type": ["string", "null"], "format": "date-time" },
+    "rule_id": { "type": "string", "minLength": 1, "description": "The split-design rule applied, e.g. P07-SPLIT-1 (ADR-0021 table keyed on P)." },
+    "P": { "type": "integer", "minimum": 0, "description": "Actual number of participants in the dataset. MEASURED from the dataset manifest; 0 means no participant exists yet and no participant split can be frozen." },
+    "n_test": { "type": "integer", "minimum": 0 },
+    "K": { "type": "integer", "minimum": 0, "description": "Number of participant-grouped CV folds on the non-test participants; 0 when CV is not possible for this P." },
+    "seed": { "type": "integer", "minimum": 0, "description": "Seed of the deterministic assignment; the split is reproducible from (participants, strata, seed, rule_id) alone." },
+    "stratify_keys": { "type": "array", "items": { "type": "string" }, "description": "Participant attributes used to stratify the held-out set (experience, handedness) when they are collected; an empty list means no stratification was possible and that is stated in the rationale." },
+    "participants": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" }, "description": "All participants of the dataset, sorted." },
+    "test_participants": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" } },
+    "dev_participants": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" }, "description": "Participants available for model selection (all participants minus test)." },
+    "folds": {
+      "type": "array",
+      "description": "Participant-grouped folds over dev_participants; empty for a TEST_HOLDOUT file with K = 0.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["fold", "train_participants", "val_participants", "train_sessions", "val_sessions"],
+        "properties": {
+          "fold": { "type": "integer", "minimum": 0 },
+          "train_participants": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" } },
+          "val_participants": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" } },
+          "train_sessions": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" } },
+          "val_sessions": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" } }
+        }
+      }
+    },
+    "sessions_by_participant": { "type": "object", "additionalProperties": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/identifier" } }, "description": "The session grouping the split honours: every session of a participant goes wherever that participant goes." },
+    "leakage_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["participants_disjoint", "sessions_disjoint", "no_session_in_two_folds", "test_not_in_any_fold", "every_session_assigned", "all_passed"],
+      "description": "Machine-checked leakage properties; all_passed = false must never be written to a frozen split.",
+      "properties": {
+        "participants_disjoint": { "type": "boolean" },
+        "sessions_disjoint": { "type": "boolean" },
+        "no_session_in_two_folds": { "type": "boolean" },
+        "test_not_in_any_fold": { "type": "boolean" },
+        "every_session_assigned": { "type": "boolean" },
+        "all_passed": { "type": "boolean" }
+      }
+    },
+    "normalisation_rule": { "type": "string", "minLength": 1, "description": "The rule Phase 08 must obey, stored with the split so it cannot be forgotten: feature-normalisation statistics are computed per fold on the TRAIN participants of that fold only, never on val, never on test, never on the whole dataset." },
+    "rationale": { "type": "string", "minLength": 1, "description": "Why this n_test and this K for this P (ADR-0021), including the statistical-weakness caveat for small P." },
+    "label": { "type": "string", "minLength": 1 },
+    "split_hash": { "$ref": "common.schema.json#/$defs/sha256" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "frozen": { "const": true } }, "required": ["frozen"] },
+      "then": {
+        "properties": {
+          "frozen_at": { "type": "string" },
+          "source_kind": { "enum": ["PILOT", "PARTICIPANT"] },
+          "P": { "minimum": 1 },
+          "leakage_checks": { "properties": { "all_passed": { "const": true } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "source_kind": { "enum": ["SYNTHETIC", "DEV_CAPTURE"] } }, "required": ["source_kind"] },
+      "then": { "properties": { "frozen": { "const": false }, "dataset_version": { "pattern": "^ds-v0\\.0-selftest(-[a-z0-9]+)*$" } } }
+    },
+    {
+      "if": { "properties": { "split_kind": { "const": "CV_FOLDS" } }, "required": ["split_kind"] },
+      "then": { "properties": { "folds": { "minItems": 0 } } }
+    }
+  ]
+}

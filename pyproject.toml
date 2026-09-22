@@ -36,8 +36,9 @@ addopts = "-q --strict-markers"
 markers = [
     "hardware: needs the development webcam (skipped unless SPACEDRUMS_HW_TESTS=1)",
 ]
-# src/ so tests run without installing; tests/contracts keeps its conftest helpers importable.
-pythonpath = ["src", "tests/contracts"]
+# src/ so tests run without installing; tests/contracts keeps its conftest helpers importable and
+# tests/data exports the SYNTHETIC session builder the Phase 07 label tests reuse (tests/README.md).
+pythonpath = ["src", "tests/contracts", "tests/data"]
 
 [tool.ruff]
 line-length = 110

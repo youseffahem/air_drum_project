@@ -55,6 +55,17 @@ DATASET_SCHEMAS = [
     "exclusion-record",
     "raw-manifest",
 ]
+# Phase 07 label and labelled-dataset documents (contracts.md section 6; causality-tests.md 1.1).
+# Same generic checks as the Phase 06 documents, plus the non-causality and kind-gating conditionals
+# below: a label is never causal and SYNTHETIC / DEV CAPTURE material never becomes participant data.
+LABEL_SCHEMAS = [
+    "label-record",
+    "reference-track",
+    "label-set",
+    "label-review",
+    "split-file",
+    "dataset-manifest",
+]
 # Records that must carry t_capture (Task 01.3 rule). Header/audio records are exempt:
 # AudioEvent is keyed by strike_id; RecordStreamHeader is not a per-frame record.
 CARRIES_T_CAPTURE = [s for s in RECORD_SCHEMAS if s not in ("audio-event", "record-stream-header")]
@@ -123,8 +134,8 @@ def main() -> int:
             wrong["t_capture"] = "12345 ms"
             report(bool(errors(v, wrong)), f"{stem}: non-numeric t_capture rejected")
 
-    # 4d (Phase 06): dataset documents.
-    for stem in DATASET_SCHEMAS:
+    # 4d (Phase 06/07): dataset and label documents.
+    for stem in DATASET_SCHEMAS + LABEL_SCHEMAS:
         v = validator_for(schemas[stem], registry)
         example = json.loads((EXAMPLES / f"{stem}.valid.example.json").read_text(encoding="utf-8"))
         errs = errors(v, example)
@@ -150,6 +161,63 @@ def main() -> int:
     report(
         bool(errors(v, dsv)), "session-metadata: SYNTHETIC session in a participant dataset version rejected"
     )
+
+    # 4e (Phase 07): non-causality and kind gating of the label artefacts.
+    v = validator_for(schemas["label-record"], registry)
+    label = json.loads((EXAMPLES / "label-record.valid.example.json").read_text(encoding="utf-8"))
+    causal = copy.deepcopy(label)
+    causal["causal"] = True
+    report(bool(errors(v, causal)), "label-record: causal = true rejected (a label is never causal)")
+    banner = copy.deepcopy(label)
+    banner["runtime_reference"]["label"] = "ground truth"
+    report(bool(errors(v, banner)), "label-record: runtime_reference without its banner rejected")
+    negative = copy.deepcopy(label)
+    negative["label_class"] = "NEG_FAKE_SWING"
+    report(bool(errors(v, negative)), "label-record: a negative with an impact time rejected")
+    promoted = copy.deepcopy(label)
+    promoted["dataset_version"] = "ds-v1.0"
+    report(bool(errors(v, promoted)), "label-record: SYNTHETIC label in a participant dataset rejected")
+    phys = copy.deepcopy(label)
+    phys["t_impact_phys"] = label["t_impact_est"]
+    report(bool(errors(v, phys)), "label-record: SYNTHETIC label with physical GT rejected")
+    adjusted = copy.deepcopy(label)
+    adjusted["review"]["adjusted"] = True
+    adjusted["qc_status"] = "ADJUSTED"
+    report(bool(errors(v, adjusted)), "label-record: adjusted label without its original rejected")
+
+    v = validator_for(schemas["reference-track"], registry)
+    ref = json.loads((EXAMPLES / "reference-track.valid.example.json").read_text(encoding="utf-8"))
+    for field, value in (("causal", True), ("kind", "TrackState")):
+        broken = copy.deepcopy(ref)
+        broken[field] = value
+        report(bool(errors(v, broken)), f"reference-track: {field} = {value!r} rejected")
+    bad_units = copy.deepcopy(ref)
+    bad_units["units"]["time"] = "ms"
+    report(bool(errors(v, bad_units)), "reference-track: units.time = 'ms' rejected")
+
+    stream = validator_for(schemas["record-stream-header"], registry)
+    header_doc = json.loads(
+        (EXAMPLES / "record-stream-header.valid.example.json").read_text(encoding="utf-8")
+    )
+    for forbidden in ("LabelRecord", "ReferenceTrack"):
+        broken = copy.deepcopy(header_doc)
+        broken["record_type"] = forbidden
+        report(bool(errors(stream, broken)),
+               f"record-stream-header: record_type '{forbidden}' rejected (label artefacts are not streams)")
+
+    v = validator_for(schemas["split-file"], registry)
+    split = json.loads((EXAMPLES / "split-file.valid.example.json").read_text(encoding="utf-8"))
+    frozen = copy.deepcopy(split)
+    frozen["frozen"] = True
+    frozen["frozen_at"] = "2026-09-22T12:00:00+03:00"
+    report(bool(errors(v, frozen)), "split-file: a SYNTHETIC split cannot be frozen")
+
+    v = validator_for(schemas["dataset-manifest"], registry)
+    manifest = json.loads((EXAMPLES / "dataset-manifest.valid.example.json").read_text(encoding="utf-8"))
+    relabelled = copy.deepcopy(manifest)
+    relabelled["kind"] = "PARTICIPANT"
+    report(bool(errors(v, relabelled)),
+           "dataset-manifest: a self-test version relabelled PARTICIPANT rejected")
 
     # 5: wrong units flag in the stream header.
     v = validator_for(schemas["record-stream-header"], registry)

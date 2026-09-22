@@ -42,6 +42,16 @@ DATASET_SCHEMAS = [
     "raw-manifest",
 ]
 
+# Phase 07 label documents (non-causal by construction; causality-tests.md section 1.1).
+LABEL_SCHEMAS = [
+    "label-record",
+    "reference-track",
+    "label-set",
+    "label-review",
+    "split-file",
+    "dataset-manifest",
+]
+
 
 @pytest.fixture(scope="session")
 def schemas() -> dict[str, dict]:

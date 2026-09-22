@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/label-review.schema.json",
+  "title": "LabelReviewEntry",
+  "description": "One reviewer action in the QC/review log (Phase 07, Task 07.5; labels/<session>/review.jsonl). The log is append-only and is the audit trail of every accept / reject / adjust decision: the LabelRecord carries the current state, the log carries how it got there. A second-pass entry (pass = 2) never overwrites a first-pass entry; agreement (Cohen kappa on event presence, |delta t| on timing) is computed from the two passes over the same stratified subset.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "entry_id", "labels_version", "dataset_version", "source_kind", "session_id", "label_id", "pass", "reviewer_id", "reviewed_at", "decision", "before", "after", "reason", "notes", "stratum", "tool_id"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "entry_id": { "$ref": "common.schema.json#/$defs/opaque_id" },
+    "labels_version": { "$ref": "label-record.schema.json#/$defs/labels_version" },
+    "dataset_version": { "$ref": "label-record.schema.json#/$defs/dataset_version" },
+    "source_kind": { "$ref": "label-record.schema.json#/$defs/source_kind" },
+    "session_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "label_id": { "$ref": "common.schema.json#/$defs/opaque_id", "description": "The LabelRecord this action concerns. A MISSED entry uses a synthetic label_id minted by the tool for an event the generator did not produce; its decision is ADD." },
+    "pass": { "type": "integer", "minimum": 1, "maximum": 2, "description": "1 = primary review; 2 = independent re-review of the agreement subset (second annotator, or the same annotator after a stated time gap - the fallback of the phase document, labelled as such in the agreement report)." },
+    "reviewer_id": { "type": "string", "minLength": 1, "description": "Annotator pseudonym (A1, A2, ...) or SELFTEST for a non-interactive machine pass. Never a real name." },
+    "reviewed_at": { "type": "string", "format": "date-time" },
+    "decision": { "type": "string", "enum": ["ACCEPT", "REJECT", "ADJUST", "ADD", "DEFER"], "description": "DEFER marks an event the reviewer could not decide: it becomes AMBIGUOUS (rules document R6)." },
+    "before": { "anyOf": [{ "type": "null" }, { "$ref": "label-record.schema.json#/$defs/adjustable" }] },
+    "after": { "anyOf": [{ "type": "null" }, { "$ref": "label-record.schema.json#/$defs/adjustable" }] },
+    "reason": { "type": ["string", "null"] },
+    "notes": { "type": "string" },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone_id", "hand_id", "segment_type", "speed_band", "lighting"],
+      "description": "Stratification keys of the agreement subset (Task 07.5: by zone, speed, lighting).",
+      "properties": {
+        "zone_id": { "anyOf": [{ "$ref": "common.schema.json#/$defs/zone_id" }, { "type": "null" }] },
+        "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+        "segment_type": { "anyOf": [{ "$ref": "label-record.schema.json#/$defs/segment_type" }, { "type": "null" }] },
+        "speed_band": { "type": "string", "enum": ["SLOW", "MEDIUM", "FAST", "UNKNOWN"] },
+        "lighting": { "type": "string", "minLength": 1 }
+      }
+    },
+    "tool_id": { "type": "string", "minLength": 1, "description": "Review tool and version (tools/review_labels.py:<version>) so a change of tool is visible in the log." }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "decision": { "const": "ADJUST" } }, "required": ["decision"] },
+      "then": { "properties": { "before": { "type": "object" }, "after": { "type": "object" }, "reason": { "type": "string", "minLength": 1 } } }
+    },
+    {
+      "if": { "properties": { "decision": { "const": "ADD" } }, "required": ["decision"] },
+      "then": { "properties": { "before": { "type": "null" }, "after": { "type": "object" }, "reason": { "type": "string", "minLength": 1 } } }
+    }
+  ]
+}

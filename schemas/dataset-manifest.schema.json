@@ -1,0 +1,419 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/dataset-manifest.schema.json",
+  "title": "DatasetManifest",
+  "description": "Manifest of a LABELLED dataset version (Phase 07, Task 07.10; data/manifests/<dataset_version>.json for ds-v*). It references the raw manifest it was built from (ds-raw-v*), pins the label machinery (tracker hash, smoother id, rules version, labels version, interpolation), lists every label-set file with SHA-256, and names the split files. Admission is kind-gated exactly like the raw manifest (Phase 06): a participant dataset accepts PARTICIPANT label sets only, a pilot dataset PILOT label sets, and a self-test dataset SYNTHETIC / DEV CAPTURE label sets which are labelled TEST / DEVELOPMENT ONLY and can never be promoted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_version",
+    "kind",
+    "label",
+    "labels_version",
+    "raw_manifest",
+    "root",
+    "generated_at",
+    "generator",
+    "machinery",
+    "splits",
+    "dataset_card",
+    "totals",
+    "participants",
+    "label_sets",
+    "refused",
+    "exclusions",
+    "withdrawals",
+    "notes",
+    "manifest_hash"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "dataset_version": {
+      "$ref": "label-record.schema.json#/$defs/dataset_version"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "PARTICIPANT",
+        "PILOT",
+        "SELFTEST"
+      ]
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "labels_version": {
+      "$ref": "label-record.schema.json#/$defs/labels_version"
+    },
+    "raw_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset_version",
+        "manifest_hash",
+        "path"
+      ],
+      "description": "The ds-raw-v* manifest the labels were built from (Phase 06). A labelled dataset always names its raw source.",
+      "properties": {
+        "dataset_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_hash": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "version",
+        "git_sha",
+        "git_dirty"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "git_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "git_dirty": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "machinery": {
+      "$ref": "label-record.schema.json#/$defs/provenance",
+      "description": "The label machinery every listed label set must agree with; a set with a different labels_hash is refused, never silently mixed (Task 07.10 versioning rule)."
+    },
+    "splits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "test_participants",
+        "cv_folds",
+        "split_hash",
+        "frozen"
+      ],
+      "properties": {
+        "test_participants": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Path of test_participants.json relative to the repository root; null when no split is frozen for this dataset."
+        },
+        "cv_folds": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "split_hash": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "frozen": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dataset_card": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Path of the dataset card; a participant dataset without a card is incomplete (acceptance criterion 7)."
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n_label_sets",
+        "n_participants",
+        "n_sessions",
+        "n_labels",
+        "by_class",
+        "by_source_kind",
+        "n_files",
+        "total_bytes",
+        "label"
+      ],
+      "properties": {
+        "n_label_sets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "n_participants": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "n_sessions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "n_labels": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_class": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_source_kind": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Label count per source_kind. A participant or pilot dataset has exactly one key by construction (kind gating); a SELFTEST dataset may hold both SYNTHETIC and DEV_CAPTURE, and this breakdown is what keeps its totals from reading as one blended number (integrity I-4)."
+        },
+        "n_files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/identifier"
+      }
+    },
+    "label_sets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "session_id",
+          "participant_id",
+          "source_kind",
+          "path",
+          "set_hash",
+          "n_labels",
+          "by_class",
+          "qc_pending",
+          "files"
+        ],
+        "properties": {
+          "session_id": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          },
+          "participant_id": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          },
+          "source_kind": {
+            "$ref": "label-record.schema.json#/$defs/source_kind"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "set_hash": {
+            "$ref": "common.schema.json#/$defs/sha256"
+          },
+          "n_labels": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "by_class": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "qc_pending": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "bytes",
+                "sha256",
+                "causal"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "sha256": {
+                  "$ref": "common.schema.json#/$defs/sha256"
+                },
+                "causal": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "refused": {
+      "type": "array",
+      "description": "Label sets that were offered and refused, with the reason. Nothing is silently dropped and nothing is re-labelled (integrity I-4).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "session_id",
+          "reason"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "ExclusionRecords carried over from the raw manifest for the listed sessions."
+    },
+    "withdrawals": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "manifest_hash": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "SELFTEST"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "dataset_version": {
+            "pattern": "^ds-v0\\.0-selftest(-[a-z0-9]+)*$"
+          },
+          "splits": {
+            "properties": {
+              "frozen": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "PARTICIPANT"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "dataset_version": {
+            "pattern": "^ds-v[0-9]+\\.[0-9]+$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "PILOT"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "dataset_version": {
+            "pattern": "^ds-v[0-9]+\\.[0-9]+-pilot$"
+          }
+        }
+      }
+    }
+  ]
+}

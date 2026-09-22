@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/label-set.schema.json",
+  "title": "LabelSet",
+  "description": "Per-session label-set metadata written beside labels.jsonl (Phase 07, Task 07.3): what was generated, from which inputs, with which rules, and the counts per class. It is the document the validator (Task 07.7) checks every LabelRecord provenance block against, and the unit the dataset manifest (Task 07.10) lists. Counts here are MEASURED from the labels of THIS session and carry the session source_kind; counts of different source kinds are never summed into one number.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "labels_version", "dataset_version", "source_kind", "session_id", "participant_id", "generated_at", "provenance", "inputs", "counts", "files", "qc", "phys", "notes", "label", "set_hash"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "labels_version": { "$ref": "label-record.schema.json#/$defs/labels_version" },
+    "dataset_version": { "$ref": "label-record.schema.json#/$defs/dataset_version" },
+    "source_kind": { "$ref": "label-record.schema.json#/$defs/source_kind" },
+    "session_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "participant_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "provenance": { "$ref": "label-record.schema.json#/$defs/provenance" },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session_dir", "n_frames", "n_segments", "n_quarantined_segments", "streams"],
+      "properties": {
+        "session_dir": { "type": "string", "minLength": 1 },
+        "n_frames": { "type": "integer", "minimum": 0 },
+        "n_segments": { "type": "integer", "minimum": 0 },
+        "n_quarantined_segments": { "type": "integer", "minimum": 0 },
+        "streams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256", "records"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+              "records": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "by_class", "by_hand", "by_zone", "by_segment_type", "excluded", "ambiguous", "label"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "by_class": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "by_hand": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "by_zone": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "by_segment_type": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "excluded": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 },
+        "label": { "type": "string", "minLength": 1, "description": "Evidence label of these counts, e.g. 'MEASURED from SYNTHETIC session labels'." }
+      }
+    },
+    "files": {
+      "type": "array",
+      "description": "Files of the label set with SHA-256, sorted by path (labels.jsonl, tracks_causal.jsonl, tracks_reference.jsonl, review log if present).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "bytes", "sha256", "causal"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+          "causal": { "type": ["boolean", "null"], "description": "true = causal artefact (tracks_causal), false = non-causal label artefact (tracks_reference, labels), null = not a trajectory or label stream." }
+        }
+      }
+    },
+    "qc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_id", "reviewed", "accepted", "rejected", "adjusted", "pending", "second_pass", "sampling", "label"],
+      "properties": {
+        "protocol_id": { "type": "string", "minLength": 1 },
+        "reviewed": { "type": "integer", "minimum": 0 },
+        "accepted": { "type": "integer", "minimum": 0 },
+        "rejected": { "type": "integer", "minimum": 0 },
+        "adjusted": { "type": "integer", "minimum": 0 },
+        "pending": { "type": "integer", "minimum": 0 },
+        "second_pass": { "type": "integer", "minimum": 0 },
+        "sampling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["positives_rate", "ambiguous_rate", "negatives_rate"],
+          "description": "Review sampling rates actually applied (Task 07.5: 100% of positives and ambiguous, sampled negatives; a lower positive rate must be recorded here).",
+          "properties": {
+            "positives_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "ambiguous_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "negatives_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "label": { "type": "string", "minLength": 1 }
+      }
+    },
+    "phys": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "reason", "n_pad_positives", "n_paired", "residual_bias_s", "residual_iqr_s", "mic_latency_bound_s", "label"],
+      "description": "Acoustic ground-truth pairing for this session (Task 07.6). available=false with a reason is the documented PENDING branch.",
+      "properties": {
+        "available": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "n_pad_positives": { "type": "integer", "minimum": 0 },
+        "n_paired": { "type": "integer", "minimum": 0 },
+        "residual_bias_s": { "type": ["number", "null"] },
+        "residual_iqr_s": { "type": ["number", "null"] },
+        "mic_latency_bound_s": { "type": ["number", "null"], "minimum": 0 },
+        "label": { "type": "string", "minLength": 1 }
+      }
+    },
+    "notes": { "type": "string" },
+    "label": { "type": "string", "minLength": 1, "description": "Human-readable provenance banner, e.g. 'TEST / DEVELOPMENT ONLY - SYNTHETIC session; never participant evidence'." },
+    "set_hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "SHA-256 of the canonical JSON of this document without set_hash and generated_at: identical inputs and machinery produce an identical set_hash (Task 07.3 determinism check)." }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "source_kind": { "enum": ["SYNTHETIC", "DEV_CAPTURE"] } }, "required": ["source_kind"] },
+      "then": { "properties": { "dataset_version": { "pattern": "^(ds-none-v0\\.0|ds-v0\\.0-selftest(-[a-z0-9]+)*)$" }, "phys": { "properties": { "available": { "const": false } } } } }
+    },
+    {
+      "if": { "properties": { "phys": { "properties": { "available": { "const": false } }, "required": ["available"] } }, "required": ["phys"] },
+      "then": { "properties": { "phys": { "properties": { "reason": { "type": "string", "minLength": 1 }, "n_paired": { "const": 0 }, "residual_bias_s": { "type": "null" }, "residual_iqr_s": { "type": "null" } } } } }
+    }
+  ]
+}

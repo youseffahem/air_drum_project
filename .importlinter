@@ -62,6 +62,23 @@ source_modules =
 forbidden_modules =
     spacedrums.geometry
 
+[importlinter:contract:labels-are-offline]
+name = no causal stage may import the offline label machinery (Phase 07)
+type = forbidden
+source_modules =
+    spacedrums.capture
+    spacedrums.hands
+    spacedrums.stick
+    spacedrums.tracking
+    spacedrums.geometry
+    spacedrums.prediction
+    spacedrums.commit
+    spacedrums.audio
+    spacedrums.app
+forbidden_modules =
+    spacedrums.data.labels
+    spacedrums.data.splits
+
 [importlinter:contract:commit-blind]
 name = commit sees only StrikeCandidate + TrackState (never perception, prediction or features)
 type = forbidden

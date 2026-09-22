@@ -1,0 +1,191 @@
+"""Phase 07, Task 07.2 — reference-smoother comparison near impacts.
+
+    python scripts/reference_smoother_check.py [--out docs/reports/phase-07-reference-smoother.md]
+
+The phase document names the risk directly: *"Reference smoother may over-smooth sharp reversals at
+impact → validate against manual annotation near impacts; tune window."* This script measures that
+on SYNTHETIC strokes whose crossing instant is known analytically, for each candidate smoother and
+parameter set:
+
+* **entry survival** — how many strokes still cross the impact surface after smoothing (a stroke
+  whose entry the smoother rounds away would be labelled a stop-short instead of an impact);
+* **crossing-time bias and spread** against the analytic crossing;
+* **depth error** — how much shallower the smoothed minimum is than the measured one.
+
+The proper reference is **manual tip annotation near impacts on real recordings**
+(``tools/annotate_tip.py``), which is person-dependent and therefore **PENDING / NOT VALIDATED**.
+What runs here is a synthetic stand-in: it is evidence about how the smoothers behave on a known
+stroke shape, not a measurement of the reference-trajectory error on this project's recordings.
+"""
+
+from __future__ import annotations
+
+import argparse
+import statistics
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _p07 import use_utf8_stdout  # noqa: E402
+
+from spacedrums.app.synthetic import DT, Swing, build_sequence  # noqa: E402
+from spacedrums.config import load_config  # noqa: E402
+from spacedrums.contracts import HandId  # noqa: E402
+from spacedrums.data.labels.rules import signed_distance_to_surface  # noqa: E402
+from spacedrums.data.labels.smooth import Measurement, ReferenceSmoother  # noqa: E402
+from spacedrums.geometry import ZoneRegistry  # noqa: E402
+from spacedrums.geometry.impact import crossing_time, segment_surface  # noqa: E402
+
+CONFIG = Path(__file__).resolve().parents[1] / "configs" / "prototype.candidate.yaml"
+
+CANDIDATES: tuple[tuple[str, dict[str, float]], ...] = (
+    ("rts-kalman-cv-v1", {"q": 5.0}),
+    ("rts-kalman-cv-v1", {"q": 50.0}),
+    ("rts-kalman-cv-v1", {"q": 200.0}),
+    ("rts-kalman-cv-v1", {"q": 2000.0}),
+    ("rts-kalman-ca-v1", {"q": 200.0}),
+    ("rts-kalman-ca-v1", {"q": 20000.0}),
+    ("savgol-centred-v1", {"window": 3.0, "polyorder": 2.0}),
+    ("savgol-centred-v1", {"window": 5.0, "polyorder": 2.0}),
+    ("savgol-centred-v1", {"window": 9.0, "polyorder": 2.0}),
+)
+
+
+def strokes(n: int = 24):
+    """Deterministic SYNTHETIC strokes varying descent duration, depth and intra-frame phase."""
+    for k in range(n):
+        yield Swing(
+            HandId.RIGHT,
+            "snare",
+            0.40 + DT * (k / n),
+            t_down=0.14 + 0.010 * (k % 6),
+            depth=0.03 + 0.004 * (k % 5),
+        )
+
+
+def evaluate(smoother_id: str, params: dict[str, float], *, noise: float, n: int = 24) -> dict:
+    registry = ZoneRegistry.from_config(load_config(CONFIG)["zones"])
+    zone = registry["snare"]
+    survived = 0
+    dts: list[float] = []
+    depth_err: list[float] = []
+    for k, sw in enumerate(strokes(n)):
+        seq = build_sequence(registry, [sw], duration_s=1.4, noise=noise, seed=100 + k)
+        meas = [
+            Measurement(f.frame_id, f.t_capture, o[HandId.RIGHT][1].tip,
+                        o[HandId.RIGHT][1].tip_confidence)
+            for f, o in seq.frames
+        ]
+        truth = seq.truth[0].t_cross
+        samples = list(ReferenceSmoother(smoother_id, params=params).smooth(meas).samples)
+        raw_min = min(signed_distance_to_surface(zone, m.p) for m in meas if m.present)
+        sm_min = min(signed_distance_to_surface(zone, s.p) for s in samples)
+        depth_err.append(sm_min - raw_min)
+        for i in range(len(samples) - 1):
+            if zone.shape.contains(samples[i].p) or not zone.shape.contains(
+                samples[i + 1].p, include_boundary=False
+            ):
+                continue
+            c = segment_surface(samples[i].p, samples[i + 1].p, zone.impact_surface)
+            if c is None:
+                continue
+            survived += 1
+            dts.append(crossing_time(samples[i].t, samples[i + 1].t, c.s) - truth)
+            break
+    return {
+        "smoother_id": smoother_id,
+        "params": dict(params),
+        "noise": noise,
+        "n": n,
+        "entries_survived": survived,
+        "bias_s": statistics.median(dts) if dts else None,
+        "range_s": (max(dts) - min(dts)) if dts else None,
+        "mean_depth_error": sum(depth_err) / len(depth_err),
+    }
+
+
+def _ms(v: float | None) -> str:
+    return "—" if v is None else f"{v * 1000:.2f}"
+
+
+def render(rows: list[dict]) -> str:
+    lines = [
+        "# Phase 07 — Reference-smoother behaviour near impacts (Task 07.2)",
+        "",
+        "**Evidence class: SYNTHETIC.** Strokes generated by `spacedrums.app.synthetic` with an "
+        "analytically known surface-crossing instant, sampled at 30 FPS. This measures how each "
+        "candidate smoother treats the velocity reversal at impact; it is **not** a measurement of "
+        "the reference-trajectory error on this project's recordings.",
+        "",
+        "> **PENDING / NOT VALIDATED:** the reference the phase document asks for is manual tip "
+        "annotation near impacts on real recordings (`tools/annotate_tip.py`, stratified subset). "
+        "That is person-dependent and no recording exists (Phase 06 C-06-1…C-06-4).",
+        "",
+        "| Smoother | Parameters | Measurement noise | Entries survived | Crossing bias (ms) | "
+        "Crossing range (ms) | Mean depth error (ROI-norm) |",
+        "|---|---|---:|---:|---:|---:|---:|",
+    ]
+    for r in rows:
+        lines.append(
+            f"| `{r['smoother_id']}` | `{r['params']}` | {r['noise']} | "
+            f"{r['entries_survived']}/{r['n']} | {_ms(r['bias_s'])} | {_ms(r['range_s'])} | "
+            f"{r['mean_depth_error']:+.5f} |"
+        )
+    lines += [
+        "",
+        "## Reading",
+        "",
+        "* *Entries survived* is the decisive column. A stroke whose surface entry the smoother "
+        "rounds away is not labelled a late impact — it is labelled a **stop before impact**, i.e. "
+        "a positive silently becomes a negative. Any smoother setting that does not keep every "
+        "entry is unusable for label generation.",
+        "* The Phase 03 tracker's `q = 5.0` is tuned for a *causal* filter that must reject "
+        "measurement noise. Used as a reference smoother it loses entries and biases the crossing "
+        "late; the reference smoother therefore carries its **own** process noise "
+        "(`smooth.DEFAULT_KALMAN_PARAMS`), and the difference is deliberate, not an oversight.",
+        "* A wider Savitzky-Golay window flattens the reversal for the same reason: at 30 FPS a "
+        "9-sample centred window spans more than a whole downward phase.",
+        "",
+        "## Decision",
+        "",
+        "Default for label generation: **`rts-kalman-cv-v1`, `q = 200`** — the smallest process "
+        "noise in this set that keeps every synthetic entry, with a crossing bias below 1 ms. "
+        "Recorded as a **candidate**: the choice between it and `savgol-centred-v1 (window 3)` "
+        "cannot be made on synthetic strokes alone, and the phase document requires validation "
+        "against manual annotations near impacts before the labels of a real dataset are frozen.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--n", type=int, default=24)
+    ap.add_argument("--noise", type=float, nargs="*", default=[0.0, 0.003])
+    ap.add_argument("--out", default=None)
+    args = ap.parse_args(argv)
+    use_utf8_stdout()
+    rows = [
+        evaluate(sid, params, noise=noise, n=args.n)
+        for noise in args.noise
+        for sid, params in CANDIDATES
+    ]
+    text = render(rows)
+    print(text)
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(text.rstrip() + "\n", encoding="utf-8", newline="\n")
+        print(f"[smoother] wrote {args.out}")
+    worst_default = next(
+        r for r in rows
+        if r["smoother_id"] == "rts-kalman-cv-v1" and r["params"] == {"q": 200.0} and r["noise"] == 0.0
+    )
+    ok = worst_default["entries_survived"] == worst_default["n"]
+    print(f"\nRESULT: {'PASS' if ok else 'FAIL'} (the default smoother keeps every synthetic entry)")
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":  # pragma: no cover
+    raise SystemExit(main())
