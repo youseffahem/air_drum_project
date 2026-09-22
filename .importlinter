@@ -25,6 +25,12 @@ layers =
     spacedrums.timing | spacedrums.config
     spacedrums.contracts
 
+# Architecture section 2.2 already permits read-only zone access from features.
+# Keep the exception narrow: registry/surface types, never candidate generation.
+ignore_imports =
+    spacedrums.features.core -> spacedrums.geometry.zones
+    spacedrums.features.schema -> spacedrums.geometry.zones
+
 [importlinter:contract:contracts-is-leaf]
 name = contracts imports nothing else in spacedrums
 type = forbidden
@@ -75,6 +81,7 @@ source_modules =
     spacedrums.commit
     spacedrums.audio
     spacedrums.app
+    spacedrums.features
 forbidden_modules =
     spacedrums.data.labels
     spacedrums.data.splits

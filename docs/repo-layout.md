@@ -149,3 +149,11 @@ The **canonical timing/event/metric definitions live in `phases/README.md` §5�
 - No `models/`, `assets/`, `thesis/`, `release/` directories: created by the phases that own them.
 - ~~No `tests/` content: the first tests arrive with Phase 01's contract tests.~~ *(P01)* `tests/contracts/` exists (`TEST-SCHEMA-1`); per-subpackage tests arrive with Phase 02+.
 - ~~No `.importlinter` contract yet: committed with the first module in Phase 02 (`docs/architecture/architecture.md` §2.4).~~ *(P02)* present; layers of packages that do not exist yet are marked optional in the contract.
+
+## Phase 08 amendment
+
+Implemented `features/{schema,groups,core,batch,streaming,normalize,windows,targets}.py`,
+`data/feature_dataset.py`, feature build/stats/latency/verification scripts, `tests/features/`,
+`schemas/feature-schema-v1.json`, `configs/features/fs-v1.candidate.yaml`, the schema document,
+report, gate and ADR-0022. Generated self-test exports are ignored under `data/features/`;
+no participant feature directory or Phase 09 model was created.

@@ -1,5 +1,10 @@
 # Phase 07 — Exit Gate Record
 
+> **Historical submission, superseded for current condition status by
+> [reopened gate r2](phase-07-gate-r2.md), 2026-09-22. C-07-7 is CLOSED after clean
+> verification on owner commit `1a8e790985bc97810eb28bd26ddc788136a16157`;
+> C-07-1–C-07-6 remain PENDING. The original evidence below is preserved.**
+
 | Field | Value |
 |---|---|
 | Phase | 07 — Dataset Creation & Labelling |

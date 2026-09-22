@@ -1,7 +1,11 @@
 # spacedrums.features
 
-**Status:** PLANNED - empty stub, no code (Phase 00, Task 00.4).
+Status: IMPLEMENTED (Phase 08); participant-fold evidence PENDING.
 
-Causal kinematic feature schema; identical offline and online code path. Owner: Phase 08 (online parity: Phase 13).
+`core.py` computes fs-v1; `batch.py` and `streaming.py` share it. `schema.py`/`groups.py`
+define dimensions and ablations; `normalize.py` fits train-only fold statistics;
+`windows.py`/`targets.py` assemble causal inputs and offline targets.
+The higher-layer verified loader is `spacedrums.data.feature_dataset`.
 
-See docs/repo-layout.md section 2 for the pipeline-stage mapping. Code may only be added by the owning phase.
+See `docs/features/feature-schema-v1.md`, ADR-0022 and `docs/gates/phase-08-gate.md`.
+No model training or live application integration is included.

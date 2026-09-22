@@ -314,3 +314,8 @@ Reviewer verifies pre-registration predates the test run, causality/leakage test
 - Loss type and step weighting (Task 10.4 sweep within budget).
 - Commit-control operating points (Task 10.11).
 - Sampling/imbalance strategy (Task 10.1).
+
+Phase 08 target contract reference: `docs/features/feature-schema-v1.md`, “Window and target
+semantics”. Trajectory targets are noisy future causal-tracked positions; auxiliary strike
+targets are reference-derived labels. Reference trajectories remain forbidden as inputs.
+This reference does not start Phase 10 or choose a target experiment.

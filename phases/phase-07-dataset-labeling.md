@@ -231,6 +231,10 @@ Two tip trajectories exist per session: the **causal** one (model input, identic
 
 ## Exit Gate
 
+Current gate: `docs/gates/phase-07-gate-r2.md` — proposed PASS-WITH-CONDITIONS
+(infrastructure), 2026-09-22. C-07-7 CLOSED on owner commit `1a8e790985bc97810eb28bd26ddc788136a16157`;
+C-07-1–C-07-6 PENDING. Owner review remains pending.
+
 Reviewer verifies rules, QC evidence, splits, manifest, dataset card. PASS → Phase 08.
 
 ## What Must NOT Be Done Yet

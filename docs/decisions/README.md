@@ -28,4 +28,6 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0020](ADR-0020-subframe-interpolation.md) | Sub-frame interpolation of the impact crossing time: QUADRATIC for offline labels, LINEAR unchanged in the live geometry; decision rule declared before the run | Accepted (provisional: SYNTHETIC evidence only; physical-reference comparison PENDING, C-07-4) | 2026-09-22 | 07 |
 | [ADR-0021](ADR-0021-split-design.md) | Participant-level split design `P07-SPLIT-1`: n_test and K as a function of P, fixed before any participant exists; deterministic hash ordering; leakage checks; per-fold train-only normalisation rule | Accepted as a rule; **no split frozen (P = 0)** | 2026-09-22 | 07 |
 
-Next free number: **ADR-0022**.
+| [ADR-0022](ADR-0022-feature-schema-and-targets.md) | Causal fs-v1 schema, bounded state, train-only scaling, target separation and config 1.4 | IMPLEMENTED; empirical choices candidate | 2026-09-22 | 08 |
+
+Next free number: **ADR-0023**.

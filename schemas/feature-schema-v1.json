@@ -1,0 +1,836 @@
+{
+  "feature_schema_id": "fs-v1",
+  "schema_version": "1.0",
+  "groups": [
+    "POS",
+    "VEL",
+    "ACC",
+    "AXIS",
+    "HAND",
+    "ZONE",
+    "CONF",
+    "TIME"
+  ],
+  "dimension": 56,
+  "fields": [
+    {
+      "name": "tip_x",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "TrackState.tip_filtered",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "tip_y",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "TrackState.tip_filtered",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_hihat_x",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_hihat_y",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_snare_x",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_snare_y",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_tom1_x",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_tom1_y",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_crash_ride_x",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "relative_crash_ride_y",
+      "group": "POS",
+      "unit": "roi_norm",
+      "derivation": "tip - impact surface midpoint",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "vx",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "filter velocity; speed=hypot(v); direction=v/speed; vertical_velocity=vy",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "vy",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "filter velocity; speed=hypot(v); direction=v/speed; vertical_velocity=vy",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "speed",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "filter velocity; speed=hypot(v); direction=v/speed; vertical_velocity=vy",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "direction_x",
+      "group": "VEL",
+      "unit": "unitless",
+      "derivation": "filter velocity; speed=hypot(v); direction=v/speed; vertical_velocity=vy",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise speed > epsilon",
+      "range": [
+        -1,
+        1
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "direction_y",
+      "group": "VEL",
+      "unit": "unitless",
+      "derivation": "filter velocity; speed=hypot(v); direction=v/speed; vertical_velocity=vy",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise speed > epsilon",
+      "range": [
+        -1,
+        1
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "vertical_velocity",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "filter velocity; speed=hypot(v); direction=v/speed; vertical_velocity=vy",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "inward_hihat",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "dot(filter velocity, zone inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "inward_snare",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "dot(filter velocity, zone inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "inward_tom1",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "dot(filter velocity, zone inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "inward_crash_ride",
+      "group": "VEL",
+      "unit": "roi_norm/s",
+      "derivation": "dot(filter velocity, zone inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "ax",
+      "group": "ACC",
+      "unit": "roi_norm/s^2",
+      "derivation": "filter acceleration, else backward velocity difference / dt",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise acceleration available; decomposition additionally requires nonzero speed",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "ay",
+      "group": "ACC",
+      "unit": "roi_norm/s^2",
+      "derivation": "filter acceleration, else backward velocity difference / dt",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise acceleration available; decomposition additionally requires nonzero speed",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "acceleration",
+      "group": "ACC",
+      "unit": "roi_norm/s^2",
+      "derivation": "filter acceleration, else backward velocity difference / dt",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise acceleration available; decomposition additionally requires nonzero speed",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "acc_tangent",
+      "group": "ACC",
+      "unit": "roi_norm/s^2",
+      "derivation": "filter acceleration, else backward velocity difference / dt",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise acceleration available; decomposition additionally requires nonzero speed",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "acc_normal",
+      "group": "ACC",
+      "unit": "roi_norm/s^2",
+      "derivation": "filter acceleration, else backward velocity difference / dt",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise acceleration available; decomposition additionally requires nonzero speed",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "robust"
+    },
+    {
+      "name": "axis_sin",
+      "group": "AXIS",
+      "unit": "unitless",
+      "derivation": "filtered axis; same-frame StickObservation confidence/length",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source field available; omega backward wrapped difference if filter lacks it",
+      "range": [
+        -1,
+        1
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "axis_cos",
+      "group": "AXIS",
+      "unit": "unitless",
+      "derivation": "filtered axis; same-frame StickObservation confidence/length",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source field available; omega backward wrapped difference if filter lacks it",
+      "range": [
+        -1,
+        1
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "axis_omega",
+      "group": "AXIS",
+      "unit": "rad/s",
+      "derivation": "filtered axis; same-frame StickObservation confidence/length",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source field available; omega backward wrapped difference if filter lacks it",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "axis_confidence",
+      "group": "AXIS",
+      "unit": "unitless",
+      "derivation": "filtered axis; same-frame StickObservation confidence/length",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source field available; omega backward wrapped difference if filter lacks it",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "stick_length",
+      "group": "AXIS",
+      "unit": "roi_norm",
+      "derivation": "filtered axis; same-frame StickObservation confidence/length",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source field available; omega backward wrapped difference if filter lacks it",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_0_x",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_0_y",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_5_x",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_5_y",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_9_x",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_9_y",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_4_x",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "landmark_4_y",
+      "group": "HAND",
+      "unit": "hand_size",
+      "derivation": "(landmark - wrist) / distance(wrist,middle MCP)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise same-frame hand present and hand size > epsilon; landmark visibility > 0 if supplied",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "bbox_width",
+      "group": "HAND",
+      "unit": "roi_norm",
+      "derivation": "same-frame HandObservation",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise hand present",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "bbox_height",
+      "group": "HAND",
+      "unit": "roi_norm",
+      "derivation": "same-frame HandObservation",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise hand present",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "handedness_score",
+      "group": "HAND",
+      "unit": "unitless",
+      "derivation": "same-frame HandObservation",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise hand present",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "distance_hihat",
+      "group": "ZONE",
+      "unit": "roi_norm",
+      "derivation": "dot(closest point on finite impact surface - tip, inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "tts_hihat",
+      "group": "ZONE",
+      "unit": "s",
+      "derivation": "clip(distance/max(inward speed,epsilon),0,tts_clip_s)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        0,
+        2.0
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "distance_snare",
+      "group": "ZONE",
+      "unit": "roi_norm",
+      "derivation": "dot(closest point on finite impact surface - tip, inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "tts_snare",
+      "group": "ZONE",
+      "unit": "s",
+      "derivation": "clip(distance/max(inward speed,epsilon),0,tts_clip_s)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        0,
+        2.0
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "distance_tom1",
+      "group": "ZONE",
+      "unit": "roi_norm",
+      "derivation": "dot(closest point on finite impact surface - tip, inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "tts_tom1",
+      "group": "ZONE",
+      "unit": "s",
+      "derivation": "clip(distance/max(inward speed,epsilon),0,tts_clip_s)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        0,
+        2.0
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "distance_crash_ride",
+      "group": "ZONE",
+      "unit": "roi_norm",
+      "derivation": "dot(closest point on finite impact surface - tip, inward normal)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        null,
+        null
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "tts_crash_ride",
+      "group": "ZONE",
+      "unit": "s",
+      "derivation": "clip(distance/max(inward speed,epsilon),0,tts_clip_s)",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise live",
+      "range": [
+        0,
+        2.0
+      ],
+      "normalization": "zscore"
+    },
+    {
+      "name": "valid",
+      "group": "CONF",
+      "unit": "unitless",
+      "derivation": "TrackState status/confidence/age; same-frame FrameSample drops",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source available",
+      "range": [
+        0,
+        null
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "degraded",
+      "group": "CONF",
+      "unit": "unitless",
+      "derivation": "TrackState status/confidence/age; same-frame FrameSample drops",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source available",
+      "range": [
+        0,
+        null
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "tip_confidence",
+      "group": "CONF",
+      "unit": "unitless",
+      "derivation": "TrackState status/confidence/age; same-frame FrameSample drops",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source available",
+      "range": [
+        0,
+        null
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "frames_since_valid",
+      "group": "CONF",
+      "unit": "frames",
+      "derivation": "TrackState status/confidence/age; same-frame FrameSample drops",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source available",
+      "range": [
+        0,
+        null
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "dropped_since_last",
+      "group": "CONF",
+      "unit": "frames",
+      "derivation": "TrackState status/confidence/age; same-frame FrameSample drops",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise source available",
+      "range": [
+        0,
+        null
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "dt",
+      "group": "TIME",
+      "unit": "s",
+      "derivation": "current - previous processed per-hand t_capture",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise previous frame exists",
+      "range": [
+        0,
+        null
+      ],
+      "normalization": "identity"
+    },
+    {
+      "name": "window_elapsed",
+      "group": "TIME",
+      "unit": "s",
+      "derivation": "window assembler: t_j - first history t_capture",
+      "mask_rule": "INVALID/STALE: zero and masked; otherwise masked in standalone per-frame record; filled in assembled history only",
+      "range": [
+        0,
+        null
+      ],
+      "normalization": "identity"
+    }
+  ],
+  "zone_layout": [
+    {
+      "zone_id": "hihat",
+      "name": "Hi-Hat",
+      "trigger_type": "HAND_TIP",
+      "shape": {
+        "type": "ELLIPSE",
+        "center": [
+          0.2,
+          0.32
+        ],
+        "rx": 0.13,
+        "ry": 0.07,
+        "angle_rad": 0.0
+      },
+      "impact_surface": {
+        "type": "ARC",
+        "center": [
+          0.2,
+          0.32
+        ],
+        "rx": 0.13,
+        "ry": 0.07,
+        "angle_rad": 0.0,
+        "theta_start_rad": 3.141592653589793,
+        "theta_end_rad": 6.283185307179586
+      },
+      "inward_normal": [
+        0.0,
+        1.0
+      ],
+      "sample_id": "tr505-hihat-closed",
+      "gain_curve_id": "default"
+    },
+    {
+      "zone_id": "snare",
+      "name": "Snare",
+      "trigger_type": "HAND_TIP",
+      "shape": {
+        "type": "ELLIPSE",
+        "center": [
+          0.4,
+          0.68
+        ],
+        "rx": 0.16,
+        "ry": 0.1,
+        "angle_rad": 0.0
+      },
+      "impact_surface": {
+        "type": "ARC",
+        "center": [
+          0.4,
+          0.68
+        ],
+        "rx": 0.16,
+        "ry": 0.1,
+        "angle_rad": 0.0,
+        "theta_start_rad": 3.141592653589793,
+        "theta_end_rad": 6.283185307179586
+      },
+      "inward_normal": [
+        0.0,
+        1.0
+      ],
+      "sample_id": "tr505-snare",
+      "gain_curve_id": "default"
+    },
+    {
+      "zone_id": "tom1",
+      "name": "Tom 1",
+      "trigger_type": "HAND_TIP",
+      "shape": {
+        "type": "ELLIPSE",
+        "center": [
+          0.5,
+          0.38
+        ],
+        "rx": 0.13,
+        "ry": 0.08,
+        "angle_rad": 0.0
+      },
+      "impact_surface": {
+        "type": "ARC",
+        "center": [
+          0.5,
+          0.38
+        ],
+        "rx": 0.13,
+        "ry": 0.08,
+        "angle_rad": 0.0,
+        "theta_start_rad": 3.141592653589793,
+        "theta_end_rad": 6.283185307179586
+      },
+      "inward_normal": [
+        0.0,
+        1.0
+      ],
+      "sample_id": "tr505-tom-h",
+      "gain_curve_id": "default"
+    },
+    {
+      "zone_id": "crash_ride",
+      "name": "Crash/Ride",
+      "trigger_type": "HAND_TIP",
+      "shape": {
+        "type": "ELLIPSE",
+        "center": [
+          0.8,
+          0.29
+        ],
+        "rx": 0.16,
+        "ry": 0.065,
+        "angle_rad": 0.12
+      },
+      "impact_surface": {
+        "type": "ARC",
+        "center": [
+          0.8,
+          0.29
+        ],
+        "rx": 0.16,
+        "ry": 0.065,
+        "angle_rad": 0.12,
+        "theta_start_rad": 3.141592653589793,
+        "theta_end_rad": 6.283185307179586
+      },
+      "inward_normal": [
+        -0.1197122073,
+        0.9928086359
+      ],
+      "sample_id": "tr505-crash",
+      "gain_curve_id": "default"
+    }
+  ],
+  "tts_clip_s": 2.0,
+  "epsilon": 1e-06,
+  "core_history_n": 2,
+  "group_dimensions": {
+    "POS": 10,
+    "VEL": 10,
+    "ACC": 5,
+    "AXIS": 5,
+    "HAND": 11,
+    "ZONE": 8,
+    "CONF": 5,
+    "TIME": 2
+  }
+}

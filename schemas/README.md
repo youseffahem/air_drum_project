@@ -14,3 +14,8 @@ Check everything (from the repository root, Windows paths):
 
     .venv\Scripts\python.exe scripts\validate_contracts.py
     .venv\Scripts\python.exe -m pytest tests\contracts
+
+Phase 08: `feature-schema-v1.json` is the generated **semantic descriptor**, not a JSON Schema;
+it defines each ordered fs-v1 feature and is tested against its generator. The unchanged
+`kinematic-features.schema.json` validates record envelopes. Config schema 1.4 adds the optional
+features block (ADR-0022). Normalization/sample formats are documented in the feature schema.

@@ -2,7 +2,11 @@
 
 ## Status
 
-Planned
+**IMPLEMENTED (machinery); PENDING (participant evidence, clean owner-commit verification and reviewer gate).**
+All executable Phase 08 tasks are implemented and verified; the full Exit Gate is proposed FAIL
+because `ds-v1.0`, participant normalization/counts/descriptive statistics and participant-fold parity
+remain unavailable. No model training or participant recording was performed.
+See `docs/gates/phase-08-gate.md` and `docs/reports/phase-08-feature-stats.md`.
 
 ## Purpose
 
@@ -209,6 +213,9 @@ Causality rule (README §13): every feature at frame `i` is a function of `Track
 - `docs/gates/phase-08-gate.md`
 
 ## Exit Gate
+
+Gate record: `docs/gates/phase-08-gate.md` — proposed FAIL (full phase; machinery implemented),
+2026-09-22. Reviewer verdict pending. Phase 09 has not started.
 
 Reviewer verifies schema, causality/leakage tests, parity, latency. PASS → Phase 09.
 

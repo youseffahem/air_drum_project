@@ -144,3 +144,12 @@ Specified and executed in `contracts.md` §5 (`tests/contracts/`, `scripts/valid
 - A test result is cited with its id, `git_sha`, `config_hash`, hardware id (for timing-sensitive runs), date, and the session/synthetic data id. Synthetic inputs are named `synthetic_*`/`example_*` and never presented as recordings (integrity I-4).
 - A component is called **causal** in any document only after `TEST-CAUSAL-1` and `TEST-CAUSAL-2` have passed on the exact `git_sha` cited.
 - Tolerances are declared **before** the run in the phase document; a run that needs a looser tolerance than declared fails and the discrepancy is recorded.
+
+## Phase 08 implementation evidence
+
+`tests/features/test_causality.py` implements TEST-CAUSAL-1 (REMOVED/GARBAGE/SHIFTED,
+both hands, default and jerk schemas) and TEST-CAUSAL-2 (N_core=2/3 with N-1 negative
+control). `test_io.py` checks reference-file exclusion in features/models/loaders and guards
+renamed non-causal input at runtime. `test_windows_normalize.py` proves labels/future targets
+cannot change X and checks shared window assembly. Full participant-fold parity is PENDING;
+existing DEV/SYNTHETIC sessions have separate replay evidence in the Phase 08 gate.

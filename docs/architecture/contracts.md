@@ -329,3 +329,11 @@ All changes below were made **before** the gate verdict, while `schema_version` 
 | `has_phys_gt` three-level invariant + `segments[]`, `audio_alignment_residual_s`, `capture_stats` reservations (§6) | Physical GT varies within a session (pad segments, single pad zone); session flag is availability only. | this file |
 | `ReferenceTrack` reserved as a non-causal **label** artefact, never a stream record | The causality rule did not say explicitly where offline-smoothed trajectories may live. | this file; `causality-tests.md` §1.1 |
 | Conformance test ids renumbered `TEST-CONFORM-1…7` | `repo-layout.md` §3.5 pattern `TEST-<AREA>-<N>`. | `causality-tests.md`, ADR-0006 |
+
+## Phase 08 implementation note
+
+The KinematicFeatures envelope is unchanged at 1.0; its concrete fs-v1 implementation is
+`features.schema.KinematicFeatures`. The semantic descriptor and parameter/layout hash are
+defined in `docs/features/feature-schema-v1.md` and `schemas/feature-schema-v1.json`.
+Feature targets are offline-only; data composition resides in `data.feature_dataset`.
+Optional same-frame hand/stick/frame observations supply fields absent from TrackState.
