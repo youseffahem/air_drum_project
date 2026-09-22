@@ -23,20 +23,34 @@ SRC = ROOT / "src" / "spacedrums"
 # peers in the same layer may not import each other unless listed in SAME_LAYER_ALLOWED.
 LAYERS: dict[str, int] = {
     "contracts": 0,
-    "timing": 1, "config": 1,
+    "timing": 1,
+    "config": 1,
     "capture": 2,
     "hands": 3,
     "stick": 4,
     "tracking": 5,
-    "features": 6, "geometry": 6,
+    "features": 6,
+    "geometry": 6,
     "prediction": 7,
-    "commit": 8, "audio": 8,
-    "ui": 9, "eval": 9, "data": 9, "calib": 9,
+    "models": 7,
+    "commit": 8,
+    "audio": 8,
+    "ui": 9,
+    "eval": 9,
+    "data": 9,
+    "calib": 9,
     "app": 10,
 }
 SAME_LAYER_ALLOWED = {("features", "geometry")}  # read-only zone access (section 2.2)
-FORBIDDEN = {("prediction", "geometry"), ("commit", "hands"), ("commit", "stick"),
-             ("commit", "prediction"), ("commit", "features"), ("audio", "capture")}
+FORBIDDEN = {
+    ("prediction", "geometry"),
+    ("models", "geometry"),
+    ("commit", "hands"),
+    ("commit", "stick"),
+    ("commit", "prediction"),
+    ("commit", "features"),
+    ("audio", "capture"),
+}
 
 
 def _package_of(module_path: Path) -> str:
@@ -91,7 +105,14 @@ def test_import_linter_contract():
         pytest.skip("import-linter not installed in this environment (requirements.lock has it)")
     # utf-8 decode: with PYTHONIOENCODING=utf-8 in the environment, import-linter (rich) prints a
     # UTF-8 banner that the Windows console codepage (cp1252) cannot decode (Phase 03 finding).
-    res = subprocess.run([exe, "--config", str(ROOT / ".importlinter")], cwd=ROOT,
-                         capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+    res = subprocess.run(
+        [exe, "--config", str(ROOT / ".importlinter")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
     assert res.returncode == 0, res.stdout + res.stderr
     assert "0 broken" in res.stdout

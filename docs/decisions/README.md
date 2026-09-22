@@ -29,5 +29,7 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0021](ADR-0021-split-design.md) | Participant-level split design `P07-SPLIT-1`: n_test and K as a function of P, fixed before any participant exists; deterministic hash ordering; leakage checks; per-fold train-only normalisation rule | Accepted as a rule; **no split frozen (P = 0)** | 2026-09-22 | 07 |
 
 | [ADR-0022](ADR-0022-feature-schema-and-targets.md) | Causal fs-v1 schema, bounded state, train-only scaling, target separation and config 1.4 | IMPLEMENTED; empirical choices candidate | 2026-09-22 | 08 |
+| [ADR-0023](ADR-0023-matching-tolerance-and-active-time.md) | One-to-one event matching, active time and validation-only W selection | Procedure implemented; primary W pending | 2026-09-22 | 09 |
+| [ADR-0024](ADR-0024-baseline-operating-points.md) | Validation-only operating-point selection procedure | Procedure declared; points pending | 2026-09-22 | 09 |
 
-Next free number: **ADR-0023**.
+Next free number: **ADR-0025**.

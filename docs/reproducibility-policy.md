@@ -1,7 +1,7 @@
 # Reproducibility Policy
 
 **Phase:** 00 — Task 00.5 · **Status:** PLANNED as policy; the experiment-log schema is IMPLEMENTED and its test passes (`scripts/env_smoke.py`).
-**Consumers:** Phase 09 harness implements this policy in code; Phases 10–19 use it unchanged; Phase 21 cites it in the reproducibility appendix.
+**Consumers:** Phase 09 harness uses the shared `scripts/_runlog.py` experiment-log writer; Phases 10–19 use the same schema; Phase 21 cites it in the reproducibility appendix.
 **Related:** [`../phases/README.md`](../phases/README.md) §4 (VALIDATED requires reproduction), §13; [`repo-layout.md`](repo-layout.md) §3; [`environment.md`](environment.md); REQ-308.
 
 ## 1. Principle
