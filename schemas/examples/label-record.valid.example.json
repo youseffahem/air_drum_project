@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0",
+  "label_id": "synthetic-example-RIGHT-POSITIVE-000001",
+  "labels_version": "labels-v1.0",
+  "dataset_version": "ds-v0.0-selftest-example",
+  "source_kind": "SYNTHETIC",
+  "session_id": "synthetic-example",
+  "participant_id": "SYNTHETIC",
+  "segment_id": "s01_single",
+  "segment_take": 1,
+  "segment_type": "SINGLE_HITS",
+  "episode_id": "synthetic-example-RIGHT-snare-e000001",
+  "hand_id": "RIGHT",
+  "label_class": "POSITIVE",
+  "level": "EVENT",
+  "zone_id": "snare",
+  "t_event": 100.66129947711688,
+  "t_start": null,
+  "t_end": null,
+  "t_impact_est": 100.66129947711688,
+  "frames": {
+    "first_frame_id": 0,
+    "last_frame_id": 116,
+    "before_event": 19,
+    "after_event": 20
+  },
+  "impact_position": [
+    0.40079148951781357,
+    0.5800012235536902
+  ],
+  "crossing_velocity": [
+    0.0431410834063003,
+    1.3419560066990097
+  ],
+  "intensity_proxy_gt": 1.3419560066990097,
+  "intensity_secondary": {
+    "window_s": 0.15,
+    "peak_speed_pre": 1.0825003981283952,
+    "peak_inward_speed_pre": 1.0822554857186175
+  },
+  "approach": {
+    "min_distance_to_surface": 0.0,
+    "max_inward_speed": 1.3419560066990097,
+    "speed_at_min_distance": 1.34264927549715
+  },
+  "confidence": 0.7245675647832411,
+  "reference_quality": {
+    "n_samples": 12,
+    "n_valid": 12,
+    "n_degraded": 0,
+    "gap_max_s": 0.03333333333333144,
+    "interpolated": false
+  },
+  "t_impact_phys": null,
+  "phys": null,
+  "label_rule_id": "P07-R1",
+  "qc_status": "PENDING_REVIEW",
+  "labeller_id": "generator:labels-v1.0",
+  "review": {
+    "reviewed": false,
+    "reviewer_id": null,
+    "adjusted": false,
+    "original": null,
+    "reason": null,
+    "notes": "",
+    "reviewed_at": null,
+    "history": [],
+    "second_pass": null,
+    "disagreement": null
+  },
+  "runtime_reference": {
+    "causal_status": "VALID",
+    "causal_t_impact_est": 100.66507659409433,
+    "candidate_id": "synthetic-example-RIGHT-c000003",
+    "strike_id": "synthetic-example-RIGHT-A-s000001",
+    "arm": "A",
+    "label": "REAL-TIME AVAILABLE SIGNALS (not ground truth)"
+  },
+  "causal": false,
+  "provenance": {
+    "rules_version": "1.0",
+    "rules_hash": "sha256:e3c2498164c63cebe01faac40fd8195ab4fc2bd538b248a2ca6812641469daea",
+    "thresholds_hash": "sha256:80a6cb799fa3406bd5841330e99db08adbd9d9bdfd6be3adf8d38a18a71ce917",
+    "smoother_id": "rts-kalman-cv-v1",
+    "smoother_hash": "sha256:b15f70bcd14d93e754ec5ab50a9e32c0829adddaf88249a2e5a3cf96f89b92b1",
+    "tracker_id": "example-tracker:kalman_cv:c_floor0.2-q5.0-r_base0.0001:cv0.60:cm0.30:g3:age0.50:N16",
+    "tracker_hash": "sha256:dad65f77008badb7aae30a9fc74b81cf160e1c7be96d9bd1d8382c13205ee17a",
+    "geometry_version": "p04-geometry-v1",
+    "zone_layout_id": "mvp4",
+    "v_min": 0.15,
+    "interpolation": "QUADRATIC",
+    "config_hash": "sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85",
+    "git_sha": "0000000000000000000000000000000000000000",
+    "generator": {
+      "tool": "spacedrums.data.labels.generate",
+      "version": "0.7.0"
+    },
+    "reference_track_ref": "tracks_reference.jsonl",
+    "causal_track_ref": "tracks_causal.jsonl",
+    "session_metadata_sha256": "sha256:2f5e72c8c26ab91e9b0d82df82a1c2fb2795f9ba7cc500a550f6ce233ddc469e",
+    "labels_hash": "sha256:084a58389df137fa4218d23eb03531528a6dec7d97162691924db69b5c3997e3"
+  },
+  "excluded": false,
+  "exclusion_ref": null,
+  "notes": ""
+}

@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/label-record.schema.json",
+  "title": "LabelRecord",
+  "description": "One offline ground-truth / negative / ambiguous label of a dataset session (Phase 07, Tasks 07.1/07.3/07.7; reserved in docs/architecture/contracts.md section 6). NON-CAUSAL BY DESIGN: the label is produced from the ReferenceTrack, which uses future frames (docs/architecture/causality-tests.md section 1.1). A LabelRecord is never a stream record (it cannot appear in a RecordStreamHeader), is never an input to any causal component, and is used only as a matching reference and as a training target. The runtime_reference block carries what the causal pipeline saw and is explicitly NOT ground truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "label_id", "labels_version", "dataset_version", "source_kind", "session_id", "participant_id", "segment_id", "segment_take", "segment_type", "episode_id", "hand_id", "label_class", "level", "zone_id", "t_event", "t_start", "t_end", "t_impact_est", "frames", "impact_position", "crossing_velocity", "intensity_proxy_gt", "intensity_secondary", "approach", "confidence", "reference_quality", "t_impact_phys", "phys", "label_rule_id", "qc_status", "labeller_id", "review", "runtime_reference", "causal", "provenance", "excluded", "exclusion_ref", "notes"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "label_id": { "$ref": "common.schema.json#/$defs/opaque_id", "description": "Deterministic id <session_id>-<hand>-<class>-<counter>, stable across re-runs of the generator on the same inputs (Task 07.3 hash check)." },
+    "labels_version": { "$ref": "#/$defs/labels_version" },
+    "dataset_version": { "$ref": "#/$defs/dataset_version" },
+    "source_kind": { "$ref": "#/$defs/source_kind" },
+    "session_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "participant_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "segment_id": { "type": ["string", "null"], "description": "Recorded segment marker the label falls in (SessionMetadata.segments); null when the label lies outside every marker." },
+    "segment_take": { "type": ["integer", "null"], "minimum": 1 },
+    "segment_type": { "anyOf": [{ "$ref": "#/$defs/segment_type" }, { "type": "null" }], "description": "Copied from the marker. The cue is a PRIOR, never the label: Phase 07 labels come from the observed reference trajectory (rules document section 2)." },
+    "episode_id": { "anyOf": [{ "$ref": "common.schema.json#/$defs/opaque_id" }, { "type": "null" }], "description": "Entry episode (one outside-to-inside entry of a zone by a hand). Non-null for every label bound to a zone entry; null for interval labels." },
+    "hand_id": { "$ref": "common.schema.json#/$defs/hand_id" },
+    "label_class": { "$ref": "#/$defs/label_class" },
+    "level": { "type": "string", "enum": ["EVENT", "INTERVAL"], "description": "EVENT: an instant (t_event). INTERVAL: a time range (t_start, t_end)." },
+    "zone_id": { "anyOf": [{ "$ref": "common.schema.json#/$defs/zone_id" }, { "type": "null" }], "description": "Zone the label concerns; null for interval labels that concern no single zone (tracking loss, no-strike motion)." },
+    "t_event": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Instant the label refers to on t_mono: the surface crossing for crossing labels, the closest-approach instant for fake-swing / stop-before-impact. Null iff level = INTERVAL." },
+    "t_start": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+    "t_end": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+    "t_impact_est": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "OFFLINE GROUND-TRUTH IMPACT TIME: sub-frame interpolated crossing of the zone impact surface by the REFERENCE tip trajectory, per the Phase 04 entry test (rules document R1). Non-null only when a valid inward crossing exists (POSITIVE; AMBIGUOUS when the crossing is near threshold). Null for every NEG_* class: a fake swing or a stop-short has no impact. This is the reference for lead time and timing error (README section 10) and is never visible to any causal component." },
+    "frames": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["first_frame_id", "last_frame_id", "before_event", "after_event"],
+      "description": "Frame references into the session frames.jsonl. first/last bound the labelled window; before/after bracket t_event (consecutive processed frames of this hand, before <= after).",
+      "properties": {
+        "first_frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+        "last_frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
+        "before_event": { "anyOf": [{ "$ref": "common.schema.json#/$defs/frame_id" }, { "type": "null" }] },
+        "after_event": { "anyOf": [{ "$ref": "common.schema.json#/$defs/frame_id" }, { "type": "null" }] }
+      }
+    },
+    "impact_position": { "$ref": "common.schema.json#/$defs/point2_or_null", "description": "Crossing point on the impact surface (REQ-038), from the reference trajectory." },
+    "crossing_velocity": { "$ref": "common.schema.json#/$defs/vector2_or_null", "description": "Reference tip velocity at the crossing (ROI-norm/s)." },
+    "intensity_proxy_gt": { "type": ["number", "null"], "description": "PRIMARY GT intensity proxy (REQ-014): component of the reference tip velocity along the zone inward normal at t_impact_est. An intensity PROXY, never a force." },
+    "intensity_secondary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["window_s", "peak_speed_pre", "peak_inward_speed_pre"],
+      "description": "Alternative proxies stored so Phase 11 can compare them with the primary definition; never substituted for it silently.",
+      "properties": {
+        "window_s": { "type": ["number", "null"], "minimum": 0 },
+        "peak_speed_pre": { "type": ["number", "null"] },
+        "peak_inward_speed_pre": { "type": ["number", "null"] }
+      }
+    },
+    "approach": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_distance_to_surface", "max_inward_speed", "speed_at_min_distance"],
+      "description": "Quantities the negative rules (R3, R4) threshold on, stored for every event so a decision can be re-checked without re-running the generator. Distances in ROI-normalized units, speeds in ROI-norm/s.",
+      "properties": {
+        "min_distance_to_surface": { "type": ["number", "null"] },
+        "max_inward_speed": { "type": ["number", "null"] },
+        "speed_at_min_distance": { "type": ["number", "null"] }
+      }
+    },
+    "confidence": { "$ref": "common.schema.json#/$defs/confidence", "description": "Label confidence from the REFERENCE tracking quality around the event (rules document R7); not a probability that a strike happened." },
+    "reference_quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["n_samples", "n_valid", "n_degraded", "gap_max_s", "interpolated"],
+      "properties": {
+        "n_samples": { "type": "integer", "minimum": 0 },
+        "n_valid": { "type": "integer", "minimum": 0 },
+        "n_degraded": { "type": "integer", "minimum": 0 },
+        "gap_max_s": { "type": "number", "minimum": 0 },
+        "interpolated": { "type": "boolean", "description": "True if any reference sample in the window was filled across a gap shorter than the smoother bound." }
+      }
+    },
+    "t_impact_phys": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "Physical impact time from the microphone onset (ADR-0002). Non-null ONLY for a labelled impact inside a PAD segment on its pad_zone_id with a paired acoustic onset (contracts.md section 6 invariant)." },
+    "phys": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["onset_index", "onset_t_mono", "residual_s", "mic_latency_bound_s", "pad_zone_id", "sync_residual_rms_s"],
+          "properties": {
+            "onset_index": { "type": "integer", "minimum": 0 },
+            "onset_t_mono": { "$ref": "common.schema.json#/$defs/t_mono" },
+            "residual_s": { "type": "number", "description": "t_impact_phys - t_impact_est (Task 07.6): a measured offset, never a claim that the two are the same instant." },
+            "mic_latency_bound_s": { "type": "number", "minimum": 0 },
+            "pad_zone_id": { "$ref": "common.schema.json#/$defs/zone_id" },
+            "sync_residual_rms_s": { "type": ["number", "null"], "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "label_rule_id": { "type": "string", "pattern": "^P07-R[0-9]+[a-z]?$", "description": "The rule of docs/dataset/labeling-rules-v1.0.md that produced this class." },
+    "qc_status": { "type": "string", "enum": ["PENDING_REVIEW", "ACCEPTED", "REJECTED", "ADJUSTED"], "description": "Reserved name of contracts.md section 6. PENDING_REVIEW until a reviewer has seen the label." },
+    "labeller_id": { "type": "string", "minLength": 1, "description": "Reserved name of contracts.md section 6. Who or what produced the label: generator:<labels_version> for the machine pass. A reviewer pseudonym lives in review.reviewer_id and never overwrites this field." },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewed", "reviewer_id", "adjusted", "original", "reason", "notes", "reviewed_at", "history", "second_pass", "disagreement"],
+      "properties": {
+        "reviewed": { "type": "boolean" },
+        "reviewer_id": { "type": ["string", "null"], "description": "Annotator pseudonym (A1, A2, ...). Never a real name." },
+        "adjusted": { "type": "boolean" },
+        "original": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/adjustable" }], "description": "The generator values before the first adjustment; an adjusted label always keeps its original (Task 07.5)." },
+        "reason": { "type": ["string", "null"] },
+        "notes": { "type": "string" },
+        "reviewed_at": { "type": ["string", "null"], "format": "date-time" },
+        "history": { "type": "array", "items": { "$ref": "#/$defs/correction" }, "description": "Append-only correction history, oldest first." },
+        "second_pass": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["reviewer_id", "decision", "t_impact_est", "zone_id", "reviewed_at", "notes"],
+              "properties": {
+                "reviewer_id": { "type": "string", "minLength": 1 },
+                "decision": { "type": "string", "enum": ["ACCEPT", "REJECT", "ADJUST"] },
+                "t_impact_est": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+                "zone_id": { "anyOf": [{ "$ref": "common.schema.json#/$defs/zone_id" }, { "type": "null" }] },
+                "reviewed_at": { "type": "string", "format": "date-time" },
+                "notes": { "type": "string" }
+              }
+            }
+          ],
+          "description": "Independent re-review of the stratified agreement subset (Task 07.5), recorded beside the first pass; it never silently overwrites it."
+        },
+        "disagreement": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "delta_t_s", "resolution", "resolved_by", "note"],
+              "properties": {
+                "kind": { "type": "string", "enum": ["PRESENCE", "ZONE", "TIMING", "CLASS"] },
+                "delta_t_s": { "type": ["number", "null"] },
+                "resolution": { "type": "string", "enum": ["AMBIGUOUS", "FIRST_PASS", "SECOND_PASS", "UNRESOLVED"], "description": "Default resolution of a presence / zone / class disagreement is AMBIGUOUS (rules document R6): the event leaves the metric numerator and denominator and stays in the dataset." },
+                "resolved_by": { "type": ["string", "null"] },
+                "note": { "type": "string" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "runtime_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["causal_status", "causal_t_impact_est", "candidate_id", "strike_id", "arm", "label"],
+      "description": "REAL-TIME AVAILABLE SIGNALS carried beside the label for cross-reference and Phase 18 matching diagnostics. NEVER ground truth and never copied into t_impact_est: they come from the causal track, whose noise must not define ground truth (Task 07.2).",
+      "properties": {
+        "causal_status": { "anyOf": [{ "$ref": "common.schema.json#/$defs/track_status" }, { "type": "null" }] },
+        "causal_t_impact_est": { "$ref": "common.schema.json#/$defs/t_mono_or_null", "description": "What the CAUSAL geometry produced for the same entry, if anything: a runtime STRIKE CANDIDATE time, not the annotated ground truth." },
+        "candidate_id": { "type": ["string", "null"] },
+        "strike_id": { "type": ["string", "null"], "description": "COMMITTED strike of the recorded session, if the commit policy committed this entry: a decision of the live system, not a label." },
+        "arm": { "anyOf": [{ "$ref": "common.schema.json#/$defs/arm" }, { "type": "null" }] },
+        "label": { "const": "REAL-TIME AVAILABLE SIGNALS (not ground truth)" }
+      }
+    },
+    "causal": { "const": false, "description": "A LabelRecord is non-causal by construction. The const makes a label unusable as a causal record by inspection." },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "excluded": { "type": "boolean", "description": "True iff the label falls inside a quarantined segment or session (Phase 06 exclusion log). An excluded label is kept, counted and never used in any metric." },
+    "exclusion_ref": { "type": ["string", "null"], "description": "exclusion_id of the ExclusionRecord that excluded it; non-null iff excluded." },
+    "notes": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "level": { "const": "EVENT" } }, "required": ["level"] },
+      "then": { "properties": { "t_event": { "type": "number" }, "t_start": { "type": "null" }, "t_end": { "type": "null" }, "frames": { "properties": { "before_event": { "type": "integer" }, "after_event": { "type": "integer" } } } } },
+      "else": { "properties": { "t_event": { "type": "null" }, "t_start": { "type": "number" }, "t_end": { "type": "number" }, "t_impact_est": { "type": "null" }, "frames": { "properties": { "before_event": { "type": "null" }, "after_event": { "type": "null" } } } } }
+    },
+    {
+      "if": { "properties": { "label_class": { "const": "POSITIVE" } }, "required": ["label_class"] },
+      "then": { "properties": { "level": { "const": "EVENT" }, "t_impact_est": { "type": "number" }, "impact_position": { "$ref": "common.schema.json#/$defs/point2" }, "crossing_velocity": { "$ref": "common.schema.json#/$defs/vector2" }, "intensity_proxy_gt": { "type": "number" }, "zone_id": { "$ref": "common.schema.json#/$defs/zone_id" }, "episode_id": { "type": "string" } } }
+    },
+    {
+      "if": { "properties": { "label_class": { "enum": ["NEG_NO_STRIKE_MOTION", "NEG_FAKE_SWING", "NEG_STOP_BEFORE_IMPACT", "NEG_BETWEEN_ZONES", "NEG_UPWARD_CROSSING", "NEG_TRACKING_LOSS"] } }, "required": ["label_class"] },
+      "then": { "properties": { "t_impact_est": { "type": "null" }, "intensity_proxy_gt": { "type": "null" }, "t_impact_phys": { "type": "null" }, "phys": { "type": "null" } } }
+    },
+    {
+      "if": { "properties": { "label_class": { "enum": ["NEG_NO_STRIKE_MOTION", "NEG_TRACKING_LOSS", "NEG_BETWEEN_ZONES"] } }, "required": ["label_class"] },
+      "then": { "properties": { "level": { "const": "INTERVAL" } } }
+    },
+    {
+      "if": { "properties": { "t_impact_phys": { "type": "number" } }, "required": ["t_impact_phys"] },
+      "then": { "properties": { "phys": { "type": "object" }, "t_impact_est": { "type": "number" } } }
+    },
+    {
+      "if": { "properties": { "excluded": { "const": true } }, "required": ["excluded"] },
+      "then": { "properties": { "exclusion_ref": { "type": "string", "minLength": 1 } } },
+      "else": { "properties": { "exclusion_ref": { "type": "null" } } }
+    },
+    {
+      "if": { "properties": { "review": { "properties": { "adjusted": { "const": true } }, "required": ["adjusted"] } }, "required": ["review"] },
+      "then": { "properties": { "qc_status": { "const": "ADJUSTED" }, "review": { "properties": { "original": { "type": "object" }, "reviewer_id": { "type": "string" } } } } }
+    },
+    {
+      "if": { "properties": { "source_kind": { "enum": ["SYNTHETIC", "DEV_CAPTURE"] } }, "required": ["source_kind"] },
+      "then": { "properties": { "dataset_version": { "pattern": "^(ds-none-v0\\.0|ds-v0\\.0-selftest(-[a-z0-9]+)*)$" }, "t_impact_phys": { "type": "null" } } }
+    }
+  ],
+  "$defs": {
+    "labels_version": { "type": "string", "pattern": "^labels-v[0-9]+\\.[0-9]+(-[a-z0-9]+)*$", "description": "Version of the labelling rules plus generator inputs. Versioning rule (Task 07.10): any change to rules, thresholds, tracker or smoother produces a NEW labels_version." },
+    "dataset_version": { "type": "string", "pattern": "^(ds-none-v0\\.0|ds-v[0-9]+\\.[0-9]+(-[a-z0-9]+)*)$", "description": "ds-none-v0.0 until the labels enter a dataset manifest. ds-v<M>.<m> = participant dataset; ds-v<M>.<m>-pilot = pilot; ds-v0.0-selftest[-<slug>] = SYNTHETIC / DEV CAPTURE self-test only." },
+    "source_kind": { "type": "string", "enum": ["SYNTHETIC", "DEV_CAPTURE", "PILOT", "PARTICIPANT"], "description": "Copied from SessionMetadata.session_kind. Evidence produced from labels is reported per source_kind and the kinds are never combined into one number (integrity I-4)." },
+    "segment_type": { "type": "string", "enum": ["WARMUP", "SINGLE_HITS", "ALTERNATING_ONE_ZONE", "ALTERNATING_TWO_ZONES", "TEMPO", "RAPID", "NEAR_SIMULTANEOUS", "MOVE_BETWEEN_ZONES", "FAKE_SWING", "STOP_BEFORE_IMPACT", "OCCLUSION", "TRACKING_INTERRUPTION", "DISTANCE_VARIATION", "LIGHTING_VARIATION", "PAD_MIC", "FREE_PLAY"] },
+    "label_class": { "type": "string", "enum": ["POSITIVE", "NEG_NO_STRIKE_MOTION", "NEG_FAKE_SWING", "NEG_STOP_BEFORE_IMPACT", "NEG_BETWEEN_ZONES", "NEG_UPWARD_CROSSING", "NEG_TRACKING_LOSS", "AMBIGUOUS", "EXCLUDED"], "description": "Label classes of the rules document (Task 07.1). AMBIGUOUS is retained in the dataset and excluded from every metric numerator and denominator; EXCLUDED marks material inside a quarantined segment." },
+    "adjustable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["t_impact_est", "t_event", "zone_id", "label_class"],
+      "description": "The fields a reviewer may adjust (Task 07.5): the sub-frame impact time, the event instant, the zone, the class.",
+      "properties": {
+        "t_impact_est": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+        "t_event": { "$ref": "common.schema.json#/$defs/t_mono_or_null" },
+        "zone_id": { "anyOf": [{ "$ref": "common.schema.json#/$defs/zone_id" }, { "type": "null" }] },
+        "label_class": { "$ref": "#/$defs/label_class" }
+      }
+    },
+    "correction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "reviewer_id", "field", "from", "to", "reason"],
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "reviewer_id": { "type": "string", "minLength": 1 },
+        "field": { "type": "string", "enum": ["t_impact_est", "t_event", "zone_id", "label_class", "qc_status"] },
+        "from": { "type": ["number", "string", "null"] },
+        "to": { "type": ["number", "string", "null"] },
+        "reason": { "type": "string" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rules_version", "rules_hash", "thresholds_hash", "smoother_id", "smoother_hash", "tracker_id", "tracker_hash", "geometry_version", "zone_layout_id", "v_min", "interpolation", "config_hash", "git_sha", "generator", "reference_track_ref", "causal_track_ref", "session_metadata_sha256", "labels_hash"],
+      "description": "Everything needed to reproduce this label from the raw session (Task 07.3). The validator refuses a label set whose provenance does not match the label-set metadata document.",
+      "properties": {
+        "rules_version": { "type": "string", "minLength": 1 },
+        "rules_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+        "thresholds_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+        "smoother_id": { "type": "string", "minLength": 1 },
+        "smoother_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+        "tracker_id": { "type": "string", "minLength": 1, "description": "Frozen Phase 03 tracker id that produced the CAUSAL track." },
+        "tracker_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+        "geometry_version": { "type": "string", "minLength": 1 },
+        "zone_layout_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "v_min": { "type": "number", "description": "Phase 04 minimum inward speed of the entry test in force for this label set." },
+        "interpolation": { "type": "string", "enum": ["LINEAR", "QUADRATIC"], "description": "Sub-frame crossing estimator used for t_impact_est (ADR-0020)." },
+        "config_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+        "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "generator": { "type": "object", "additionalProperties": false, "required": ["tool", "version"], "properties": { "tool": { "type": "string" }, "version": { "type": "string" } } },
+        "reference_track_ref": { "type": "string", "minLength": 1, "description": "Path of tracks_reference.jsonl relative to the label directory. NON-CAUSAL artefact." },
+        "causal_track_ref": { "type": "string", "minLength": 1, "description": "Path of tracks_causal.jsonl relative to the label directory." },
+        "session_metadata_sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+        "labels_hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "Hash over rules, thresholds, smoother, tracker, geometry and layout: two label sets with the same labels_hash were generated by identical machinery." }
+      }
+    }
+  }
+}

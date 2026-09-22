@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "entry_id": "synthetic-example-RIGHT-POSITIVE-000001-p1-A1",
+  "labels_version": "labels-v1.0",
+  "dataset_version": "ds-v0.0-selftest-example",
+  "source_kind": "SYNTHETIC",
+  "session_id": "synthetic-example",
+  "label_id": "synthetic-example-RIGHT-POSITIVE-000001",
+  "pass": 1,
+  "reviewer_id": "A1",
+  "reviewed_at": "2026-09-22T12:00:00+03:00",
+  "decision": "ADJUST",
+  "before": {
+    "t_impact_est": 100.66129947711688,
+    "t_event": 100.66129947711688,
+    "zone_id": "snare",
+    "label_class": "POSITIVE"
+  },
+  "after": {
+    "t_impact_est": 100.66129947711688,
+    "t_event": 100.66129947711688,
+    "zone_id": "snare",
+    "label_class": "POSITIVE"
+  },
+  "reason": "sub-frame adjustment after scrubbing",
+  "notes": "example entry",
+  "stratum": {
+    "zone_id": "snare",
+    "hand_id": "RIGHT",
+    "segment_type": "SINGLE_HITS",
+    "speed_band": "MEDIUM",
+    "lighting": "UNKNOWN"
+  },
+  "tool_id": "tools/review_labels.py:0.7.0"
+}

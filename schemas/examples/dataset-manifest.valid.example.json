@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "dataset_version": "ds-v0.0-selftest-example",
+  "kind": "SELFTEST",
+  "label": "TEST / DEVELOPMENT ONLY - SYNTHETIC and/or DEV CAPTURE labels; never participant evidence",
+  "labels_version": "labels-v1.0",
+  "raw_manifest": {
+    "dataset_version": "PENDING",
+    "manifest_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "path": "PENDING - no raw manifest exists yet"
+  },
+  "root": "data/labels",
+  "generated_at": "2026-09-22T12:00:00+03:00",
+  "generator": {
+    "tool": "spacedrums.data.labels.dataset",
+    "version": "0.7.0",
+    "git_sha": "0000000000000000000000000000000000000000",
+    "git_dirty": false
+  },
+  "machinery": {
+    "rules_version": "1.0",
+    "rules_hash": "sha256:e3c2498164c63cebe01faac40fd8195ab4fc2bd538b248a2ca6812641469daea",
+    "thresholds_hash": "sha256:80a6cb799fa3406bd5841330e99db08adbd9d9bdfd6be3adf8d38a18a71ce917",
+    "smoother_id": "rts-kalman-cv-v1",
+    "smoother_hash": "sha256:b15f70bcd14d93e754ec5ab50a9e32c0829adddaf88249a2e5a3cf96f89b92b1",
+    "tracker_id": "example-tracker:kalman_cv:c_floor0.2-q5.0-r_base0.0001:cv0.60:cm0.30:g3:age0.50:N16",
+    "tracker_hash": "sha256:dad65f77008badb7aae30a9fc74b81cf160e1c7be96d9bd1d8382c13205ee17a",
+    "geometry_version": "p04-geometry-v1",
+    "zone_layout_id": "mvp4",
+    "v_min": 0.15,
+    "interpolation": "QUADRATIC",
+    "config_hash": "sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85",
+    "git_sha": "0000000000000000000000000000000000000000",
+    "generator": {
+      "tool": "spacedrums.data.labels.generate",
+      "version": "0.7.0"
+    },
+    "reference_track_ref": "tracks_reference.jsonl",
+    "causal_track_ref": "tracks_causal.jsonl",
+    "session_metadata_sha256": "sha256:2f5e72c8c26ab91e9b0d82df82a1c2fb2795f9ba7cc500a550f6ce233ddc469e",
+    "labels_hash": "sha256:084a58389df137fa4218d23eb03531528a6dec7d97162691924db69b5c3997e3"
+  },
+  "splits": {
+    "test_participants": null,
+    "cv_folds": null,
+    "split_hash": null,
+    "frozen": false
+  },
+  "dataset_card": null,
+  "totals": {
+    "n_label_sets": 1,
+    "n_participants": 1,
+    "n_sessions": 1,
+    "n_labels": 6,
+    "by_class": {
+      "NEG_FAKE_SWING": 1,
+      "NEG_NO_STRIKE_MOTION": 3,
+      "POSITIVE": 2
+    },
+    "by_source_kind": {
+      "SYNTHETIC": 6
+    },
+    "n_files": 3,
+    "total_bytes": 209970,
+    "label": "MEASURED from the listed label sets; evidence class: SYNTHETIC"
+  },
+  "participants": [
+    "SYNTHETIC"
+  ],
+  "label_sets": [
+    {
+      "session_id": "synthetic-example",
+      "participant_id": "SYNTHETIC",
+      "source_kind": "SYNTHETIC",
+      "path": "synthetic-example",
+      "set_hash": "sha256:a0e28015116887e02802d6bc3cbb9fe697037393171728305af8f82d56d91021",
+      "n_labels": 6,
+      "by_class": {
+        "NEG_FAKE_SWING": 1,
+        "NEG_NO_STRIKE_MOTION": 3,
+        "POSITIVE": 2
+      },
+      "qc_pending": 6,
+      "files": [
+        {
+          "path": "labels.jsonl",
+          "bytes": 17651,
+          "sha256": "sha256:a8301a446d3b7062f277c489a3abc2dd56adeb88d95ae21d7745f084abbf6c37",
+          "causal": false
+        },
+        {
+          "path": "tracks_causal.jsonl",
+          "bytes": 140408,
+          "sha256": "sha256:fda782722bd9db84779f57be459814156250c63579cd4cdd05cbecb470b15415",
+          "causal": true
+        },
+        {
+          "path": "tracks_reference.jsonl",
+          "bytes": 51911,
+          "sha256": "sha256:0ee52074d16d0f1a1738bfe57b25955588ad77fcdb1342794351713ce78fec49",
+          "causal": false
+        }
+      ]
+    }
+  ],
+  "refused": [],
+  "exclusions": [],
+  "withdrawals": [],
+  "notes": "",
+  "manifest_hash": "sha256:11adaa1a479d7c475ab2f4eac67a248b61ed056f2cf96c8da2ea0aceb0c8a4f2"
+}

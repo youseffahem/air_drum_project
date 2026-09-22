@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/reference-track.schema.json",
+  "title": "ReferenceTrack",
+  "description": "Header of the offline, NON-CAUSAL reference tip trajectory of one session (Phase 07, Task 07.2; reserved in docs/architecture/contracts.md section 6 and constrained by docs/architecture/causality-tests.md section 1.1). It is the first line of labels/<session>/tracks_reference.jsonl, followed by one ReferenceSample per line. The reference trajectory is smoothed with future frames and exists ONLY to construct labels: it is never written under records/, never a TrackState, never an input to any Tracker, Anticipator, feature, Geometry or CommitPolicy call, and never a model input or training feature. The CAUSAL track of the same session (tracks_causal.jsonl) is a normal TrackState stream and is the only trajectory a model may see.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "causal",
+    "labels_version",
+    "dataset_version",
+    "source_kind",
+    "session_id",
+    "participant_id",
+    "hand_id",
+    "method_id",
+    "method_params",
+    "units",
+    "source_stream",
+    "gap_policy",
+    "n_samples",
+    "config_hash",
+    "git_sha",
+    "clock_id",
+    "generator",
+    "label"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "kind": {
+      "const": "ReferenceTrack",
+      "description": "Not a record type: RecordStreamHeader.record_type cannot take this value, so a reference track cannot be opened as a record stream."
+    },
+    "causal": {
+      "const": false,
+      "description": "Const false: the samples use future frames by design (the only place future information is permitted, causality-tests.md section 1)."
+    },
+    "labels_version": {
+      "$ref": "label-record.schema.json#/$defs/labels_version"
+    },
+    "dataset_version": {
+      "$ref": "label-record.schema.json#/$defs/dataset_version"
+    },
+    "source_kind": {
+      "$ref": "label-record.schema.json#/$defs/source_kind"
+    },
+    "session_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "participant_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "hand_id": {
+      "$ref": "common.schema.json#/$defs/hand_id"
+    },
+    "method_id": {
+      "type": "string",
+      "enum": [
+        "rts-kalman-cv-v1",
+        "rts-kalman-ca-v1",
+        "savgol-centred-v1"
+      ],
+      "description": "Smoother identity (Task 07.2 candidates). The choice is a Decision That Must Be Experimentally Validated against manual tip annotations near impacts."
+    },
+    "method_params": {
+      "type": "object",
+      "description": "Exact parameters of the smoother; hashed into provenance.smoother_hash."
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "clock",
+        "position",
+        "velocity"
+      ],
+      "properties": {
+        "time": {
+          "const": "s"
+        },
+        "clock": {
+          "const": "t_mono"
+        },
+        "position": {
+          "const": "roi_norm"
+        },
+        "velocity": {
+          "const": "roi_norm_per_s"
+        }
+      }
+    },
+    "source_stream": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Which recorded stream the smoother consumed (records/StickObservation.jsonl: the measurements, not the causal filter output)."
+    },
+    "gap_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_gap_s",
+        "interpolate_below_bound",
+        "loss_intervals"
+      ],
+      "description": "Gaps shorter than max_gap_s are bridged by the smoother; longer gaps are NEG_TRACKING_LOSS intervals and carry no reference samples.",
+      "properties": {
+        "max_gap_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "interpolate_below_bound": {
+          "type": "boolean"
+        },
+        "loss_intervals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "t_start",
+              "t_end",
+              "first_frame_id",
+              "last_frame_id"
+            ],
+            "properties": {
+              "t_start": {
+                "$ref": "common.schema.json#/$defs/t_mono"
+              },
+              "t_end": {
+                "$ref": "common.schema.json#/$defs/t_mono"
+              },
+              "first_frame_id": {
+                "$ref": "common.schema.json#/$defs/frame_id"
+              },
+              "last_frame_id": {
+                "$ref": "common.schema.json#/$defs/frame_id"
+              }
+            }
+          }
+        }
+      }
+    },
+    "n_samples": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "config_hash": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "git_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "clock_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "version"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "label": {
+      "const": "NON-CAUSAL OFFLINE LABEL SOURCE - never a model input"
+    }
+  },
+  "$defs": {
+    "sample": {
+      "title": "ReferenceSample",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hand_id",
+        "frame_id",
+        "t",
+        "p",
+        "v",
+        "quality",
+        "interpolated"
+      ],
+      "description": "One smoothed sample of one hand: hand, frame reference, time on t_mono, position and velocity in ROI-normalized units. quality is the smoother posterior quality, not a TrackState confidence; the two are different estimators and are never compared. Samples of both hands share one file, each preceded by that hand's header line.",
+      "properties": {
+        "hand_id": {
+          "$ref": "common.schema.json#/$defs/hand_id"
+        },
+        "frame_id": {
+          "$ref": "common.schema.json#/$defs/frame_id"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/t_mono"
+        },
+        "p": {
+          "$ref": "common.schema.json#/$defs/point2"
+        },
+        "v": {
+          "$ref": "common.schema.json#/$defs/vector2"
+        },
+        "quality": {
+          "$ref": "common.schema.json#/$defs/confidence"
+        },
+        "interpolated": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

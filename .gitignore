@@ -14,6 +14,14 @@ data/**
 !data/manifests/README.md
 !data/manifests/*.json
 !data/manifests/*.exclusions.jsonl
+# Phase 07: frozen participant-level split files ARE tracked - Phases 09-19 must use the same
+# folds, so they belong in the repository beside the manifests (README section 13). Labels,
+# reference tracks and self-test manifests are not: they are regenerable from raw + manifest.
+!data/splits/
+!data/splits/**/
+!data/splits/**/*.json
+data/manifests/*selftest*
+data/splits/*selftest*/
 experiments/**
 !experiments/README.md
 *.onnx

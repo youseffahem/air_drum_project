@@ -2,7 +2,14 @@
 
 ## Status
 
-Planned
+**IMPLEMENTED (machinery) / PENDING (participant-dependent evidence)** — 2026-09-22.
+
+Tasks 07.1, 07.2, 07.3, 07.4, 07.5, 07.6, 07.7, 07.8, 07.9 and 07.10 are implemented, tested and
+documented; every one of them is exercised end to end on a SYNTHETIC full-protocol session and on
+the existing DEV CAPTURE. **No participant recording exists** (Phase 06 conditions C-06-1…C-06-4),
+so everything that is a measurement *of participants* — the review pass, inter-annotator agreement,
+the acoustic validation, the frozen splits, `ds-v1.0` and its label counts — is **PENDING / NOT
+VALIDATED**, not reported, and not estimated. See `docs/gates/phase-07-gate.md`.
 
 ## Purpose
 

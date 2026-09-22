@@ -13,6 +13,9 @@ Structural guarantees already in the architecture: no interface has a look-ahead
 
 ### 1.1 Non-causal artefacts — where they may exist (made explicit at the gate review, 2026-09-21)
 
+> **Phase 07 status (2026-09-22):** the artefacts below now exist and the rules are enforced rather than asserted. `ReferenceTrack` is `schemas/reference-track.schema.json` with `causal: false` and `kind: ReferenceTrack` as schema `const`s, written only to `data/labels/<session>/tracks_reference.jsonl`; `LabelRecord` is `schemas/label-record.schema.json`, also `causal: false` by `const`. Enforcement: `RecordStreamHeader.record_type` has no value naming a label artefact (`TEST-SCHEMA-1`); the `.importlinter` contract **`labels-are-offline`** forbids `capture`, `hands`, `stick`, `tracking`, `geometry`, `prediction`, `commit`, `audio` and `app` from importing `spacedrums.data.labels` or `spacedrums.data.splits`; and `TEST-LABEL-10` (`tests/labels/test_label_leakage.py`) scans the source of every causal package — plus `features/`, `models/` and `eval/`, which pass vacuously until Phase 08 creates them — for imports of the label machinery and for reads of `tracks_reference`. `LabelRecord` additionally carries a `runtime_reference` block holding what the *causal* pipeline saw, banner-labelled *REAL-TIME AVAILABLE SIGNALS (not ground truth)*; the label validator raises `RUNTIME_TIME_COPIED` if a label's `t_impact_est` was taken from it.
+
+
 Future-aware quantities exist in exactly one place: **Phase 07 label construction.** Concretely:
 
 | Artefact | Causal? | Allowed home | Forbidden |
