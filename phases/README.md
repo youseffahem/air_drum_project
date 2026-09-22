@@ -2,7 +2,7 @@
 
 > Official implementation and research roadmap for the Space Drums graduation project.
 > Primary requirements source: [`../project-discovery.md`](../project-discovery.md).
-> Every phase document in this directory is **PLANNED**. Nothing described here is implemented, measured, or validated unless a later revision of the phase document says so with evidence.
+> Phase documents describe the plan. Implementation and validation status is recorded in each phase's gate and evidence reports; planned text alone is never evidence.
 
 ---
 

@@ -8,9 +8,9 @@ Writes one run directory per docs/repo-layout.md section 3.3 and docs/reproducib
         stdout.log            (everything the script printed)
         <artefacts>           (listed in run.json with SHA-256)
 
-``run.json`` is written with ``status: RUNNING`` at start and rewritten once at the end. Phase 09
-replaces this helper with the ``eval`` experiment-log writer; scripts of later phases must not
-grow a third one.
+``run.json`` is written with ``status: RUNNING`` at start and rewritten once at the end.
+Phase 09 reuses this helper for its development verification, keeping one experiment-log
+format; scripts of later phases must not grow a third one.
 
 Every run records ``git_sha`` / ``git_dirty`` honestly: a dirty tree is allowed during
 development but cannot be cited as MEASURED in a gate record (reproducibility-policy.md

@@ -24,6 +24,9 @@ dependencies = [
     "soundfile>=0.12",
     "PyYAML>=6.0",
     "jsonschema>=4.21",
+    "lightgbm>=4.3",
+    "pyarrow>=15",
+    "matplotlib>=3.8",
 ]
 
 [tool.setuptools.packages.find]

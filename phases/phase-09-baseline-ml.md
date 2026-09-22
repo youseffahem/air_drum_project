@@ -2,7 +2,8 @@
 
 ## Status
 
-Planned
+Development implementation underway; participant measurements and exit gate pending.
+See `docs/gates/phase-09-gate.md` for the exact evidence and blockers.
 
 ## Purpose
 

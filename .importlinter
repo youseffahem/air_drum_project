@@ -16,7 +16,7 @@ layers =
     spacedrums.app
     spacedrums.ui | (spacedrums.eval) | (spacedrums.data) | (spacedrums.calib)
     spacedrums.commit | (spacedrums.audio)
-    spacedrums.prediction
+    spacedrums.prediction | spacedrums.models
     (spacedrums.features) | (spacedrums.geometry)
     (spacedrums.tracking)
     (spacedrums.stick)
@@ -65,6 +65,7 @@ name = prediction must not import geometry (a predictor cannot peek at zones)
 type = forbidden
 source_modules =
     spacedrums.prediction
+    spacedrums.models
 forbidden_modules =
     spacedrums.geometry
 
@@ -78,6 +79,7 @@ source_modules =
     spacedrums.tracking
     spacedrums.geometry
     spacedrums.prediction
+    spacedrums.models
     spacedrums.commit
     spacedrums.audio
     spacedrums.app

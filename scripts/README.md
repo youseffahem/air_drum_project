@@ -59,3 +59,18 @@ are not overwritten. `feature_latency.py --synthetic` measures CPU extraction co
 `verify_phase08.py --require-clean` executes the complete post-owner-commit gate verification
 without altering Git history. Omit `--require-clean` only for honest development verification.
 See `docs/features/feature-schema-v1.md` and the Phase 08 gate for exact commands and limitations.
+
+## Phase 09 evaluation tools
+
+`eval_baselines.py` replays one verified session through A and the B CV/CA commit grid,
+writing per-setting results, Parquet/JSONL events, a W sweep and a lead/FP plot.
+`train_gbdt.py` trains LightGBM heads per Phase 08 fold from train only, selecting
+binary hyperparameters on validation only. `gbdt_sample_diagnostics.py` reports
+window-level validation diagnostics; these are not event-replay measurements.
+`gbdt_fixture_replay.py` exercises both modes end to end on the Phase 08 in-memory
+synthetic fixture. `eval_gbdt.py` applies a fold model in direct and trajectory modes through the same
+replay harness and refuses held-out test evaluation without a validation operating
+point and frozen W. `gbdt_latency.py` measures batch-one CPU inference for all heads.
+`verify_phase09.py` runs the available self-test/developer verification and writes a
+schema-valid experiment log. Participant evaluation remains gated on reviewed
+`ds-v1.0` folds and Phase 08 normalization exports.

@@ -1,5 +1,9 @@
 # spacedrums
 
+Phase 09 adds a development evaluation harness (`eval`) and a flattened-window
+LightGBM baseline (`models.gbdt`). Participant-fold measurements and the Phase 09
+exit gate remain pending the reviewed `ds-v1.0` dataset.
+
 **Status:** first code landed in Phase 02 (`capture`, `ui.guide`, and the L0 packages `contracts`, `timing`, `config`); Phase 03 adds `hands`, `stick`, `tracking`, the minimal `ui.overlay`, and the `HandObservation` / `StickObservation` / `TrackState` records with the `TipEstimator` / `Tracker` Protocols; Phase 04 adds `geometry` and `audio`; Phase 05 adds `prediction` (rule-based arm B), `commit`, the `timing` collector/streams/decomposition, `capture.ReplayFrameSource` and the composition root `app`. `features`, `eval`, `data`, `calib` are PLANNED stubs whose README names the owning phase.
 
 Layout and the allowed-dependency layers: `docs/architecture/architecture.md` section 2 (enforced by `.importlinter` + `tests/architecture/`). `pyproject.toml` carries the `[project]` table since Phase 02; install for development with `python -m pip install -e .` (documented in `docs/environment.md` section 4). Version `0.<phase>.<patch>`.
@@ -19,4 +23,6 @@ Layout and the allowed-dependency layers: `docs/architecture/architecture.md` se
 | `commit` | IMPLEMENTED: `PerHandCommitPolicy` + zone state machine + refractory timers (shared by every arm) | 05 |
 | `app` | IMPLEMENTED: `DecisionPipeline`, CLI with live/replay/dev-capture/synthetic sources, record mode, session summaries | 05 (13 adds arm C) |
 | `data` | IMPLEMENTED (Phase 06 machinery: protocol, metadata, recorder hooks, audio capture, validation, manifests; no participant data) | 06 (07 adds labels / splits) |
-| `features`, `eval`, `calib` | PLANNED stubs | 08+ |
+| `features` | IMPLEMENTED development feature pipeline; participant statistics pending | 08 |
+| `eval`, `models.gbdt` | IMPLEMENTED development harness/model; participant results pending | 09 |
+| `calib` | PLANNED stub | 14 |
