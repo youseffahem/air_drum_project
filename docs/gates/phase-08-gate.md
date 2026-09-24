@@ -107,3 +107,16 @@ and C-08-3 are owner-dependent. Phase 09 — Classical ML Baselines is the next 
 not started.
 
 Signed: **PENDING — project owner**, 2026-09-22.
+
+## Post-owner-commit verification — 2026-09-24
+
+Phase 10 authorization triggered the outstanding C-08-3 check before edits.
+`scripts/verify_phase08.py --require-clean` passed all 14 commands on HEAD
+`35f288523b0b06733e93454325bcab3e86b122ff`, with initial and post-command
+`git_dirty: false`. Evidence:
+`experiments/phase-08/20260924-1909-p08-gate-verification/run.json`,
+`verification.json`, and `source-hashes.json` in that directory.
+
+C-08-3's executable post-commit condition is now satisfied on the current owner
+HEAD. C-08-1 participant data and C-08-2 reviewer decision remain PENDING;
+the full gate has not passed and no requirement status is advanced.

@@ -32,4 +32,8 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0023](ADR-0023-matching-tolerance-and-active-time.md) | One-to-one event matching, active time and validation-only W selection | Procedure implemented; primary W pending | 2026-09-22 | 09 |
 | [ADR-0024](ADR-0024-baseline-operating-points.md) | Validation-only operating-point selection procedure | Procedure declared; points pending | 2026-09-22 | 09 |
 
-Next free number: **ADR-0025**.
+| [ADR-0025](ADR-0025-fp-budget.md) | Phase 10 FP budget and owner/validation prerequisites | PENDING | 2026-09-24 | 10 |
+| [ADR-0026](ADR-0026-horizon.md) | Horizon selection, fixed-grid targets and bounded GRU state | Selection PENDING; contract implemented | 2026-09-24 | 10 |
+| [ADR-0027](ADR-0027-model-selection.md) | Outcome-neutral temporal/baseline model selection | PENDING | 2026-09-24 | 10 |
+
+Next free number: **ADR-0028**.

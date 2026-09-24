@@ -22,3 +22,10 @@ Participant parity remains pending. `scripts/verify_phase08.py` captures focused
 contracts, lint/import checks, environment/assets, replay/export and CPU timings. Existing
 contract tests import `conftest` helpers directly; the combined focused command places
 `tests/contracts` after directories with their own conftest to avoid initial-load shadowing.
+
+Phase 10: `tests/temporal/` covers GRU/TCN TEST-CAUSAL-1/2, masked losses,
+fixed-grid target interpolation, bounded GRU state, per-hand reset, streaming
+feature parity, train/val/test isolation, deterministic training, both optional
+head settings, TorchScript parity/tamper checks, geometry-only replay and neutral
+selection/held-out refusal. Fixtures are explicitly SYNTHETIC; none is participant
+evidence. `scripts/recorded_temporal_parity.py` separately verifies a DEV capture.

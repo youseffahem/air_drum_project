@@ -17,6 +17,7 @@ from spacedrums.contracts import (
     TrajectoryPrediction,
 )
 from spacedrums.eval.constants import DELAY_POLICIES
+from spacedrums.eval.temporal import temporal_candidate
 from spacedrums.features.streaming import StreamingFeatures, history_arrays
 from spacedrums.geometry import GeometryEngine, ZoneRegistry
 from spacedrums.prediction import RuleBasedAnticipator, RuleSettings
@@ -89,7 +90,7 @@ def replay(
     dropped_by_frame: Mapping[int, int] | None = None,
 ) -> ReplayResult:
     """Each call owns fresh per-hand state. The model sees only current/past inputs."""
-    if arm not in ("A", "B", "MODEL:C-GBDT"):
+    if arm not in ("A", "B", "MODEL:C-GBDT", "MODEL:C-GRU", "MODEL:C-TCN"):
         raise ValueError("unknown replay arm")
     delay = delay or DelayPolicy()
     if arm == "B" and rule_settings is None or arm.startswith("MODEL:") and model is None:
@@ -100,7 +101,13 @@ def replay(
         raise ValueError("feature records must align with tracks and a schema")
     clock_t = [0.0]
     geometry = GeometryEngine(registry, v_min=v_min, session_id=session_id)
-    arm_enum = {"A": Arm.A, "B": Arm.B, "MODEL:C-GBDT": Arm.C_GBDT}[arm]
+    arm_enum = {
+        "A": Arm.A,
+        "B": Arm.B,
+        "MODEL:C-GBDT": Arm.C_GBDT,
+        "MODEL:C-GRU": Arm.C_GRU,
+        "MODEL:C-TCN": Arm.C_TCN,
+    }[arm]
     policies = {
         h: PerHandCommitPolicy(
             h,
@@ -195,8 +202,12 @@ def replay(
                         source=CandidateSource.MODEL,
                         t_candidate=clock_t[0],
                     )
+                    if arm in ("MODEL:C-GRU", "MODEL:C-TCN"):
+                        candidate = temporal_candidate(candidate, registry)
                     candidates = (candidate,) if candidate else ()
             elif isinstance(output, StrikeCandidate):
+                if arm in ("MODEL:C-GRU", "MODEL:C-TCN"):
+                    raise ValueError("temporal arms require a trajectory through geometry")
                 if output.source is not CandidateSource.MODEL or output.frame_id != track.frame_id:
                     raise ValueError("model candidate has wrong source/frame")
                 candidates = (output,)
