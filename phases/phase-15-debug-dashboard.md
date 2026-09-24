@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Sol
+- **Reasoning effort:** High
+- **Recommended profile:** Engineering / Observability
+- **Why this choice:** The dashboard consumes existing records for overlays, replay, timing labels, and exports, with a non-blocking bus and measured UI overhead. Sol fits this well-specified integration workload; High covers replay alignment, predicted-versus-estimated timing labels, and the requirement to leave the causal production path unchanged.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Build the developer/debug overlay and dashboard (Q58) that exposes, live and in replay, every internal quantity the research needs to inspect: tracking state, hand landmarks, stick axis and tip (with method id), stick velocity, predicted trajectory, predicted strike and zone, Time-to-Impact, intensity proxy, confidence/probability where applicable, commit decisions (with reasons for rejection), timing information (per-strike decomposition), active arm and fallback status, and capture/audio statistics. Provide export of frames/plots/logs for thesis figures. Measure and bound the overlay's own overhead.
@@ -49,6 +62,13 @@ replay source ──► same loop in replay mode ──► same UI + GT labels o
 
 - UI consumers **never** block the processing loop; if the UI falls behind, it drops frames (counted), not the pipeline.
 - Overlay elements are individually toggleable; "experiment mode" renders only what Phase 18 protocols require.
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -154,6 +174,19 @@ replay source ──► same loop in replay mode ──► same UI + GT labels o
 - `src/spacedrums/ui/…`, `docs/user/debug-overlay.md`
 - `docs/reports/phase-15-overhead.md`, `docs/decisions/ADR-<n>-dashboard-framework.md`
 - `docs/gates/phase-15-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

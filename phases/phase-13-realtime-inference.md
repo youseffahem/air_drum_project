@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** Extra High
+- **Recommended profile:** Realtime ML Systems
+- **Why this choice:** Live Arm C joins model hashes and feature schemas with per-hand streaming state, variable frame intervals, worker delay, fallback, and audio timing. Astra fits the full-pipeline integration; Extra High is justified by causality, dropped-frame safety, and frame-by-frame offline/online parity across interacting runtime states.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Integrate the shipped temporal model (from Phase 10/11/12 ship ADR) into the live application as **Arm C**, alongside Arms A and B, with strict causal feeding from the live tracker, per-hand model state, model export/loading with hash verification, a latency budget check, automatic fallback to Baseline B (or A) when the model is unavailable or too slow, a runtime arm switch, live timing records, and an **offline/online parity test** (`TEST-PARITY-1`) proving that the live pipeline produces the same predictions and commits as the Phase 09 replay on recorded sessions.
@@ -59,6 +72,13 @@ timing: t_features_done, t_inference_done, t_candidate, t_commit, t_audio_schedu
 - **Causal feeding:** the model receives features only from `FrameSample`s already delivered; no buffering of frames ahead of processing; the GRU hidden state is per hand and persists only while `VALID`/`DEGRADED`.
 - **`dt` handling:** the live frame interval may differ from the recording FPS; the adapter's `dt_step` must match the model's training `dt_step`; if the live FPS differs (e.g. 60 vs. 30), either resample features to the training rate (candidate) or use a model trained at the live rate (Phase 16/19); mismatch is an error, not a silent condition.
 - **Optional inference worker thread:** only if needed to meet the budget; it must consume a queue of already-delivered feature frames (causality preserved) and the commit step must use the prediction's own `t_capture` reference, adding the measured worker delay into `Δ_proc`.
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -181,6 +201,19 @@ timing: t_features_done, t_inference_done, t_candidate, t_commit, t_audio_schedu
 - `configs/live.arm-C.candidate.yaml`, docs
 - `experiments/phase-13/…`
 - `docs/gates/phase-13-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

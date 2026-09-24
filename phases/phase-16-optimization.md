@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** Extra High
+- **Recommended profile:** Performance Engineering / Realtime Optimization
+- **Why this choice:** Threading or multiprocessing, model quantisation, and native-FPS handling can alter frame order, predictions, processing delay, and offline lead-time interpretation. Astra fits the system-wide profiling and code work; Extra High is justified by incremental before/after attribution, regression tolerances, causality/parity checks, and safe rollback decisions.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Profile the integrated live pipeline (Phase 13 + 15) on the target CPU, establish per-stage latency budgets from measurements, reduce end-to-end processing latency and frame drops through targeted optimisations (ROI-limited processing, threading/multiprocessing, model export/quantisation, allocation and copy reduction), attempt **true native 60 FPS** end-to-end if the camera delivers it (Phase 02 evidence), and verify with the Phase 09 harness that no optimisation changes the system's predictions or commits beyond a stated tolerance. Every change is reported as measured before/after.
@@ -54,6 +67,13 @@ Optimisation candidates (each individually measured and reversible):
 5. **Allocation/copy reduction:** preallocated buffers, avoiding per-frame array copies, vectorised feature computation.
 6. **Audio buffer:** revisit `B` (Phase 04 measurement) with the optimised loop.
 7. **60 FPS mode:** camera at native 60 FPS (if Phase 02 shows delivery); processing must sustain the frame period; model `dt_step` mismatch handled (Phase 13 rule: features resampled to the training rate, or a model trained at 60 FPS in Phase 19).
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -168,6 +188,19 @@ Optimisation candidates (each individually measured and reversible):
 - `scripts/{profile_pipeline,fps_end_to_end,regression_check}.py`
 - Updated `eval/constants.py` (`Δ_proc`), re-run manifests
 - `docs/gates/phase-16-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 
