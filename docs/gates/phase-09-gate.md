@@ -36,3 +36,19 @@ All nonparticipant numbers are labelled SYNTHETIC or DEV CAPTURE, and the run is
 
 No gate PASS or claim that anticipation improves participant action-to-sound
 latency is warranted by the current inputs.
+
+## Post-owner-commit verification — 2026-09-24
+
+Before Phase 10 implementation edits, `scripts/verify_phase09.py` passed all 12
+development checks on clean HEAD `35f288523b0b06733e93454325bcab3e86b122ff`.
+Git status remained clean after the run. Evidence:
+`experiments/phase-09/20260924-1907-p09-development-verification/run.json`
+and `verification.json`; includes full regression, static/import checks, DEV and
+synthetic baseline replay, three synthetic GBDT folds, event replay and CPU timing.
+
+This satisfies the executable clean-tree rerun portion of closure condition 4.
+It does not freeze a participant harness/primary W or satisfy participant/reviewer
+conditions 1–4. Full gate verdict remains PENDING reviewer, proposed FAIL. Phase
+10 proceeds only with independent development machinery under the explicit phase
+instruction to continue executable work while missing participant evidence stays
+PENDING. Geometry, commit and metric rules are not revised by that work.

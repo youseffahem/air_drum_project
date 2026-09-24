@@ -74,3 +74,22 @@ point and frozen W. `gbdt_latency.py` measures batch-one CPU inference for all h
 `verify_phase09.py` runs the available self-test/developer verification and writes a
 schema-valid experiment log. Participant evaluation remains gated on reviewed
 `ds-v1.0` folds and Phase 08 normalization exports.
+
+## Phase 10 temporal development tools
+
+`train_temporal.py` accepts explicit model/training JSON and a Phase 08 fold.
+`sweep_horizon.py` / `sweep_window.py` accept an explicit cell plan or the labelled
+`--synthetic-fixture` mode. Each model/fold cell needs three seeds. Candidate models
+are exported, parity checked, timed and replayed through unchanged geometry/commit.
+`compare_temporal.py` exercises A/B/C-GBDT comparison on the synthetic fixed-grid
+targets. Participant comparison/selection remains blocked by upstream evidence.
+
+`eval_temporal.py` reloads a hashed export for validation-session replay or exact
+validation-archive metric reproduction with a recorded tolerance. Test mode is
+refused until the actual frozen participant protocol/ledger exists.
+`latency_temporal.py`, `recorded_temporal_parity.py` and `failure_cases.py` write
+diagnostic artifacts without modifying the models. `verify_phase10.py` runs full
+regression, static/contracts/environment checks, frozen-source checks, candidate
+artifact hashing and exported metric reproduction. Add `--require-clean` after
+the owner commits; pass `--horizon-run`, `--window-run`, `--comparison-run` for the
+recorded evidence directories. No script commits, tags, pushes or starts Phase 11.
