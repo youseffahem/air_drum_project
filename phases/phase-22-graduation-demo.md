@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Sol
+- **Reasoning effort:** High
+- **Recommended profile:** Demo Engineering / Reliability
+- **Why this choice:** The demo prepares a script, venue pre-flight, calibrated presets, fallback drills, rehearsals, and evidence slides from the accepted release candidate. Sol fits this bounded integration and presentation work; High covers runtime contingency planning and checking every spoken or shown claim against the thesis audit.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Prepare and rehearse a live demonstration of the RC that (a) shows real-time virtual drumming with ordinary drumsticks, (b) communicates the research contribution — causal trajectory prediction → geometry → anticipated strike — using the debug dashboard as visible evidence, (c) shows the measured results (Phase 18/19 figures) with their labels, and (d) is robust to venue conditions through an environment checklist and layered fallbacks. Visual polish is added only where it does not touch pipeline logic.
@@ -44,6 +57,13 @@ Pre-flight (venue): camera profile spot-check (FPS, exposure) → lighting per c
 Demo run: RC demo preset ─► live play ─► arm switch segment (dashboard visible) ─► evidence slides
 Fallback ladder triggered by pre-flight or live failure
 ```
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -140,6 +160,19 @@ Not applicable.
 - `demo/script.md`, `demo/venue-checklist.md`, `demo/fallback-ladder.md`, `demo/slides/…`, `demo/replay-sessions/…`, `demo/rehearsal-log.md`
 - `scripts/demo_preflight.py`, optional `src/spacedrums/ui/skins.py`
 - `docs/gates/phase-22-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

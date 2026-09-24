@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** Extra High
+- **Recommended profile:** Deep ML / Temporal Modeling
+- **Why this choice:** The core phase designs causal GRU/TCN trajectory models, masked sequence windows, stateful inference, export parity, and a multi-criteria horizon/operating-point sweep against the frozen Phase 09 harness. Astra supports the end-to-end ML and code work; Extra High is justified by sustained leakage, temporal-contract, and evaluation reasoning before the single held-out test run.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Build, train, and evaluate the **core research component**: a small **causal temporal model** (GRU and TCN candidates; Tiny Transformer deferred to Phase 12 unless justified) that, from the recent per-hand motion history (Phase 08 features), predicts the **future stick-tip trajectory** over a horizon; feed that predicted trajectory through the **unchanged Phase 04 geometry** to obtain predicted strikes with Time-to-Impact; commit through the **unchanged Phase 05 policy**; and measure, with the frozen Phase 09 harness, whether this yields useful prediction lead time against false-positive, false-negative, timing-error, trajectory-error, and CPU-latency constraints — compared with Baselines A, B, and C-GBDT. The phase selects a model family and horizon **on multi-criteria evidence**, not accuracy alone.
@@ -67,6 +80,13 @@ X[N×F] (causal window, masked, normalised per fold)
 - **Causal encoder guarantee:** GRU is unidirectional; TCN uses left padding only; no bidirectional layers, no attention over future positions, no batch-norm statistics from future frames at inference (use layer/instance norm or frozen running stats).
 - **Trajectory-first is structural:** there is no code path from the model to a `CommittedStrike` that bypasses `geometry.intersect`. The auxiliary strike logit may only *gate* a geometry-derived candidate (Task 10.9).
 - **Per-hand:** one model applied independently to each hand's window (shared weights; `hand_id` is not an input unless an experiment says otherwise — ablation candidate).
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -284,6 +304,19 @@ Same folds, same `W`, same `Δ_proc` policy, same geometry and commit policy, sa
 - `models/temporal/<model_id>/{checkpoint, export, manifest.json, latency.json}`
 - `experiments/phase-10/<run_id>/…`
 - `docs/gates/phase-10-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

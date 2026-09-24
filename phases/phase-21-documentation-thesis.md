@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** High
+- **Recommended profile:** Technical Documentation / Research Synthesis
+- **Why this choice:** Thesis chapters, generated figures, claims audit, requirements coverage, and reproducibility instructions must agree with manifests, gate records, and measured limitations. Astra fits the broad research synthesis; High is sufficient because this phase traces and reviews established evidence rather than designing a new model or experiment.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Produce the thesis material and project documentation from the evaluated RC and the archived results: chapter map aligned to phases, figures and tables regenerated from manifests, a **claims audit** in which every quantitative or qualitative claim is tagged MEASURED / VALIDATED / PENDING / Target / Historical and linked to its source, the dataset card and labelling rules as appendices, the limitations chapter, the reproducibility appendix, and developer/user documentation.
@@ -44,6 +57,13 @@ result manifests + reports ──► regenerate_figures.py ──► figures/tab
 thesis text ──► claims audit (each claim → source id + status label) ──► review
 RTM ──► requirements coverage table (which REQ satisfied by which evidence)
 ```
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -151,6 +171,19 @@ Not applicable.
 - `docs/thesis/claims-audit.md`, `docs/thesis/requirements-coverage.md`
 - `docs/user/…`, `docs/dev/…`
 - `docs/gates/phase-21-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

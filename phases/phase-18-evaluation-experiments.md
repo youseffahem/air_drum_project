@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** Extra High
+- **Recommended profile:** Experimental ML / Evaluation
+- **Why this choice:** The final pre-registered comparison combines participant-level offline analysis, counterbalanced live blocks, external synchronization, uncertainty estimates, and reproducibility. Astra fits the scientific and systems workload; Extra High is justified by causal evaluation, leakage control, and precise separation of measured action-to-sound latency from software estimates.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Run the **final, pre-registered, confirmatory evaluation** of the project's research question: compare **A (reactive)**, **B (rule-based anticipation)**, and **C (temporal AI; plus C-GBDT as the learned baseline)** on held-out participants offline (frozen harness, frozen models, frozen operating points) and **live** (end-to-end timing measured externally), reporting prediction lead time, false positives, false negatives, timing error, zone accuracy, trajectory accuracy, intensity agreement, inference latency, end-to-end latency decomposition, and — only where externally measured — effective action-to-sound latency. The design must allow any arm to win on any metric, and the report must state limitations.
@@ -64,6 +77,13 @@ This is the evidence for (or against) the contribution: whether causal temporal 
 
 ### Experiment 3 — Perceptual/usability notes (secondary, optional)
 - Brief post-session questionnaire on perceived delay and false triggers per arm (blinded to arm where feasible; arms sound identical). Not a primary outcome; reported descriptively. Whether to include is an Open Question (time, ethics scope).
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -200,6 +220,19 @@ This is the evidence for (or against) the contribution: whether causal temporal 
 - `src/spacedrums/live_eval/`, scripts
 - `experiments/phase-18/…`, external recordings + sync metadata
 - `docs/gates/phase-18-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

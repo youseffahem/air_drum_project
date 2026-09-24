@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** Extra High
+- **Recommended profile:** Deep ML / Trajectory Prediction
+- **Why this choice:** If this optional phase is attempted, causal attention, longer horizons, multimodal trajectories, uncertainty propagated through geometry, and decoding changes each need CPU feasibility and pre-declared go/no-go comparisons. Astra fits the experimental architecture work; Extra High is justified for reasoning across those interacting representations, causality tests, and baseline comparisons. A documented skip requires no model execution.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Investigate **optional** extensions of the trajectory predictor — longer horizons, richer trajectory representations, temporal attention / Tiny Transformer, uncertainty estimation, and improved trajectory decoding — each with an explicit go/no-go criterion measured with the frozen harness. This phase is **not mandatory**: if Phases 10–11 already provide the research contribution (measured lead time vs. FP comparison against baselines), Phase 12 may be skipped with a written justification, or reduced to the subset of extensions that is computationally and temporally affordable.
@@ -57,6 +70,13 @@ Extensions plug into the Phase 10 pipeline at defined points:
 
 - **Core (already delivered by Phase 10/11):** causal trajectory prediction → geometry → predicted strike, compared to baselines with lead time / FP / timing error / latency.
 - **Optional (this phase):** E1–E5. Each is *optional individually*; adoption requires measured improvement under the go/no-go rule.
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -179,6 +199,19 @@ Extensions plug into the Phase 10 pipeline at defined points:
 - `docs/decisions/ADR-<n>-ext-<name>.md`
 - `experiments/phase-12/…`
 - `docs/gates/phase-12-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

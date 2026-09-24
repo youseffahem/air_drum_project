@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** Extra High
+- **Recommended profile:** Deep ML / Multitask Learning
+- **Why this choice:** Shared-encoder training introduces masked losses, task conflicts, loss-weight search, head ablations, and geometry-consistency gates across several target semantics. Astra fits the research and implementation workload; Extra High is justified by the coupled optimization and leakage-sensitive joint evaluation while preserving the live trajectory-first invariant.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Extend the selected Phase 10 temporal model with a **shared causal encoder and multiple task heads** — future trajectory (primary, retained), strike-within-horizon probability, Time-to-Impact, impact zone, impact position, and intensity proxy — and determine **experimentally** whether multi-task learning improves, degrades, or leaves unchanged the trajectory-first strike pipeline on lead time, FP/FN, timing error, zone accuracy, and intensity agreement, under the same harness, folds, and rules. Define how the heads' outputs may be used (consistency checks and gating) without bypassing geometry.
@@ -59,6 +72,13 @@ Phase 05 commit policy: unchanged; may consume p(strike), agreement flags as opt
 ```
 
 **Invariant:** the committed strike's `zone_id`, `t_impact_pred`, and `impact_position` come from **geometry on the predicted trajectory**. Head outputs may (a) gate the candidate (`p_aux`, agreement), (b) be logged for evaluation, (c) provide the intensity proxy *as an alternative* to the geometric crossing speed — the choice is an experiment (Task 11.7) and is recorded. No head output creates a candidate on its own.
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -196,6 +216,19 @@ Phase 05 commit policy: unchanged; may consume p(strike), agreement flags as opt
 - `docs/decisions/ADR-<n>-intensity-source.md`, `ADR-<n>-ship-model.md`, `ADR-<n>-aux-schema-bump.md`
 - `models/temporal/<mt_model_id>/…`, `experiments/phase-11/…`
 - `docs/gates/phase-11-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

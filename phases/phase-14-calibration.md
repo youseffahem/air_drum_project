@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** High
+- **Recommended profile:** Computer Vision / Runtime Calibration
+- **Why this choice:** The wizard must fit an ROI, per-hand stick priors, and deterministic zone geometry while keeping the calibrated ZONE features and session hashes compatible with the live model. Astra fits the cross-module CV work; High is sufficient because the algorithmic choices are bounded by existing tracking, geometry, and Arm A validation contracts.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Implement the Calibration Wizard (Q57) that determines, for a given camera placement and user, the playing area (ROI confirmation and "stand here" fit), the virtual drum-zone positions and sizes (scaled fixed layouts with optional adjustment), per-user parameters that the tracker benefits from (apparent stick-length prior `L_prior`, hand-size reference), and the coordinate mappings — persisted as a versioned calibration file that the pipeline loads. Include a validation step (test strikes) and re-calibration triggers. The wizard must not change the core detection/prediction architecture (Q20) and must keep zone geometry deterministic.
@@ -54,6 +67,13 @@ Step 6 Save: calib-v1 file with camera profile id, ROI, L_prior per hand, zone l
 
 - Calibration uses **Arm A only** for validation so that calibration outcomes do not depend on model behaviour.
 - The calibration file is an input to the pipeline config; zone geometry remains deterministic (Phase 04).
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -164,6 +184,19 @@ Step 6 Save: calib-v1 file with camera profile id, ROI, L_prior per hand, zone l
 - `schemas/calib-v1.schema.json`, `configs/calibration/*.calib.yaml`
 - `docs/user/calibration.md`, `docs/reports/phase-14-repeatability.md`
 - `docs/gates/phase-14-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 

@@ -4,6 +4,19 @@
 
 Planned
 
+## Codex Model for This Phase
+
+- **Model:** GPT-6 Astra
+- **Reasoning effort:** Extra High
+- **Recommended profile:** Experimental ML / Ablation Analysis
+- **Why this choice:** One-factor ablations change feature groups, history, horizons, trajectory structure, tip method, and frame rate under frozen folds, seeds, and operating rules. Astra fits the research workflow; Extra High is justified by confounding and leakage risks, matched participant analysis, conditional feasibility, and interpretation of null or adverse results.
+
+> Set the model and reasoning effort in the Codex picker before running this phase.
+> This section is a workload recommendation only; text in the prompt does not switch the active model.
+> Record the actual model and reasoning setting used in the phase evidence.
+> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
+> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
+
 ## Purpose
 
 Quantify the contribution of individual inputs, temporal context, prediction horizon, the trajectory-first structure, and the frame rate to the temporal model's anticipation performance, using the frozen harness, the same participant-level folds, the same seeds, the same `W`, `Δ_proc`, and FP budget as Phase 18. Only ablations that are **implemented and experimentally feasible** are included; each answers one pre-declared question with an outcome-neutral interpretation rule.
@@ -65,6 +78,13 @@ Each ablation = the Phase 18 reference configuration with **one** change, traine
 **Causality rule (README §13):** every ablation variant consumes only observations with timestamp ≤ the current frame's `t_capture`; masking, downsampling, and the diagnostic no-trajectory mode are new code paths and must pass `TEST-CAUSAL-1/2` before their results are reported.
 
 Interpretation rule (pre-declared): a change is "material" if the per-participant paired difference in the primary metric (median `L_pred` at FP budget) exceeds the seed-variance band and its participant-bootstrap CI excludes zero; otherwise "no material effect". Secondary metrics reported alongside; no cherry-picking.
+
+## Execution Instructions
+
+- When this phase is authorized, automatically perform any outstanding post-owner-commit verification for its dependency phases on the current Git HEAD before dependent work; record the SHA, dirty state, and results. A commit alone does not satisfy a gate.
+- Execute the entire phase end-to-end in the stated task order and automatically run executable gate conditions, without task-by-task or condition-by-condition prompting. Preserve all dependencies, optional-scope decisions, acceptance criteria, and evidence rules.
+- Never fabricate participant evidence or substitute synthetic/developer evidence for it. Unavailable evidence and owner-only decisions remain PENDING; continue independent executable work and report blockers at the Exit Gate.
+- Stop only at this phase's Exit Gate for owner/reviewer action under the [gate procedure](../docs/gates/gate-procedure.md). Commit, tag, and push remain owner-controlled, including release tags. Do not start another phase. When the next phase is authorized, automatically verify this phase's outstanding post-owner-commit conditions before dependent work.
 
 ## Detailed Tasks
 
@@ -181,6 +201,19 @@ Interpretation rule (pre-declared): a change is "material" if the per-participan
 - `configs/ablations/*.yaml`, `experiments/phase-19/…`
 - `docs/reports/phase-19-ablations.md` (+ figures)
 - `docs/gates/phase-19-gate.md`
+
+## Execution Environment Record
+
+The Phase execution evidence MUST record:
+
+- Codex model actually used
+- Reasoning effort actually used
+- execution date/time (with timezone)
+- Git HEAD SHA at start
+- Git HEAD SHA at final verification
+- git_dirty state (at start and final verification)
+
+Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
 
