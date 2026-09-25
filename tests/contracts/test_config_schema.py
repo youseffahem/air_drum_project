@@ -184,7 +184,7 @@ def test_hands_block_optional_for_older_documents(validator, config_example):
     del cfg["hands"]
     cfg["meta"]["schema_version"] = "1.1"
     assert is_valid(v, cfg)  # 1.0 / 1.1 documents stay valid (additive minor bump)
-    cfg["meta"]["schema_version"] = "1.5"  # unknown version rejected (1.4 exists since Phase 08, ADR-0022)
+    cfg["meta"]["schema_version"] = "1.6"  # unknown version rejected (1.5 exists since Phase 11, ADR-0028)
     assert not is_valid(v, cfg)
 
 

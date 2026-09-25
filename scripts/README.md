@@ -93,3 +93,19 @@ regression, static/contracts/environment checks, frozen-source checks, candidate
 artifact hashing and exported metric reproduction. Add `--require-clean` after
 the owner commits; pass `--horizon-run`, `--window-run`, `--comparison-run` for the
 recorded evidence directories. No script commits, tags, pushes or starts Phase 11.
+
+## Phase 11 multi-task development tools
+
+`train_mt.py` trains/exports one C-MT model from explicit `mt_config`/`training`/`loss` JSON.
+`sweep_weighting.py` (Tasks 11.2–11.3) and `ablate_heads.py` (11.6) run labelled
+`--synthetic-fixture` grids on `_p11_fixture.py` (scripted strokes, geometry-derived labels);
+participant plans are refused until ds-v1.0 exists. Three seeds per cell, `--workers` for
+parallel cells (grid timing is then contended). `ablate_heads.py --weighting-from-run` applies
+the declared development rule (`experiments/phase-11/weighting-choice-rule.json`) and records
+the choice; `compare_tti.py` compares direct/log/bins TTI heads the same way. `eval_mt.py` compares each head with geometry on its own trajectory and Baseline B
+(11.4) or reproduces an export's validation metrics; `--partition test` is refused before any
+file is read. `eval_consistency.py` sweeps the aux-head gates and scores commit-time intensity
+sources (11.5, 11.7). `latency_mt.py` times MT versus single-task in interleaved blocks and
+measures working sets in fresh subprocesses (11.8); run it alone. `verify_phase11.py` repeats
+the gate checks and hashes/reproduces the recorded runs; add `--require-clean` after the owner
+commit. No script commits, tags, pushes, runs a held-out evaluation or starts Phase 12/13.

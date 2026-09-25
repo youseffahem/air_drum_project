@@ -29,3 +29,12 @@ feature parity, train/val/test isolation, deterministic training, both optional
 head settings, TorchScript parity/tamper checks, geometry-only replay and neutral
 selection/held-out refusal. Fixtures are explicitly SYNTHETIC; none is participant
 evidence. `scripts/recorded_temporal_parity.py` separately verifies a DEV capture.
+
+Phase 11: `tests/temporal/test_mt_*.py` (helpers in `mt_helpers.py`) cover head shapes and
+TorchScript parity, masked multi-task losses (a sample without an impact feeds only the
+trajectory and strike-negative losses), TTI parameterisations, weighting schemes,
+TEST-CAUSAL-1/2 on every head, bit-identical trajectory-only vs Phase 10 training,
+determinism/export/tamper per weighting, read-only conflict sampling, train-only intensity
+scaling, consistency flags and gates, config 1.5 and TrajectoryPrediction 1.1 migration, and
+the invariant that no CommittedStrike exists without a geometry candidate outside the flagged
+diagnostic mode (which the application refuses). Fixtures are SYNTHETIC.

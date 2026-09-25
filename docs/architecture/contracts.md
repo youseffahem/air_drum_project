@@ -147,6 +147,7 @@ This record fixes only the **envelope**; feature semantics and their leakage tes
 | `uncertainty` | `[K × [m × float]]` | — | yes (reserved, Phase 12) | Layout named by `uncertainty_kind`. |
 | `uncertainty_kind` | str | — | yes | e.g. `sigma_xy`, `cov_xy`. |
 | `aux` | object | — | fields nullable | `strike_prob_within_H`, `tti` (s from `t_ref`), `zone_logits` + `zone_ids`, `impact_pos`, `intensity_proxy` (Phase 11 heads). **Never used instead of `positions` to decide a strike**; geometry decides. |
+| `aux.consistency_flags` | `{zone, tti, position, intensity}` of bool/null | — | yes | *(Phase 11, schema 1.1, ADR-0028)* Agreement of the heads with the candidate geometry derived from **this** prediction, set after geometry by `models/temporal/consistency.py`; null without a candidate or a head. May gate a geometry candidate via `commit.aux_heads` (config 1.5); never creates one. 1.0 records are read as null. |
 | `t_inference_done` | float | `t_mono` | no | |
 
 ### 3.7 `StrikeCandidate` — `strike-candidate.schema.json` (producer: `geometry`, Phase 04; fed by Phases 05/09–13)
@@ -337,3 +338,12 @@ The KinematicFeatures envelope is unchanged at 1.0; its concrete fs-v1 implement
 defined in `docs/features/feature-schema-v1.md` and `schemas/feature-schema-v1.json`.
 Feature targets are offline-only; data composition resides in `data.feature_dataset`.
 Optional same-frame hand/stick/frame observations supply fields absent from TrackState.
+
+## Phase 11 contract change (2026-09-25, ADR-0028)
+
+`TrajectoryPrediction` 1.0 → **1.1** (minor, §8): `aux.consistency_flags` added, nullable, required in 1.1
+records, absent in 1.0 records (read as null). Writers emit 1.1. Config 1.4 → **1.5**: optional
+`commit.aux_heads` (defaults off; rejected in documents declaring < 1.5). C-MT aux population
+rules are in ADR-0028 §2. The harness gained the `MODEL:C-MT` arm, a post-geometry candidate
+gate and the explicitly flagged `diagnostic_direct` mode for `DIRECT_HEAD` candidates; no enum,
+StrikeCandidate or CommittedStrike field changed.

@@ -9,8 +9,11 @@
     "schema_version", "frame_id", "t_capture", "hand_id", "anticipator_id", "model_hash",
     "K", "dt_step", "t_offsets_s", "positions", "velocities", "uncertainty", "uncertainty_kind", "aux", "t_inference_done"
   ],
+  "allOf": [
+    { "if": { "properties": { "schema_version": { "const": "1.1" } } }, "then": { "properties": { "aux": { "required": ["consistency_flags"] } } } }
+  ],
   "properties": {
-    "schema_version": { "const": "1.0" },
+    "schema_version": { "enum": ["1.0", "1.1"], "description": "1.1 (Phase 11, ADR-0028) adds the nullable aux.consistency_flags; 1.0 records remain valid and are read as consistency_flags = null (contracts.md section 8). Writers emit 1.1." },
     "frame_id": { "$ref": "common.schema.json#/$defs/frame_id" },
     "t_capture": {
       "$ref": "common.schema.json#/$defs/t_mono",
@@ -51,14 +54,31 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["strike_prob_within_H", "tti", "zone_logits", "zone_ids", "impact_pos", "intensity_proxy"],
-      "description": "Auxiliary heads (Phase 11). All nullable. Never used INSTEAD of positions[] to decide a strike: geometry decides (ADR-0007).",
+      "description": "Auxiliary heads (Phase 11). All nullable. Never used INSTEAD of positions[] to decide a strike: geometry decides (ADR-0007). consistency_flags is required from schema 1.1.",
       "properties": {
         "strike_prob_within_H": { "$ref": "common.schema.json#/$defs/confidence_or_null" },
         "tti": { "type": ["number", "null"], "description": "Predicted Time-to-Impact in seconds from t_capture (t_ref)." },
         "zone_logits": { "anyOf": [ { "type": "array", "items": { "type": "number" }, "minItems": 1 }, { "type": "null" } ], "description": "Z raw scores aligned with zone_ids." },
         "zone_ids": { "anyOf": [ { "type": "array", "items": { "$ref": "common.schema.json#/$defs/zone_id" }, "minItems": 1 }, { "type": "null" } ], "description": "Zone id per logit position; must be present when zone_logits is." },
         "impact_pos": { "$ref": "common.schema.json#/$defs/point2_or_null" },
-        "intensity_proxy": { "type": ["number", "null"], "description": "Kinematic intensity proxy (README section 6); not force." }
+        "intensity_proxy": { "type": ["number", "null"], "description": "Kinematic intensity proxy (README section 6); not force." },
+        "consistency_flags": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["zone", "tti", "position", "intensity"],
+              "properties": {
+                "zone": { "type": ["boolean", "null"], "description": "Zone-head argmax equals the geometry-derived zone." },
+                "tti": { "type": ["boolean", "null"], "description": "|head TTI - geometry TTI| within the configured tolerance." },
+                "position": { "type": ["boolean", "null"], "description": "Euclidean head-vs-geometry impact position within the configured tolerance (ROI units)." },
+                "intensity": { "type": ["boolean", "null"], "description": "|head intensity - geometric inward crossing speed| within the configured tolerance." }
+              }
+            },
+            { "type": "null" }
+          ],
+          "description": "Phase 11 (1.1): agreement between heads and the geometry-derived candidate of THIS prediction, computed after geometry (models/temporal/consistency.py). Null when geometry produced no candidate or no head exists; a check is null when its head is absent. May gate a geometry-derived candidate (commit.aux_heads, config 1.5); never creates one."
+        }
       }
     },
     "t_inference_done": {

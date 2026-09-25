@@ -43,7 +43,9 @@ _FRAME_SAMPLE_SCHEMA_VERSION = "1.0"
 _HAND_OBSERVATION_SCHEMA_VERSION = "1.0"
 _STICK_OBSERVATION_SCHEMA_VERSION = "1.0"
 _TRACK_STATE_SCHEMA_VERSION = "1.0"
-_TRAJECTORY_PREDICTION_SCHEMA_VERSION = "1.0"
+_TRAJECTORY_PREDICTION_SCHEMA_VERSION = "1.1"  # 1.1: aux.consistency_flags (Phase 11, ADR-0028)
+_TRAJECTORY_PREDICTION_READABLE = ("1.0", "1.1")  # 1.0 records read as consistency_flags = null
+CONSISTENCY_CHECKS = ("zone", "tti", "position", "intensity")
 _STRIKE_CANDIDATE_SCHEMA_VERSION = "1.0"
 _COMMITTED_STRIKE_SCHEMA_VERSION = "1.0"
 _AUDIO_EVENT_SCHEMA_VERSION = "1.0"
@@ -560,8 +562,18 @@ class TrajectoryAux:
     zone_ids: tuple[str, ...] | None = None
     impact_pos: tuple[float, float] | None = None
     intensity_proxy: float | None = None
+    # Phase 11 (schema 1.1): geometry-vs-head agreement per check, set after geometry; null
+    # when no candidate or no head exists. Informational/gating only, never a strike source.
+    consistency_flags: tuple[tuple[str, bool | None], ...] | None = None
 
     def __post_init__(self) -> None:
+        if self.consistency_flags is not None:
+            flags = dict(self.consistency_flags)
+            if set(flags) != set(CONSISTENCY_CHECKS) or any(
+                v is not None and not isinstance(v, bool) for v in flags.values()
+            ):
+                raise ValueError(f"consistency_flags needs exactly {CONSISTENCY_CHECKS}, each bool or null")
+            object.__setattr__(self, "consistency_flags", tuple((k, flags[k]) for k in CONSISTENCY_CHECKS))
         if self.strike_prob_within_H is not None:
             object.__setattr__(
                 self, "strike_prob_within_H", _confidence(self.strike_prob_within_H, "strike_prob_within_H")
@@ -585,6 +597,7 @@ class TrajectoryAux:
             "zone_ids": list(self.zone_ids) if self.zone_ids is not None else None,
             "impact_pos": list(self.impact_pos) if self.impact_pos is not None else None,
             "intensity_proxy": self.intensity_proxy,
+            "consistency_flags": dict(self.consistency_flags) if self.consistency_flags is not None else None,
         }
 
 
@@ -664,7 +677,7 @@ class TrajectoryPrediction:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> TrajectoryPrediction:
-        if d.get("schema_version") != cls.SCHEMA_VERSION:
+        if d.get("schema_version") not in _TRAJECTORY_PREDICTION_READABLE:
             raise ValueError("unsupported TrajectoryPrediction schema_version")
         return cls(
             frame_id=int(d["frame_id"]),
@@ -958,6 +971,7 @@ class TimingRecord:
 
 
 __all__ = [
+    "CONSISTENCY_CHECKS",
     "AudioEvent",
     "CommittedStrike",
     "FrameSample",

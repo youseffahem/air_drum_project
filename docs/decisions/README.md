@@ -35,5 +35,8 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0025](ADR-0025-fp-budget.md) | Phase 10 FP budget and owner/validation prerequisites | PENDING | 2026-09-24 | 10 |
 | [ADR-0026](ADR-0026-horizon.md) | Horizon selection, fixed-grid targets and bounded GRU state | Selection PENDING; contract implemented | 2026-09-24 | 10 |
 | [ADR-0027](ADR-0027-model-selection.md) | Outcome-neutral temporal/baseline model selection | PENDING | 2026-09-24 | 10 |
+| [ADR-0028](ADR-0028-aux-schema-bump.md) | C-MT aux population, `aux.consistency_flags` (TrajectoryPrediction 1.1), optional `commit.aux_heads` (config 1.5), C-MT replay arm and flagged direct-head diagnostic | IMPLEMENTED contract; review pending | 2026-09-25 | 11 |
+| [ADR-0029](ADR-0029-intensity-source.md) | Commit-time intensity-proxy source (geometry crossing speed / intensity head / Baseline B) | PENDING participant evidence; development default geometry | 2026-09-25 | 11 |
+| [ADR-0030](ADR-0030-ship-model.md) | Ship decision: C-MT vs single-task vs baseline, and which heads ship | PENDING confirmatory run | 2026-09-25 | 11 |
 
-Next free number: **ADR-0028**.
+Next free number: **ADR-0031**.

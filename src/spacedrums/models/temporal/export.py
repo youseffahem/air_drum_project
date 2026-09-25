@@ -8,7 +8,7 @@ import torch
 
 from spacedrums.timing import now
 
-from .config import TemporalConfig, build_model
+from .config import MultiTaskConfig, TemporalConfig, build_model, build_mt_model
 from .data import sha
 from .gru import BoundedGRUState
 
@@ -35,6 +35,36 @@ def load_model(directory, *, exported=True):
         model = torch.jit.load(str(directory / filename), map_location="cpu")
     else:
         model = build_model(config)
+        model.load_state_dict(torch.load(directory / filename, weights_only=True, map_location="cpu"))
+    return model.eval(), manifest
+
+
+def load_mt_model(directory, *, exported=True):
+    """Phase 11 package loader; the Phase 10 loader refuses these manifests (hash mismatch)."""
+    directory = Path(directory)
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    config = MultiTaskConfig.from_dict(manifest["mt_config"])
+    base = config.base
+    if config.config_hash != manifest["config_hash"] or base.config_hash != manifest["base_config_hash"]:
+        raise ValueError("configuration hash mismatch")
+    expected = {
+        "N": base.n,
+        "K": base.k,
+        "F": base.features,
+        "dt_step": base.dt_step,
+        "family": base.family,
+        "heads": list(config.heads),
+        "live_eligible": config.live_eligible,
+    }
+    if any(manifest[key] != value for key, value in expected.items()):
+        raise ValueError("manifest dimensions/heads differ from hashed configuration")
+    filename, key = ("export.pt", "export_hash") if exported else ("checkpoint.pt", "checkpoint_hash")
+    if sha(directory / filename) != manifest[key]:
+        raise ValueError("model content hash mismatch")
+    if exported:
+        model = torch.jit.load(str(directory / filename), map_location="cpu")
+    else:
+        model = build_mt_model(config)
         model.load_state_dict(torch.load(directory / filename, weights_only=True, map_location="cpu"))
     return model.eval(), manifest
 

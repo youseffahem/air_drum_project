@@ -8,11 +8,11 @@ Window-relative feature changes trigger rebuilding those states, preserving pari
 import torch
 from torch import nn
 
-from .heads import TrajectoryHead, masked_inputs
+from .heads import MultiTaskHead, TrajectoryHead, masked_inputs
 
 
 class GRUPredictor(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, head_factory=None):
         super().__init__()
         self.n, self.hidden, self.layers = config.n, config.hidden, config.layers
         self.gru = nn.GRU(
@@ -22,7 +22,11 @@ class GRUPredictor(nn.Module):
             batch_first=True,
             dropout=config.dropout if config.layers > 1 else 0.0,
         )
-        self.head = TrajectoryHead(config.hidden, config.k, config.auxiliary)
+        # The factory runs at the Phase 10 position, so parameter draws keep their order.
+        if head_factory is None:
+            self.head = TrajectoryHead(config.hidden, config.k, config.auxiliary)
+        else:
+            self.head = head_factory()
 
     @torch.jit.export
     def step(self, x: torch.Tensor, mask: torch.Tensor, state: torch.Tensor) -> torch.Tensor:
@@ -32,6 +36,22 @@ class GRUPredictor(nn.Module):
         return torch.where(live, state, torch.zeros_like(state))
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        x, mask = x[:, -self.n :], mask[:, -self.n :]
+        state = x.new_zeros((self.layers, x.shape[0], self.hidden))
+        for i in range(x.shape[1]):
+            state = self.step(x[:, i], mask[:, i], state)
+        return self.head(state[-1])
+
+
+class MultiTaskGRU(GRUPredictor):
+    """The Phase 10 GRU encoder shared by every Phase 11 head."""
+
+    def __init__(self, config):
+        super().__init__(config.base, head_factory=lambda: MultiTaskHead(config.base.hidden, config))
+
+    def forward(
+        self, x: torch.Tensor, mask: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         x, mask = x[:, -self.n :], mask[:, -self.n :]
         state = x.new_zeros((self.layers, x.shape[0], self.hidden))
         for i in range(x.shape[1]):

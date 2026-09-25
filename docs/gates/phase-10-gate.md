@@ -206,3 +206,27 @@ evidence and does not create a selected participant model or independent validat
    reviewer evaluates all criteria and signs. Do not start Phase 11 on this record.
 
 Reviewer signature: **PENDING**. No PASS, tag, commit, push, or next phase performed.
+
+## Post-owner-commit verification — 2026-09-25
+
+Before any Phase 11 edit, `scripts/verify_phase10.py --require-clean` passed all ten
+commands on clean HEAD `bd0bcf8a99e0a0fe1fed13e9869892e5cec1dd81` (owner commit
+"phase 10"), with the horizon, window and comparison runs as inputs. Evidence:
+`experiments/phase-10/20260925-0840-p10-gate-verification/run.json`,
+`verification.json` and `summary.json` (COMPLETED 2026-09-25 08:51:32 +03:00).
+
+- Full regression: **977 passed, 1 skipped, 11 warnings** in 592.53 s.
+- Ruff, all seven import-boundary contracts, contract validation, environment smoke
+  check and `git diff --check` passed.
+- Four exported-model subprocess evaluations (GRU/TCN from the horizon run, GRU/TCN
+  auxiliary cells from the window run) reproduced their archived validation metrics
+  within atol=1e-6/rtol=1e-5.
+- 2,671 + 4,807 + 529 = 8,007 input-run artifacts matched their recorded hashes.
+- Frozen geometry/commit/matching/metrics/report/selection/constants unchanged;
+  source unchanged during verification; `git_dirty_final` **false**.
+
+This closes the executable clean-tree rerun of required action 5 only. The
+participant, budget, selection, held-out and independent-reproduction actions 1–4
+remain open; the verdict remains PENDING reviewer, proposed FAIL. Phase 11 proceeds
+only with independent development machinery under its explicit instruction to
+continue executable work while participant evidence and owner decisions stay PENDING.

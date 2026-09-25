@@ -59,6 +59,14 @@ class TemporalAnticipator:
 
     @torch.inference_mode()
     def predict(self, track_history, features=None):
+        prepared = self._prepare(track_history, features)
+        if prepared is None:
+            return None
+        track, x, mask = prepared
+        return self._decode(track, self._infer(track.hand_id, x, mask))
+
+    def _prepare(self, track_history, features):
+        """Per-hand causal guards; returns (track, x, mask) or None. Shared by every head layout."""
         if not track_history:
             return None
         track = track_history[-1]
@@ -97,12 +105,17 @@ class TemporalAnticipator:
             raise ValueError("model/feature shape mismatch")
         if not torch.isfinite(x[mask]).all():
             raise ValueError("nonfinite model inputs")
+        return track, x, mask
+
+    def _infer(self, hand, x, mask):
         if self.stateful:
             if hand not in self.states:
                 self.states[hand] = BoundedGRUState(self.model)
-            delta, logit = self.states[hand](x, mask)
-        else:
-            delta, logit = self.model(x[None], mask[None])
+            return self.states[hand](x, mask)
+        return self.model(x[None], mask[None])
+
+    def _decode(self, track, outputs):
+        delta, logit = outputs
         probability = float(torch.sigmoid(logit[0])) if self.manifest["config"]["auxiliary"] else None
         # The prediction clock remains the trained fixed grid even if capture dt varies.
         # Geometry interpolates consecutive grid points; live input resampling is Phase 13.
