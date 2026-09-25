@@ -26,6 +26,7 @@ from spacedrums.contracts.interfaces import (
     Tracker,
 )
 from spacedrums.contracts.records import (
+    CONSISTENCY_CHECKS,
     N_HAND_LANDMARKS,
     AudioEvent,
     CommittedStrike,
@@ -43,6 +44,7 @@ from spacedrums.contracts.records import (
 from spacedrums.contracts.values import FrameView
 
 __all__ = [
+    "CONSISTENCY_CHECKS",
     "Anticipator",
     "AudioEvent",
     "AudioScheduler",

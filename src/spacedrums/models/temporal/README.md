@@ -56,3 +56,46 @@ pending the upstream freeze and predeclared protocol; `--partition test` is refu
 compares every reported trajectory metric/denominator, with recorded tolerance.
 This is same-environment development reproduction. It is not VALIDATED, a selected
 participant model, or evidence that anticipation improves physical sound latency.
+
+## Phase 11 — multi-task heads (C-MT)
+
+Status: IMPLEMENTED development machinery; participant evidence PENDING
+(`docs/gates/phase-11-gate.md`).
+
+`MultiTaskConfig` wraps a Phase 10 `TemporalConfig` (optional logit off) with declared heads
+(`trajectory`, `strike`, `tti`, `zone`, `position`, `intensity`), zone ids, H_max and the TTI
+parameterisation (`direct`, `log`, `bins`). `MultiTaskGRU`/`MultiTaskTCN` reuse the Phase 10
+encoders through a head factory; the trajectory layer is created first, so a trajectory-only
+multi-task model trains bit-identically to `train.train_fold` (tested). Exports keep a fixed
+six-tensor signature; disabled heads return zeros.
+
+`mt_train.train_mt_fold` masks every task per sample: TTI, zone, position and intensity use only
+windows with an impact within H_max, strike uses `strike_mask`, nothing is imputed. Intensity is
+standardised with train-fold statistics only. Weighting: fixed, trajectory-dominant,
+uncertainty (regulariser only for labelled tasks) or GradNorm (weights moved only by the
+balance step). `conflict_every` samples gradient cosines against the trajectory task without
+changing training (tested). Checkpoints keep the Phase 10 macro-ADE criterion.
+
+`MultiTaskAnticipator` decodes the trajectory exactly as Phase 10 and fills `aux`
+(ADR-0028); it refuses packages without the trajectory head. `consistency.AuxGate` runs between
+geometry and the unchanged commit policy: it attaches `aux.consistency_flags`, removes the head
+probability from `commit.p_commit`, and optionally applies `p_aux`, agreement checks or the
+head intensity (`commit.aux_heads`, config 1.5, all off by default). It never creates a
+candidate. `DirectHeadDiagnostic` is the labelled no-trajectory diagnostic: not an
+`Anticipator`, constructed only with `diagnostic=True`, replayed only with
+`diagnostic_direct=True`.
+
+```powershell
+.venv\Scripts\python.exe -m pytest tests/temporal -k mt
+.venv\Scripts\python.exe scripts/sweep_weighting.py --synthetic-fixture --output experiments/phase-11 --workers 3
+.venv\Scripts\python.exe scripts/ablate_heads.py --synthetic-fixture --output experiments/phase-11 --weighting-from-run <weighting-run> --workers 3
+.venv\Scripts\python.exe scripts/compare_tti.py --synthetic-fixture --output experiments/phase-11 --weighting-from-run <weighting-run> --workers 3
+.venv\Scripts\python.exe scripts/eval_mt.py --run <ablation-run> --synthetic-fixture --output experiments/phase-11
+.venv\Scripts\python.exe scripts/eval_consistency.py --run <ablation-run> --synthetic-fixture --output experiments/phase-11
+.venv\Scripts\python.exe scripts/latency_mt.py --run <ablation-run> --output experiments/phase-11
+.venv\Scripts\python.exe scripts/verify_phase11.py --runs <run dirs>
+```
+
+The fixture for these runs is `scripts/_p11_fixture.py`: SYNTHETIC scripted strokes whose
+labels come from the Phase 04 impact test on the noiseless path. It exercises the machinery;
+it is not participant evidence and selects nothing for the thesis.

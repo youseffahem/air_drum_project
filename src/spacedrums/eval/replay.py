@@ -10,6 +10,7 @@ from typing import Any
 from spacedrums.commit import CommitSettings, PerHandCommitPolicy
 from spacedrums.contracts import (
     Arm,
+    CandidateDerivation,
     CandidateSource,
     HandId,
     StrikeCandidate,
@@ -51,6 +52,7 @@ class ReplayResult:
     committed: list
     decisions: list[dict[str, Any]]
     predictions: list[TrajectoryPrediction]
+    diagnostic: bool = False  # direct / no-trajectory (diagnostic): never a live-arm result
 
     def strike_rows(self, session_id: str, participant_id: str | None = None) -> list[dict]:
         by_id = {c.candidate_id: c for c in self.candidates}
@@ -70,6 +72,12 @@ class ReplayResult:
 ModelFn = Callable[
     [TrackState, Sequence[TrackState], object | None], TrajectoryPrediction | StrikeCandidate | None
 ]
+# Post-geometry step of a temporal arm (Phase 11 aux-head gate): it may drop the geometry-derived
+# candidate or relabel its intensity/probability and annotates the prediction; it never adds one.
+CandidateGate = Callable[
+    [TrajectoryPrediction, StrikeCandidate | None], tuple[TrajectoryPrediction, StrikeCandidate | None]
+]
+TEMPORAL_ARMS = ("MODEL:C-GRU", "MODEL:C-TCN", "MODEL:C-MT")
 
 
 def replay(
@@ -88,10 +96,23 @@ def replay(
     norm_stats: object | None = None,
     feature_records: Sequence | None = None,
     dropped_by_frame: Mapping[int, int] | None = None,
+    candidate_gate: CandidateGate | None = None,
+    diagnostic_direct: bool = False,
 ) -> ReplayResult:
-    """Each call owns fresh per-hand state. The model sees only current/past inputs."""
-    if arm not in ("A", "B", "MODEL:C-GBDT", "MODEL:C-GRU", "MODEL:C-TCN"):
+    """Each call owns fresh per-hand state. The model sees only current/past inputs.
+
+    ``diagnostic_direct`` is the explicitly flagged no-trajectory harness mode of arm C-MT
+    (ADR-0007 amendment): DIRECT_HEAD candidates are accepted only there, results carry
+    ``diagnostic=True`` and must be labelled direct / no-trajectory (diagnostic).
+    """
+    if arm not in ("A", "B", "MODEL:C-GBDT", *TEMPORAL_ARMS):
         raise ValueError("unknown replay arm")
+    if diagnostic_direct and (arm != "MODEL:C-MT" or candidate_gate is not None):
+        raise ValueError("the direct-head diagnostic is a C-MT harness mode without a geometry gate")
+    if candidate_gate is not None and arm not in TEMPORAL_ARMS:
+        raise ValueError("a candidate gate applies only to temporal trajectory arms")
+    if arm == "MODEL:C-MT" and not diagnostic_direct and candidate_gate is None:
+        raise ValueError("C-MT requires its declared aux-head gate (all options may be off)")
     delay = delay or DelayPolicy()
     if arm == "B" and rule_settings is None or arm.startswith("MODEL:") and model is None:
         raise ValueError("arm settings/model missing")
@@ -107,6 +128,7 @@ def replay(
         "MODEL:C-GBDT": Arm.C_GBDT,
         "MODEL:C-GRU": Arm.C_GRU,
         "MODEL:C-TCN": Arm.C_TCN,
+        "MODEL:C-MT": Arm.C_MT,
     }[arm]
     policies = {
         h: PerHandCommitPolicy(
@@ -133,7 +155,9 @@ def replay(
         else None
     )
     feature_rings = {h: deque(maxlen=feature_window_n) for h in HandId}
-    result = ReplayResult(arm=arm, candidates=[], committed=[], decisions=[], predictions=[])
+    result = ReplayResult(
+        arm=arm, candidates=[], committed=[], decisions=[], predictions=[], diagnostic=diagnostic_direct
+    )
     previous_key: tuple[float, int, str] | None = None
     for index, track in enumerate(tracks):
         key = (track.t_capture, track.frame_id, str(track.hand_id))
@@ -202,12 +226,17 @@ def replay(
                         source=CandidateSource.MODEL,
                         t_candidate=clock_t[0],
                     )
-                    if arm in ("MODEL:C-GRU", "MODEL:C-TCN"):
+                    if arm in TEMPORAL_ARMS:
                         candidate = temporal_candidate(candidate, registry)
+                    if candidate_gate is not None:
+                        output, candidate = candidate_gate(output, candidate)
+                        result.predictions[-1] = output
                     candidates = (candidate,) if candidate else ()
             elif isinstance(output, StrikeCandidate):
-                if arm in ("MODEL:C-GRU", "MODEL:C-TCN"):
+                if arm in TEMPORAL_ARMS and not diagnostic_direct:
                     raise ValueError("temporal arms require a trajectory through geometry")
+                if diagnostic_direct and output.derivation is not CandidateDerivation.DIRECT_HEAD:
+                    raise ValueError("diagnostic mode accepts only labelled DIRECT_HEAD candidates")
                 if output.source is not CandidateSource.MODEL or output.frame_id != track.frame_id:
                     raise ValueError("model candidate has wrong source/frame")
                 candidates = (output,)

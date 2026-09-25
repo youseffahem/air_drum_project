@@ -178,6 +178,11 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
         problems.append(f"geometry block requires meta.schema_version >= 1.3 (document declares {version})")
     if "features" in cfg and version in ("1.0", "1.1", "1.2", "1.3"):
         problems.append(f"features block requires meta.schema_version >= 1.4 (document declares {version})")
+    # Phase 11 (ADR-0028): the optional commit.aux_heads block exists from schema 1.5
+    if "aux_heads" in cfg.get("commit", {}) and version in ("1.0", "1.1", "1.2", "1.3", "1.4"):
+        problems.append(
+            f"commit.aux_heads requires meta.schema_version >= 1.5 (document declares {version})"
+        )
     window = cfg.get("features", {}).get("window", {})
     if window:
         if window["h"] > window["h_max"]:

@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from .heads import TrajectoryHead, masked_inputs
+from .heads import MultiTaskHead, TrajectoryHead, masked_inputs
 
 
 class CausalConv(nn.Module):
@@ -30,7 +30,7 @@ class ResidualBlock(nn.Module):
 
 
 class TCNPredictor(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, head_factory=None):
         super().__init__()
         self.n = config.n
         self.receptive_field = config.receptive_field
@@ -40,12 +40,29 @@ class TCNPredictor(nn.Module):
         self.blocks = nn.Sequential(
             *[ResidualBlock(config.hidden, config.kernel, d, config.dropout) for d in config.dilations]
         )
-        self.head = TrajectoryHead(config.hidden, config.k, config.auxiliary)
+        # The factory runs at the Phase 10 position, so parameter draws keep their order.
+        if head_factory is None:
+            self.head = TrajectoryHead(config.hidden, config.k, config.auxiliary)
+        else:
+            self.head = head_factory()
 
     @torch.jit.export
     def encode(self, x: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         return self.blocks(self.project(masked_inputs(x, mask).transpose(1, 2)))
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        encoded = self.encode(x[:, -self.n :], mask[:, -self.n :])
+        return self.head(encoded[:, :, -1])
+
+
+class MultiTaskTCN(TCNPredictor):
+    """The Phase 10 causal TCN encoder shared by every Phase 11 head."""
+
+    def __init__(self, config):
+        super().__init__(config.base, head_factory=lambda: MultiTaskHead(config.base.hidden, config))
+
+    def forward(
+        self, x: torch.Tensor, mask: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         encoded = self.encode(x[:, -self.n :], mask[:, -self.n :])
         return self.head(encoded[:, :, -1])

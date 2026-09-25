@@ -53,6 +53,10 @@ def read_samples(path, config, *, aux_horizon_s=None):
     target, target_mask = fixed_grid(d["T"], d["target_offsets_s"], d["T_mask"], config.k, config.dt_step)
     if not target_mask.any():
         raise ValueError("no valid fixed-grid targets")
+    # Current tip = absolute minus displacement at the first observed target (eligible => one exists).
+    first = d["T_mask"].argmax(axis=1)
+    rows = np.arange(len(x))
+    anchor = d["T_absolute"][rows, first] - d["T"][rows, first]
     tensors = {
         "x": torch.tensor(np.where(mask, x, 0), dtype=torch.float32),
         "mask": torch.tensor(mask, dtype=torch.bool),
@@ -64,6 +68,8 @@ def read_samples(path, config, *, aux_horizon_s=None):
     return {
         "tensors": tensors,
         "meta": meta,
+        "aux_records": aux,
+        "anchor": anchor,
         "schema_hash": str(d["feature_schema_hash"]),
         "hash": sha(path),
         "count": len(x),

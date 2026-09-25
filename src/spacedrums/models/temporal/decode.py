@@ -8,13 +8,23 @@ from spacedrums.contracts import TrajectoryAux, TrajectoryPrediction
 
 
 def decode(
-    track, displacements, *, dt_step, anticipator_id, model_hash, probability=None, inference_done=None
+    track,
+    displacements,
+    *,
+    dt_step,
+    anticipator_id,
+    model_hash,
+    probability=None,
+    inference_done=None,
+    aux=None,
 ):
     delta = np.asarray(displacements, dtype=float)
     if delta.ndim != 2 or delta.shape[1] != 2 or not len(delta) or not np.isfinite(delta).all():
         raise ValueError("finite [K,2] displacements required")
     if not math.isfinite(dt_step) or dt_step <= 0 or track.tip_filtered is None:
         raise ValueError("positive time step and current tip required")
+    if aux is not None and probability is not None:
+        raise ValueError("pass the strike probability inside aux, not twice")
     positions = delta + np.asarray(track.tip_filtered)
     return TrajectoryPrediction(
         frame_id=track.frame_id,
@@ -29,6 +39,6 @@ def decode(
         velocities=None,
         uncertainty=None,
         uncertainty_kind=None,
-        aux=TrajectoryAux(strike_prob_within_H=probability),
+        aux=TrajectoryAux(strike_prob_within_H=probability) if aux is None else aux,
         t_inference_done=track.t_capture if inference_done is None else inference_done,
     )
