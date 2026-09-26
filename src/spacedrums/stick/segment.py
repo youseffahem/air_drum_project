@@ -103,12 +103,11 @@ def component_pca(xs: np.ndarray, ys: np.ndarray) -> tuple[float, float]:
 def segment_stick(gray_roi: np.ndarray, region: SearchRegion, settings: SegmentSettings) -> SegmentResult:
     """Candidate stick pixels inside ``region`` of the grayscale ROI crop (uint8, (h, w))."""
     h, w = gray_roi.shape[:2]
-    empty = SegmentResult(candidate_px=np.zeros((0, 2)), mask=np.zeros((h, w), dtype=bool))
     if region.empty:
-        return empty
+        return SegmentResult(candidate_px=np.zeros((0, 2)), mask=np.zeros((h, w), dtype=bool))
     x0, y0, x1, y1 = region.bbox_px
     if x1 <= x0 or y1 <= y0:
-        return empty
+        return SegmentResult(candidate_px=np.zeros((0, 2)), mask=np.zeros((h, w), dtype=bool))
     crop = gray_roi[y0:y1, x0:x1]
     if settings.blur_ksize > 1:
         crop = cv2.GaussianBlur(crop, (settings.blur_ksize, settings.blur_ksize), 0)
@@ -125,7 +124,11 @@ def segment_stick(gray_roi: np.ndarray, region: SearchRegion, settings: SegmentS
     kept: list[tuple[float, int]] = []
     for lab in range(1, n_labels):
         n_px = int(stats[lab, cv2.CC_STAT_AREA])
-        ys, xs = np.nonzero(labels == lab)
+        # OpenCV already computed each component's bounds. Preserve the exact row-major
+        # pixel order and original crop coordinates without scanning the whole crop per label.
+        bx, by, bw, bh = (int(v) for v in stats[lab, :4])
+        ys, xs = np.nonzero(labels[by:by + bh, bx:bx + bw] == lab)
+        xs, ys = xs + bx, ys + by
         cx, cy = float(xs.mean() + x0), float(ys.mean() + y0)
         if n_px < settings.min_component_px:
             infos.append(ComponentInfo(n_px, 0.0, 0.0, (cx, cy), False, "too_small"))

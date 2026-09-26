@@ -281,6 +281,10 @@ def run(
     session.json. Phase 06 additions: ``source_factory`` replaces :func:`iter_source` (a composed
     SYNTHETIC protocol sequence), ``draw_hook`` draws cues on the ROI, ``on_key`` receives every
     printable key the loop does not consume itself (``a`` / ``b`` / ``c`` / ``q``)."""
+    opencv_threads = getattr(args, "opencv_threads", 1)
+    if type(opencv_threads) is not int or opencv_threads < 1:
+        raise ValueError("opencv_threads must be a positive integer")
+    cv2.setNumThreads(opencv_threads)
     calibrated = load_calibrated_config(*args.config, calibration=getattr(args, "calibration", None))
     cfg = calibrated.config
     calib_fields = calibrated.session_fields()
@@ -318,8 +322,15 @@ def run(
         config_hash=cfg.config_hash,
         audio=audio,
     )
-    frames, stop, source_meta, truth = (source_factory or iter_source)(args, cfg, registry)
+    # Initialize native libraries before the capture thread starts filling its bounded queue.
+    # Phase 16's unattended baseline lost 23 frames during this initialization.
     perception = None if args.synthetic else Perception(cfg.data)
+    try:
+        frames, stop, source_meta, truth = (source_factory or iter_source)(args, cfg, registry)
+    except BaseException:
+        if perception is not None:
+            perception.close()
+        raise
     replay_like = bool(args.synthetic) or args.source in ("replay", "devcapture")
     recorder: SessionRecorder | None = None
     if args.record:
@@ -485,6 +496,7 @@ def run(
             cv2.destroyAllWindows()
             cv2.waitKey(1)
     counters = pipeline.counters()
+    counters["runtime_threads"] = {"opencv": cv2.getNumThreads()}
     counters["ui"] = {
         "overlay_mode": getattr(args, "overlay_mode", "experiment"),
         "dashboard": dashboard_subscription.stats() if dashboard_subscription is not None else None,
@@ -578,6 +590,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ap.add_argument("--audio-latency-run-id", default=None)
     ap.add_argument("--no-window", action="store_true")
+    ap.add_argument(
+        "--opencv-threads",
+        type=int,
+        default=1,
+        help="OpenCV CPU worker count (Phase 16 default 1; use 8 to reproduce the HW-01 baseline)",
+    )
     ap.add_argument(
         "--overlay-mode",
         choices=("off", "experiment", "full"),

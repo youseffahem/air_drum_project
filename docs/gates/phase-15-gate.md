@@ -108,3 +108,22 @@ reduction claim is made.
 4. Owner controls commit, tag and push. Do not start Phase 16 before authorization.
 
 Reviewer signature: **PENDING**.
+
+## Post-owner-commit verification during authorized Phase 16
+
+2026-09-26, clean HEAD `130c1fa4dfb9e65036d17aa9451a710c91cbc056`:
+the full 1,256-test suite, lint/import/schema/smoke checks passed in
+`experiments/phase-16/dependencies/20260926-1240-p13-gate-verification/`.
+The Phase 15 reproduction used all 171 developer-replay frames, five repeats:
+
+| Clean reproduction | Experiment incremental p95 | 5 ms bound |
+|---|---:|---|
+| `experiments/phase-16/dependencies/phase15-clean/` | 5.363 ms | FAIL |
+| `experiments/phase-16/dependencies/phase15-clean-repeat/` | 2.454 ms | PASS |
+
+Both results are preserved. They establish executable reproduction and material
+wall-time variability, not a robust PASS for the overhead bound. Export artifacts
+were reproduced in both runs. Environment/clean-state records are
+`phase15-verification.json` and `phase15-repeat-verification.json` beside these runs.
+Owner review and reviewed participant replay evidence remain PENDING. The owner
+separately authorized Phase 16 performance work; this record does not sign its gate.

@@ -148,3 +148,16 @@ are PENDING. The model in all development runs is SYNTHETIC-trained, not shipped
 
 Reviewer signature: **PENDING**. No Phase 14/15/16 work or Git publication is authorized
 by this record. Stop at this Exit Gate.
+
+## Post-owner-commit verification during authorized Phase 16
+
+2026-09-26: `scripts/verify_phase13.py --require-clean` with the recorded parity
+config and plan passed all 10 commands on clean HEAD
+`130c1fa4dfb9e65036d17aa9451a710c91cbc056`. Evidence:
+`experiments/phase-16/dependencies/20260926-1240-p13-gate-verification/`.
+The suite passed 1,256 tests, with one test skipped; raw parity/causality,
+fault injection, both timing runs, lint, imports, schema, smoke and diff checks passed.
+Source hashes were unchanged and the final tree was clean. This closes the executable
+post-owner-commit condition only. The shipped-model decision, participant fold,
+live-stroke timing and reviewer signature remain PENDING. Phase 16 was separately
+authorized by the owner; no research gate PASS is inferred from that authorization.

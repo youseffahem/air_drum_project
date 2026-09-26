@@ -69,3 +69,17 @@ are still required before the full Phase 13 gate can pass.
 - `synthetic` — deterministic SYNTHETIC observation sequences and scenarios (never evidence).
 
 Tests: `tests/app/`. Scripts: `scripts/playability_session.py`, `scripts/induced_loss_test.py`, `scripts/timing_summary.py`, `scripts/shadow_compare.py`, `scripts/rule_baseline_sensitivity.py`, `scripts/render_session_frames.py`. Phase 13 adds arm C.
+
+## Phase 16 runtime settings
+
+The application uses one OpenCV thread by default, alongside the model's pinned
+Torch thread setting. `--opencv-threads 8` restores the historical OpenCV setting
+on HW-01; the actual count is recorded in session counters. Perception initializes
+before camera capture starts, so model loading cannot fill the capture queue.
+The bounded capture queue and model overload fallback keep their existing policies.
+
+The performance comparison config `configs/perf.developer.candidate.yaml` disables
+fallback only for deterministic offline regression. Use
+`configs/live.arm-C.candidate.yaml` for live runs. Experimental worker/scale/model
+variants are available only through Phase 16 scripts and are not production defaults.
+See `docs/perf/phase-16-perf-log.md` for decisions and limitations.

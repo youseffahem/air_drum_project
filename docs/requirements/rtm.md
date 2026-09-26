@@ -268,3 +268,8 @@ Used by Phases 21 and 23 to show each phase's requirement coverage. Each phase d
 - Status columns are edited **only** with a link to evidence (test report, measurement record, gate record).
 
 Phase 08 contribution to REQ-060b / REQ-302: feature-level TEST-CAUSAL-1/2 implemented and passing in the gate evidence; system-level acceptance remains pending its later owning phases.
+
+Phase 16 contribution to REQ-023 / REQ-304: development profiling, regression,
+budget and conditional native-FPS evidence are linked from the
+[Phase 16 gate](../gates/phase-16-gate.md). Reviewer verdict is PENDING; requirement
+statuses are not advanced by this execution.

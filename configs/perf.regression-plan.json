@@ -1,0 +1,20 @@
+{
+  "source_kind": "DEV_CAPTURE",
+  "sessions": [
+    {
+      "id": "DEV-swing-L2-exp-5",
+      "path": "data/dev-captures/swing-L2-exp-5",
+      "kind": "DEV_CAPTURE"
+    },
+    {
+      "id": "DEV-swing-L2-exp-6",
+      "path": "data/dev-captures/swing-L2-exp-6",
+      "kind": "DEV_CAPTURE"
+    },
+    {
+      "id": "DEV-swing-L2-exp-7",
+      "path": "data/dev-captures/swing-L2-exp-7",
+      "kind": "DEV_CAPTURE"
+    }
+  ]
+}

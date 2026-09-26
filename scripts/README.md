@@ -166,3 +166,36 @@ variance head on frozen reference models, replayed like a declared variant but n
 input. `verify_phase12.py` repeats the gate checks, audits frozen files, hashes the recorded runs and
 reproduces one exported model per variant/family. Add `--require-clean` after the owner commit.
 No script commits, tags, pushes, runs a held-out evaluation or starts Phase 13.
+
+## Phase 16 performance tools
+
+Run performance commands serially on HW-01. `profile_pipeline.py` profiles the
+production experiment overlay and separates decode/capture wait from processing.
+Use `--source replay --sessions <paths> --repeats 3` with
+`configs/perf.developer.candidate.yaml`; live checks use
+`--config configs/live.arm-C.candidate.yaml --source live --seconds 30 --repeats 1
+--audio --dashboard`. `--display` enables windows; display-call time remains outside
+the processing interval. Run
+`--diagnostics` separately: cProfile/tracemalloc perturb timing. The candidate
+soak is `--seconds 300`. Output goes under `--output experiments/phase-16`.
+
+`regression_check.py --config configs/perf.developer.candidate.yaml --plan
+configs/perf.regression-plan.json --val-samples <pinned samples.val.npz> --output
+experiments/phase-16` freezes a reference; add `--reference <snapshot.json>` to
+compare it and `--causal` for future perturbation. Never regenerate the reference
+to make a failed candidate pass. `--candidate` selects a reversible half-detection,
+IMAGE, perception-thread or shared-memory perception-process experiment; production
+does not select these variants. The process worker permits one frame in flight.
+
+`model_cost.py` compares original float, frozen graph and int8 with the same pinned
+validation archive. `reconcile_delay.py --before-profile <dir> --after-profile <dir>
+--config <config> --output <dir>` reruns same-model synthetic delay sensitivity;
+it cannot set a representative live constant. `fps_end_to_end.py` accepts only
+live non-perturbed profiles for delivery assessment; `--camera-blocked --target 60
+--camera-evidence <profile>` records the conditional camera shortfall.
+
+`verify_phase16.py --reference <frozen snapshot.json>` repeats full tests, static
+checks, raw regression/causality/parity, faults and three-repeat final profiling.
+Use `--require-clean` after the owner commits. Live soak, camera capability and
+model-cost evidence are separate artifacts. Review the pending participant-fold,
+shipped-model, live-delay and owner gates in `docs/gates/phase-16-gate.md`.
