@@ -119,6 +119,7 @@
     "tip_method_active": { "$ref": "common.schema.json#/$defs/tip_method" },
     "tip_method_condition": { "type": "string", "enum": ["MARKERLESS", "MARKER"], "description": "REQ-211 / integrity I-7: MARKER iff tip_method_active is MARKER." },
     "arm_active": { "$ref": "common.schema.json#/$defs/arm" },
+    "model_id": { "type": ["string", "null"], "description": "Verified Phase 13 model id; null if unavailable." },
     "arms_shadow": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/arm" } },
     "fallback_events": {
       "type": "array",
@@ -129,7 +130,10 @@
         "properties": {
           "t": { "$ref": "common.schema.json#/$defs/t_mono" },
           "kind": { "type": "string", "minLength": 1 },
-          "note": { "type": "string" }
+          "note": { "type": "string" },
+          "from_arm": { "$ref": "common.schema.json#/$defs/arm" },
+          "to_arm": { "$ref": "common.schema.json#/$defs/arm" },
+          "reason": { "type": "string" }
         }
       }
     },

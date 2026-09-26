@@ -47,7 +47,7 @@
       },
       {
         "path": "records/StrikeCandidate.jsonl",
-        "sha256": "sha256:a9239e475e2e9d518d7bee665369122e0686b5b4805df20a86db747be5b0fc16",
+        "sha256": "sha256:209fe2bbed70c66df8427e69ca65ce837503e0ece18d35730f9c30dd7bd6fc39",
         "records": 9
       },
       {
@@ -126,5 +126,5 @@
   },
   "notes": "",
   "label": "TEST / DEVELOPMENT ONLY - SYNTHETIC and/or DEV CAPTURE labels; never participant evidence",
-  "set_hash": "sha256:a0e28015116887e02802d6bc3cbb9fe697037393171728305af8f82d56d91021"
+  "set_hash": "sha256:2988283b38749c731eab2c40f8eafc4b7add0abddbdf0baffc5d643ed5f9f675"
 }

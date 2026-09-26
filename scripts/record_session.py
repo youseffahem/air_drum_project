@@ -327,6 +327,10 @@ def record(args: argparse.Namespace) -> dict[str, Any]:
     )
     session_dir = Path(summary["session_dir"])
     recorder.finish()
+    meta.data["arm_active"] = summary["active_arm_final"]
+    meta.data["arms_shadow"] = summary["counters"]["shadow_arms"]
+    meta.data["model_id"] = summary["counters"]["model"]["model_id"]
+    meta.data["fallback_events"].extend(summary["counters"]["fallback_events"])
     src_meta = summary.get("source", {}) or {}
     meta.finish(
         timing.wall_clock_iso(),

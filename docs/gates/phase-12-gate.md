@@ -1,5 +1,24 @@
 # Phase 12 — Exit Gate Record
 
+## Post-owner-commit verification — 2026-09-26 (C-12-5)
+
+Before Phase 13 source edits, `scripts/verify_phase12.py --require-clean --runs <12 completed runs>`
+passed on clean HEAD `0714a75133608f47be430324d9f3154e844e411b`. Evidence:
+`experiments/phase-12/20260926-0824-p12-gate-verification/`.
+All 27 commands passed: full regression **1,110 passed, 1 skipped** (623.21 s), lint,
+seven import boundaries, contracts, environment smoke, diff check and 21 export metric
+reproductions. **10,683** artifacts across the 12 completed input runs matched hashes;
+source, frozen components and predeclaration stayed unchanged, final dirty state false.
+This closes the executable C-12-5 rerun only; research/reviewer conditions remain pending.
+
+Execution-setting correction for this rerun: the inherited verifier hard-codes the
+previous Claude executor in its `execution.json`. That field is superseded by
+`experiments/phase-13/20260926-integration/execution-start.json`: actual Codex model
+and effort are **UNVERIFIED**, as instructed by the user. The recommendation is not
+asserted as the actual setting. No commit, tag, push or self-issued research PASS occurred.
+
+## Original Phase 12 submission
+
 | Field | Value |
 |---|---|
 | Phase | 12 — Trajectory Prediction Extensions (optional) |

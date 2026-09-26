@@ -7,7 +7,7 @@ record mode.
     python -m spacedrums.app.main --source replay --session-dir data/sessions/<id>   # recorded session
     python -m spacedrums.app.main --synthetic single --record --no-window            # SYNTHETIC self-test
 
-Keys (window): ``a`` / ``b`` switch the active (sounding) arm, the other arm keeps running as shadow;
+Keys (window): ``a`` / ``b`` / ``c`` select a running arm (c = configured temporal model);
 ``q`` quits. Sources: ``live`` (``LiveFrameSource``), ``replay`` / ``devcapture``
 (``ReplayFrameSource``: original timestamps, ``timestamp_source = REPLAY``), ``--synthetic <scenario>``
 (labelled SYNTHETIC observations straight into the decision pipeline; no perception, no camera).
@@ -54,7 +54,7 @@ from spacedrums.ui import OverlayStyle, draw_debug_overlay, draw_zones
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG = ROOT / "configs" / "prototype.candidate.yaml"
-WINDOW = "Space Drums - Phase 05 prototype"
+WINDOW = "Space Drums - live arms A/B/C"
 Observations = dict[HandId, tuple[HandObservation, StickObservation]]
 
 
@@ -123,7 +123,7 @@ def render(
         sticks=sticks,
         tracks=tracks,
         style=style,
-        title=f"active arm {active_arm} | a/b switch | q quit",
+        title=f"active arm {active_arm} | a/b/c switch | q quit",
     )
     zone_img = draw_zones(img[roi.y : roi.y1, roi.x : roi.x1], registry)
     if draw_hook is not None:  # Phase 06 guided-protocol cues (zone highlight, countdown) on the ROI
@@ -285,7 +285,7 @@ def run(
     protocol scripts drive the loop without re-implementing it; ``session_meta`` is merged into
     session.json. Phase 06 additions: ``source_factory`` replaces :func:`iter_source` (a composed
     SYNTHETIC protocol sequence), ``draw_hook`` draws cues on the ROI, ``on_key`` receives every
-    printable key the loop does not consume itself (``a`` / ``b`` / ``q``)."""
+    printable key the loop does not consume itself (``a`` / ``b`` / ``c`` / ``q``)."""
     cfg = load_config(*args.config)
     if "arms" not in cfg.data:
         raise ValueError("config needs an arms block (active / shadow) from Phase 05 on")
@@ -352,7 +352,7 @@ def run(
                 assert perception is not None and view is not None
                 obs = perception(view)
             t_now = (sample.t_frame_available + args.replay_delta_proc_s) if replay_like else None
-            result = pipeline.step(sample, obs, t_now=t_now)
+            result = pipeline.step(sample, obs, t_now=t_now, processing_started=t0)
             per_frame_s.append(timing.now() - t0)
             n += 1
             if recorder is not None:
@@ -380,16 +380,21 @@ def run(
                     obs,
                     pipeline.active_arm,
                     style,
-                    status_lines() if status_lines is not None else None,
+                    (status_lines() if status_lines is not None else [])
+                    + ([f"MODEL DISABLED: {pipeline.model_error}"] if pipeline.model_error else []),
                     draw_hook,
                 )
                 cv2.imshow(WINDOW, img)
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord("q"):
                     break
-                if key in (ord("a"), ord("b")):
-                    pipeline.set_active_arm(Arm.A if key == ord("a") else Arm.B, result.t_now)
-                    print(f"[app] active arm -> {pipeline.active_arm}")
+                if key in (ord("a"), ord("b"), ord("c")):
+                    selected = {ord("a"): Arm.A, ord("b"): Arm.B, ord("c"): pipeline.model_label}[key]
+                    try:
+                        pipeline.set_active_arm(selected, result.t_now)
+                        print(f"[app] active arm -> {pipeline.active_arm}")
+                    except ValueError as exc:
+                        print(f"[app] arm switch refused: {exc}")
                 elif on_key is not None and 32 <= key < 127:
                     on_key(chr(key))
             if args.max_frames is not None and n >= args.max_frames:
@@ -423,6 +428,14 @@ def run(
     if recorder is not None:
         if session_meta is not None:
             recorder.meta.update(session_meta)  # scripts may fill segment boundaries during the run
+        recorder.meta.update(
+            arm_active=str(pipeline.active_arm),
+            arms_shadow=[str(a) for a in pipeline.shadow_arms],
+            arm_switches=pipeline.arm_switches,
+            fallback_events=pipeline.fallback_events,
+            model_id=pipeline.model_arm.model_id if pipeline.model_arm else None,
+            model_runtime=counters["model"],
+        )
         session_dir = recorder.close(summary)
         summary["session_dir"] = str(session_dir)
         summary["session_summary"] = summarise_session(session_dir, truth=truth)
@@ -452,10 +465,17 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--synthetic-noise", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument(
-        "--arm", choices=("A", "B"), default=None, help="active arm (default: config arms.active)"
+        "--arm",
+        choices=("A", "B", "C-GRU", "C-TCN"),
+        default=None,
+        help="active arm (default: config arms.active)",
     )
     ap.add_argument(
-        "--shadow", nargs="*", choices=("A", "B"), default=None, help="shadow arms (default: config)"
+        "--shadow",
+        nargs="*",
+        choices=("A", "B", "C-GRU", "C-TCN"),
+        default=None,
+        help="shadow arms (default: config)",
     )
     ap.add_argument(
         "--record", action="store_true", help="record mode (frames + every record stream + timing)"

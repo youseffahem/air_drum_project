@@ -2,6 +2,29 @@
 
 One-off tools. Run from the repository root with the development venv (`.venv\Scripts\python.exe`).
 
+## Phase 13
+
+- `parity_test.py --config <resolved-yaml> --plan <json> --output <new-dir>` runs
+  TEST-PARITY-1 and raw-image TEST-CAUSAL-1. A developer plan declares
+  `source_kind: DEV_CAPTURE` and `sessions: [{id, path, kind: DEV_CAPTURE}, ...]`.
+  A participant plan additionally supplies `fold_manifest` (the reviewed
+  `cv_folds.json`) and integer `fold`; it must list every train/validation session
+  of that fold plus developer sessions. No plan labels synthetic data as a participant.
+- `live_latency.py --config <yaml> --source live|replay --output <new-dir>` records
+  the app loop, switches from A active to configured C halfway through the requested
+  frame count, and reports inference/software stamps. Use `--session-dir` for replay,
+  `--max-frames` and `--switch-frame` for block size. Replay is explicitly not live
+  timing. Audio scheduling is logged with the device disabled.
+- `phase13_faults.py --config <yaml> --output <new-dir>` records six SYNTHETIC
+  injected-fault cases with controlled clocks and zero transition-frame commits.
+- `verify_phase13.py --parity-config <yaml> --plan <json> [--require-clean]`
+  runs the full executable gate suite and final raw replay/timing/fault evidence.
+  `--require-clean` is the required follow-up after the owner commits. No script
+  issues the research gate verdict, commits, tags, pushes, or starts another phase.
+
+Phase 13 reports: `docs/reports/phase-13-parity.md`, `phase-13-live-timing.md`.
+Full phase status and owner actions: `docs/gates/phase-13-gate.md`.
+
 | Script | Phase | Purpose |
 |---|---|---|
 | `env_smoke.py` | 00 | environment import + experiment-log schema check |
