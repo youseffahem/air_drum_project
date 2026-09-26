@@ -2,7 +2,10 @@
 
 ## Status
 
-Planned
+PENDING Exit Gate — overlay/dashboard/replay/export machinery IMPLEMENTED; development replay
+overhead MEASURED and within the experiment-mode bound; participant/live experiment evidence and
+owner review PENDING. Gate record: [phase-15-gate.md](../docs/gates/phase-15-gate.md) — reviewer
+PENDING, 2026-09-26.
 
 ## Codex Model for This Phase
 
@@ -200,7 +203,8 @@ Reviewer verifies element coverage, label correctness, overhead. PASS → Phase 
 ## Open Questions
 
 - Dashboard framework (Task 15.7).
-- Should the overlay show Baseline B's shadow prediction alongside Arm C by default in experiments? (useful for demos; overhead measured)
+- **Resolved in Phase 15:** experiment mode hides all trajectory polylines, including Baseline B's
+  shadow, to keep the timed protocol display minimal. Full mode shows B and C together for analysis/demo.
 
 ## Decisions That Must Be Experimentally Validated
 

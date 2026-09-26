@@ -20,9 +20,10 @@ def draw_zones(
     registry: ZoneRegistry,
     *,
     impact_points: Mapping[str, tuple[float, float]] | None = None,
+    inplace: bool = False,
 ) -> np.ndarray:
     """Draw shapes, impact surfaces, inward normals and optional observed impact points."""
-    out = image.copy()
+    out = image if inplace else image.copy()
     height, width = out.shape[:2]
     impact_points = impact_points or {}
     for zone in registry:
