@@ -52,7 +52,16 @@ from spacedrums.contracts import (
     StickObservation,
 )
 from spacedrums.geometry import ZoneRegistry
-from spacedrums.ui import OverlayStyle, draw_debug_overlay, draw_zones
+from spacedrums.ui import (
+    DashboardRecord,
+    DashboardWorker,
+    OverlayConfig,
+    OverlayRecords,
+    OverlayStyle,
+    RecordBus,
+    RuntimeStats,
+    draw_scientific_overlay,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG = ROOT / "configs" / "prototype.candidate.yaml"
@@ -83,6 +92,7 @@ class Perception:
         self.stick_settings = StickSettings.from_config(cfg)
         self.estimator = make_tip_estimator(self.stick_settings.method_id, self.stick_settings)
         self.last_hands: HandsResult | None = None
+        self.last_analyses: dict[HandId, Any] = {}
 
     def __call__(self, view: FrameView) -> Observations:
         res = self.landmarker.detect(view)
@@ -90,7 +100,9 @@ class Perception:
         out: Observations = {}
         for h in HANDS:
             hand_obs = res.left if h is HandId.LEFT else res.right
-            out[h] = (hand_obs, self.estimator.estimate(view, hand_obs))
+            stick = self.estimator.estimate(view, hand_obs)
+            out[h] = (hand_obs, stick)
+            self.last_analyses[h] = self.estimator.last_analysis
         return out
 
     def close(self) -> None:
@@ -113,21 +125,36 @@ def render(
     style: OverlayStyle,
     status_lines: list[str] | None = None,
     draw_hook: Callable[[np.ndarray, ZoneRegistry], None] | None = None,
+    overlay_config: OverlayConfig | None = None,
+    runtime: RuntimeStats | None = None,
+    analyses: dict[HandId, Any] | None = None,
 ) -> np.ndarray:
     full = view_image if view_image is not None else np.zeros((roi.y1 + 8, roi.x1 + 8, 3), np.uint8)
     hands = {h: observations[h][0] for h in HANDS}
     sticks = {h: observations[h][1] for h in HANDS}
     tracks = {h: result.hands[h].track for h in HANDS}
-    img = draw_debug_overlay(
+    records = OverlayRecords(
+        predictions=tuple(("B", hf.prediction) for hf in result.hands.values() if hf.prediction is not None)
+        + tuple(
+            ("C", hf.model_prediction) for hf in result.hands.values() if hf.model_prediction is not None
+        ),
+        candidates=tuple(c for hf in result.hands.values() for c in hf.candidates),
+        commits=tuple(result.commits),
+        decisions=tuple(trace for hf in result.hands.values() for trace in hf.decision_traces),
+        runtime=runtime,
+    )
+    img = draw_scientific_overlay(
         full,
         roi,
+        config=overlay_config or OverlayConfig(),
         hands=hands,
+        analyses=analyses,
         sticks=sticks,
         tracks=tracks,
-        style=style,
-        title=f"active arm {active_arm} | a/b/c switch | q quit",
+        records=records,
+        registry=registry,
     )
-    zone_img = draw_zones(img[roi.y : roi.y1, roi.x : roi.x1], registry)
+    zone_img = img[roi.y : roi.y1, roi.x : roi.x1]
     if draw_hook is not None:  # Phase 06 guided-protocol cues (zone highlight, countdown) on the ROI
         draw_hook(zone_img, registry)
     img[roi.y : roi.y1, roi.x : roi.x1] = zone_img
@@ -135,44 +162,6 @@ def render(
     for line in status_lines or []:  # protocol instructions (playability / induced-loss scripts)
         cv2.putText(img, line, (roi.x + 6, roi.y + y), style.font, 0.6, (0, 255, 255), 2)
         y += 22
-    for h in HANDS:
-        hf = result.hands[h]
-        if hf.prediction is not None:
-            pts = [
-                (int(roi.x + p[0] * (roi.w - 1)), int(roi.y + p[1] * (roi.h - 1)))
-                for p in hf.prediction.positions
-            ]
-            for a, b in zip(pts, pts[1:], strict=False):
-                cv2.line(img, a, b, (255, 200, 0), 1, cv2.LINE_AA)
-        for c in hf.candidates:
-            col = (0, 255, 255) if c.source.value == "RULE" else (255, 255, 255)
-            p = (
-                int(roi.x + c.impact_position[0] * (roi.w - 1)),
-                int(roi.y + c.impact_position[1] * (roi.h - 1)),
-            )
-            cv2.drawMarker(img, p, col, cv2.MARKER_TILTED_CROSS, 12, 1)
-            cv2.putText(
-                img,
-                f"{h.value} {c.source.value} {c.zone_id}",
-                (roi.x + 6, roi.y + y),
-                style.font,
-                style.text_scale,
-                col,
-                1,
-            )
-            y += 16
-        for s in hf.commits:
-            col = (0, 0, 255) if not s.shadow else (128, 128, 255)
-            cv2.putText(
-                img,
-                f"COMMIT {s.arm.value}{' shadow' if s.shadow else ''} {h.value} {s.zone_id}",
-                (roi.x + 6, roi.y + y),
-                style.font,
-                style.text_scale,
-                col,
-                1,
-            )
-            y += 16
     return img
 
 
@@ -248,6 +237,10 @@ def iter_source(
                     return
                 continue
             n += 1
+            try:
+                live_meta["capture_stats"] = live.stats().to_dict()
+            except Exception:  # noqa: BLE001 - display provenance must never stop capture
+                pass
             yield f, live.view(f), None
 
     live_meta: dict[str, Any] = {
@@ -358,14 +351,30 @@ def run(
             # the session is self-contained: the applied calibration travels with it (hash in session.json)
             shutil.copyfile(calibrated.calibration.path, recorder.dir / "calibration.calib.yaml")
     style = OverlayStyle(show_candidates=False, show_region=False)
+    overlay_config = OverlayConfig.for_mode(getattr(args, "overlay_mode", "experiment"))
     window = not args.no_window and not args.synthetic
+    record_bus = RecordBus()
+    dashboard_subscription = (
+        record_bus.subscribe("dashboard", maxsize=2) if getattr(args, "dashboard", False) else None
+    )
+    dashboard = (
+        DashboardWorker(dashboard_subscription, live=not replay_like)
+        if dashboard_subscription is not None
+        else None
+    )
     roi = Roi.from_rect(cfg["roi"]["px"])
     n = 0
+    capture_drops_total = 0
+    previous_capture_t: float | None = None
     per_frame_s: list[float] = []
     try:
         audio.start()
+        if dashboard is not None:
+            dashboard.start()
         if window:
             cv2.namedWindow(WINDOW, cv2.WINDOW_NORMAL)
+            if dashboard is not None:
+                cv2.namedWindow("Space Drums - dashboard", cv2.WINDOW_NORMAL)
         for sample, view, obs in frames:
             t0 = timing.now()
             if obs is None:
@@ -373,7 +382,41 @@ def run(
                 obs = perception(view)
             t_now = (sample.t_frame_available + args.replay_delta_proc_s) if replay_like else None
             result = pipeline.step(sample, obs, t_now=t_now, processing_started=t0)
-            per_frame_s.append(timing.now() - t0)
+            processing_s = timing.now() - t0
+            per_frame_s.append(processing_s)
+            audio_stats = audio.stats() if audio is not None else {}
+            audio_underruns = int((audio_stats.get("mixer") or {}).get("underruns", 0))
+            capture_drops_total += sample.dropped_since_last
+            capture_stats = source_meta.get("capture_stats") or {}
+            capture_fps = capture_stats.get("fps_measured")
+            if capture_fps is None and previous_capture_t is not None:
+                dt_capture = sample.t_capture - previous_capture_t
+                capture_fps = 1.0 / dt_capture if dt_capture > 0 else None
+            previous_capture_t = sample.t_capture
+            if dashboard_subscription is not None:
+                record_bus.publish(
+                    DashboardRecord(
+                        frame_id=sample.frame_id,
+                        t_capture=sample.t_capture,
+                        active_arm=str(pipeline.active_arm),
+                        fallback_status=pipeline.model_error,
+                        capture_fps=capture_fps,
+                        capture_drops=capture_drops_total,
+                        audio_underruns=audio_underruns,
+                        processing_s=processing_s,
+                        timing=tuple(result.timing),
+                        hands=tuple(
+                            {
+                                "hand_id": str(h),
+                                "track": result.hands[h].track.to_dict(),
+                                "candidates": tuple(c.to_dict() for c in result.hands[h].candidates),
+                                "decisions": tuple(result.hands[h].decision_traces),
+                            }
+                            for h in HANDS
+                        ),
+                        strike_zones=tuple((commit.strike_id, commit.zone_id) for commit in result.commits),
+                    )
+                )
             n += 1
             if recorder is not None:
                 image = (
@@ -403,8 +446,20 @@ def run(
                     (status_lines() if status_lines is not None else [])
                     + ([f"MODEL DISABLED: {pipeline.model_error}"] if pipeline.model_error else []),
                     draw_hook,
+                    overlay_config,
+                    RuntimeStats(
+                        active_arm=str(pipeline.active_arm),
+                        fallback_status=pipeline.model_error,
+                        capture_fps=capture_fps,
+                        capture_drops=capture_drops_total,
+                        audio_underruns=audio_underruns,
+                        ui_drops=dashboard_subscription.dropped if dashboard_subscription else 0,
+                    ),
+                    perception.last_analyses if perception is not None else None,
                 )
                 cv2.imshow(WINDOW, img)
+                if dashboard is not None and dashboard.latest_image is not None:
+                    cv2.imshow("Space Drums - dashboard", dashboard.latest_image)
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord("q"):
                     break
@@ -422,12 +477,21 @@ def run(
     finally:
         stop()
         audio.stop()
+        if dashboard is not None:
+            dashboard.stop()
         if perception is not None:
             perception.close()
         if window:
             cv2.destroyAllWindows()
             cv2.waitKey(1)
     counters = pipeline.counters()
+    counters["ui"] = {
+        "overlay_mode": getattr(args, "overlay_mode", "experiment"),
+        "dashboard": dashboard_subscription.stats() if dashboard_subscription is not None else None,
+        "processing_note": (
+            "dashboard publication is non-blocking; UI queue drops do not count as capture drops"
+        ),
+    }
     proc = sorted(per_frame_s)
     counters["per_frame_processing_s"] = {
         "n": len(proc),
@@ -514,6 +578,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ap.add_argument("--audio-latency-run-id", default=None)
     ap.add_argument("--no-window", action="store_true")
+    ap.add_argument(
+        "--overlay-mode",
+        choices=("off", "experiment", "full"),
+        default="experiment",
+        help="in-frame overlay preset (experiment is the measured low-overhead set)",
+    )
+    ap.add_argument(
+        "--dashboard",
+        action="store_true",
+        help="run the secondary diagnostic panel on a bounded drop-if-full subscriber",
+    )
     ap.add_argument("--max-frames", type=int, default=None)
     ap.add_argument("--max-seconds", type=float, default=None)
     ap.add_argument(

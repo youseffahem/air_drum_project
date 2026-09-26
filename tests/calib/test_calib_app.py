@@ -37,7 +37,7 @@ def test_wizard_cli_saves_a_valid_calibration(cli_calibration):
     path, summary = cli_calibration
     calib = load_calibration(path)
     assert summary["status"] == "SAVED" and summary["calibration_hash"] == calib.hash
-    assert calib.doc["app"]["version"] == "0.14.0" and len(calib.doc["app"]["git_sha"]) == 40
+    assert calib.doc["app"]["version"] == "0.15.0" and len(calib.doc["app"]["git_sha"]) == 40
     assert not path.with_name(path.name + ".partial.json").exists()
 
 

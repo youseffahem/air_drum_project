@@ -70,6 +70,7 @@ class HandFrame:
     model_candidate: StrikeCandidate | None = None
     features: Any = None
     t_features_done: float | None = None
+    decision_traces: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def candidates(self) -> tuple[StrikeCandidate, ...]:
@@ -404,6 +405,10 @@ class DecisionPipeline:
                 commits = self.policies[arm][h].step(
                     by_arm.get(arm, []), hf.track, t_now, dropped_since_last=sample.dropped_since_last
                 )
+                hf.decision_traces.extend(
+                    {"arm": str(arm), "hand_id": str(h), **trace.to_dict()}
+                    for trace in self.policies[arm][h].trace
+                )
                 for committed in commits:
                     hf.commits.append(committed)
                     event: AudioEvent | None = None
@@ -465,8 +470,14 @@ class DecisionPipeline:
                 if self.calibration is None
                 else {
                     k: self.calibration[k]
-                    for k in ("calibration_id", "calibration_hash", "provenance_kind", "template_layout_id",
-                              "fit", "validation_passed")
+                    for k in (
+                        "calibration_id",
+                        "calibration_hash",
+                        "provenance_kind",
+                        "template_layout_id",
+                        "fit",
+                        "validation_passed",
+                    )
                 }
             ),
             "anticipator": {

@@ -4,4 +4,4 @@ Package layout and layer rules: docs/architecture/architecture.md section 2.
 First code: Phase 02 (capture, ui.guide, and the L0 packages contracts / timing / config).
 """
 
-__version__ = "0.14.0"  # 0.<phase>.<patch>: bumped by the phase that adds code (recorded in calib-v1)
+__version__ = "0.15.0"  # 0.<phase>.<patch>: bumped by the phase that adds code (recorded in calib-v1)
