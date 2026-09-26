@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+PENDING — development implementation and synthetic verification; no extension adopted; participant evidence and reviewer gate remain pending.
 
 ## Codex Model for This Phase
 
@@ -214,6 +214,8 @@ The Phase execution evidence MUST record:
 Do not claim that the recommended model was actually used unless the execution evidence records it.
 
 ## Exit Gate
+
+Gate record: [phase-12-gate.md](../docs/gates/phase-12-gate.md) — proposed FAIL for the full phase; reviewer PENDING, 2026-09-26.
 
 Reviewer verifies entry decision, rule, reports/ADRs (or skip record). PASS → Phase 13 proceeds with the shipped configuration.
 

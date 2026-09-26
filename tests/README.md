@@ -38,3 +38,14 @@ determinism/export/tamper per weighting, read-only conflict sampling, train-only
 scaling, consistency flags and gates, config 1.5 and TrajectoryPrediction 1.1 migration, and
 the invariant that no CommittedStrike exists without a geometry candidate outside the flagged
 diagnostic mode (which the application refuses). Fixtures are SYNTHETIC.
+
+Phase 12: `tests/temporal/test_ext_*.py` (helpers in `ext_helpers.py`) and
+`tests/geometry/test_geometry_probabilistic.py` cover TEST-CAUSAL-1/2 on every extension encoder,
+head and decoder (attention masks every future position; the E5 base reads the current frame
+only), increment/polynomial/mixture heads and the relaxed winner-takes-all loss, the detached-mean
+Gaussian NLL, bounded-acceleration projection with a train-only bound, uncertainty layout round
+trips, bit-identical training against Phase 10 when no extension is enabled, determinism, export
+parity and tamper refusal per extension, two-rate targets as dense-grid columns, the E5 base equal
+to Baseline B's CV extrapolation, known crossing probabilities (including 1 − Φ(d/σ)), a gate that
+only relabels geometry candidates, the C-TT replay arm, script refusals, the declared variant
+registry and the mechanical go/no-go rule. Fixtures are SYNTHETIC.

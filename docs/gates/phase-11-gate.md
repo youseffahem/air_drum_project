@@ -175,3 +175,28 @@ not a research PASS. TorchScript deprecation warnings remain visible in the logs
 PENDING. The reviewer should open the reports and `run.json` files, rerun `scripts/verify_phase11.py`
 on the committed tree, and inspect `tests/temporal/test_mt_invariant.py` for the trajectory-first
 invariant. Signed: —
+
+## Post-owner-commit verification — 2026-09-26 (condition C-11-5)
+
+Before any Phase 12 edit, `scripts/verify_phase11.py --require-clean` passed all twelve commands on
+clean HEAD `91351f555475b097a6450643fc83e8987e6a1ba1` (owner commit "phase 11"), with the six recorded
+Phase 11 runs as inputs. Evidence: `experiments/phase-11/20260926-0445-p11-gate-verification/run.json`,
+`verification.json` and `summary.json` (COMPLETED 2026-09-26 04:55:25 +03:00).
+
+- Full regression: **1038 passed, 1 skipped, 44 warnings** in 492.36 s (same counts as the dirty-tree
+  verification of 2026-09-25).
+- Ruff, all seven import-boundary contracts, contract validation, environment smoke check and
+  `git diff --check` passed.
+- Six exported-model subprocess evaluations (GRU/TCN from the weighting run; `all` and `no-traj` for
+  both families from the ablation run) reproduced their archived validation metrics within
+  atol=1e-6/rtol=1e-5.
+- 2,632 + 3,904 + 4 + 8 + 4 + 1,336 = 7,888 input-run artifacts matched their recorded hashes.
+- Frozen geometry/commit/matching/metrics/report/selection/constants and the extended
+  `eval/replay.py` unchanged versus HEAD; source unchanged during verification; `git_dirty_final`
+  **false**.
+
+This closes the executable clean-tree rerun of C-11-5 only. C-11-1 to C-11-4 (participant folds,
+participant CV runs, owner pre-registration fields, confirmatory run and ship decision) remain open;
+the verdict remains PENDING reviewer, proposed FAIL. Phase 12 proceeds only with independent
+development machinery under its explicit instruction to continue executable work while participant
+evidence and owner decisions stay PENDING.

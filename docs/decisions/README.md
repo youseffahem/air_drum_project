@@ -39,4 +39,10 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0029](ADR-0029-intensity-source.md) | Commit-time intensity-proxy source (geometry crossing speed / intensity head / Baseline B) | PENDING participant evidence; development default geometry | 2026-09-25 | 11 |
 | [ADR-0030](ADR-0030-ship-model.md) | Ship decision: C-MT vs single-task vs baseline, and which heads ship | PENDING confirmatory run | 2026-09-25 | 11 |
 
-Next free number: **ADR-0031**.
+| [ADR-0031](ADR-0031-ext-long-horizon.md) | E1 longer horizon (K 6, 8) and two-rate output grid via `t_offsets_s` | IMPLEMENTED; adoption PENDING participant CV | 2026-09-26 | 12 |
+| [ADR-0032](ADR-0032-ext-representations.md) | E2 velocity / polynomial / 2-mode mixture representations; multi-modal commit rules M1/M2 | IMPLEMENTED; adoption PENDING participant CV | 2026-09-26 | 12 |
+| [ADR-0033](ADR-0033-ext-tiny-transformer.md) | E3 Tiny Transformer (C-TT): CPU feasibility gate FEASIBLE on HW-01 (development), go/no-go (REQ-044) | Feasibility MEASURED (dirty tree); adoption PENDING | 2026-09-26 | 12 |
+| [ADR-0034](ADR-0034-ext-uncertainty.md) | E4 uncertainty layouts (`sigma_xy`, `members_xy`, `mixture_xy`), probabilistic geometry, crossing-probability relabelling gated by `p_commit` | IMPLEMENTED contract; adoption PENDING | 2026-09-26 | 12 |
+| [ADR-0035](ADR-0035-ext-decoding.md) | E5 residual over causal CV extrapolation and bounded-acceleration projection | IMPLEMENTED; adoption PENDING participant CV | 2026-09-26 | 12 |
+
+Next free number: **ADR-0036**.
