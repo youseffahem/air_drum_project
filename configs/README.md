@@ -1,5 +1,16 @@
 # configs/
 
+## Phase 14 — schema 1.7 calibration
+
+`calibration_path` names a calib-v1 file (`configs/calibration/`, ADR-0037). Resolve such configs with
+`spacedrums.calib.load_calibrated_config` (the app and the recording tool do): it verifies the file,
+refuses it on a re-calibration trigger (camera profile hash, ROI, geometry version, template change)
+and writes the calibrated `zones`, `stick.geom.l_prior_by_hand` and the derived `calibration` block
+(resolved `meta.schema_version` 1.7). Plain `load_config` rejects a document that names a calibration
+without that block, and any document whose zones or per-hand priors disagree with it. Snapshots stay
+self-contained. The live-model check accepts 1.6 or later. Wizard settings (all candidates) live in
+`calibration/wizard.candidate.yaml`.
+
 ## Phase 13 — schema 1.6 live model candidate
 
 `live.arm-C.candidate.yaml` is a complete development config pinning an existing

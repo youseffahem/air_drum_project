@@ -1,0 +1,478 @@
+# calib-v1 calibration (Phase 14, ADR-0037). Written by the Calibration Wizard - do not edit:
+# the loader recomputes the layout from template + fit + nudges and rejects hand edits.
+# Identity: calibration_hash = config_hash(document) (canonical JSON, sorted keys).
+app:
+  calib_algorithm: p14-calib-v1
+  geometry_version: p04-geometry-v1
+  git_dirty: true
+  git_sha: a8ea862d41bc6846421596b523777d689a31f5f9
+  version: 0.14.0
+calibration_id: synthetic-selftest
+camera:
+  check:
+    delivered_fps_median: 30.000000000001705
+    dropped_total: 0
+    exposure_advice: OK
+    fps_relative_error: 5.684341886080802e-14
+    frames: 91
+    interval_p95_s: 0.03333333333334565
+    label: delivered-rate spot check from software t_capture stamps; NOT a native-FPS measurement (Task 02.4) and
+      never written to camera_profile.native_fps_measured
+    mismatches: []
+    roi_mean_gray: 120.0
+    status: PASSED
+    warnings: []
+    window_s: 3.0
+  exposure:
+    mode: MANUAL
+    value: -6
+  profile_hash: sha256:8ebf4fa92481f2f28262c709788b0a47c3ab2764e6cde0d5a02fc788e9fa47f1
+  profile_id: hw01-integrated-webcam-v0
+  requested_fps: 30
+  resolution_px:
+  - 640
+  - 480
+created_at: '2026-09-26T10:46:18+03:00'
+durations_s:
+  camera_check: 5.0
+  clock: synthetic
+  playing_area: 7.0
+  resumed: false
+  save: 0.0
+  stick_prior: 5.0
+  total: 60.0
+  validation: 33.0
+  zone_placement: 10.0
+layout:
+  attempts: 1
+  checks:
+    inside_roi:
+      inset: 0.0
+      outside: []
+      passed: true
+    overlap:
+      ambiguity_gap: 0.01
+      method: circumscribed 64-gon outlines; edge crossing/containment test
+      near_pairs: []
+      overlapping_pairs: []
+      passed: true
+  fit:
+    clamped: false
+    fitted_bbox:
+    - 0.13325469462240125
+    - 0.28857643904769703
+    - 0.8670696197172617
+    - 0.7485852362574685
+    mode: ENVELOPE
+    scale: 0.825401609647918
+    settings:
+      margin: 0.02
+      roi_inset: 0.01
+      scale_max: 1.3
+      scale_min: 0.7
+    target_box:
+    - 0.13325469462240122
+    - 0.2627014907649305
+    - 0.8670696197172617
+    - 0.7744601845402351
+    template_bbox:
+    - 0.07
+    - 0.22268487990229135
+    - 0.9590398522579516
+    - 0.78
+    translate:
+    - 0.07547658194704698
+    - 0.10477198073209248
+    warnings: []
+  max_nudge: 0.05
+  nudges: {}
+  sample_overrides: {}
+  template:
+    layout_id: mvp4
+    source: configs/zones/mvp4.candidate.yaml
+    zones:
+    - gain_curve_id: default
+      impact_surface:
+        angle_rad: 0.0
+        center:
+        - 0.2
+        - 0.32
+        rx: 0.13
+        ry: 0.07
+        theta_end_rad: 6.283185307179586
+        theta_start_rad: 3.141592653589793
+        type: ARC
+      inward_normal:
+      - 0.0
+      - 1.0
+      name: Hi-Hat
+      sample_id: tr505-hihat-closed
+      shape:
+        angle_rad: 0.0
+        center:
+        - 0.2
+        - 0.32
+        rx: 0.13
+        ry: 0.07
+        type: ELLIPSE
+      trigger_type: HAND_TIP
+      zone_id: hihat
+    - gain_curve_id: default
+      impact_surface:
+        angle_rad: 0.0
+        center:
+        - 0.4
+        - 0.68
+        rx: 0.16
+        ry: 0.1
+        theta_end_rad: 6.283185307179586
+        theta_start_rad: 3.141592653589793
+        type: ARC
+      inward_normal:
+      - 0.0
+      - 1.0
+      name: Snare
+      sample_id: tr505-snare
+      shape:
+        angle_rad: 0.0
+        center:
+        - 0.4
+        - 0.68
+        rx: 0.16
+        ry: 0.1
+        type: ELLIPSE
+      trigger_type: HAND_TIP
+      zone_id: snare
+    - gain_curve_id: default
+      impact_surface:
+        angle_rad: 0.0
+        center:
+        - 0.5
+        - 0.38
+        rx: 0.13
+        ry: 0.08
+        theta_end_rad: 6.283185307179586
+        theta_start_rad: 3.141592653589793
+        type: ARC
+      inward_normal:
+      - 0.0
+      - 1.0
+      name: Tom 1
+      sample_id: tr505-tom-h
+      shape:
+        angle_rad: 0.0
+        center:
+        - 0.5
+        - 0.38
+        rx: 0.13
+        ry: 0.08
+        type: ELLIPSE
+      trigger_type: HAND_TIP
+      zone_id: tom1
+    - gain_curve_id: default
+      impact_surface:
+        angle_rad: 0.12
+        center:
+        - 0.8
+        - 0.29
+        rx: 0.16
+        ry: 0.065
+        theta_end_rad: 6.283185307179586
+        theta_start_rad: 3.141592653589793
+        type: ARC
+      inward_normal:
+      - -0.1197122073
+      - 0.9928086359
+      name: Crash/Ride
+      sample_id: tr505-crash
+      shape:
+        angle_rad: 0.12
+        center:
+        - 0.8
+        - 0.29
+        rx: 0.16
+        ry: 0.065
+        type: ELLIPSE
+      trigger_type: HAND_TIP
+      zone_id: crash_ride
+    zones_hash: sha256:856a9a031964e4a3f386dbdf169a3960da58948cd122b2859ea6776bb0584dfe
+  zones:
+  - gain_curve_id: default
+    impact_surface:
+      angle_rad: 0.0
+      center:
+      - 0.2405569038766306
+      - 0.36890049581942624
+      rx: 0.10730220925422934
+      ry: 0.057778112675354265
+      theta_end_rad: 6.283185307179586
+      theta_start_rad: 3.141592653589793
+      type: ARC
+    inward_normal:
+    - 0.0
+    - 1.0
+    name: Hi-Hat
+    sample_id: tr505-hihat-closed
+    shape:
+      angle_rad: 0.0
+      center:
+      - 0.2405569038766306
+      - 0.36890049581942624
+      rx: 0.10730220925422934
+      ry: 0.057778112675354265
+      type: ELLIPSE
+    trigger_type: HAND_TIP
+    zone_id: hihat
+  - gain_curve_id: default
+    impact_surface:
+      angle_rad: 0.0
+      center:
+      - 0.4056372258062142
+      - 0.6660450752926768
+      rx: 0.13206425754366688
+      ry: 0.0825401609647918
+      theta_end_rad: 6.283185307179586
+      theta_start_rad: 3.141592653589793
+      type: ARC
+    inward_normal:
+    - 0.0
+    - 1.0
+    name: Snare
+    sample_id: tr505-snare
+    shape:
+      angle_rad: 0.0
+      center:
+      - 0.4056372258062142
+      - 0.6660450752926768
+      rx: 0.13206425754366688
+      ry: 0.0825401609647918
+      type: ELLIPSE
+    trigger_type: HAND_TIP
+    zone_id: snare
+  - gain_curve_id: default
+    impact_surface:
+      angle_rad: 0.0
+      center:
+      - 0.48817738677100597
+      - 0.4184245923983013
+      rx: 0.10730220925422934
+      ry: 0.06603212877183344
+      theta_end_rad: 6.283185307179586
+      theta_start_rad: 3.141592653589793
+      type: ARC
+    inward_normal:
+    - 0.0
+    - 1.0
+    name: Tom 1
+    sample_id: tr505-tom-h
+    shape:
+      angle_rad: 0.0
+      center:
+      - 0.48817738677100597
+      - 0.4184245923983013
+      rx: 0.10730220925422934
+      ry: 0.06603212877183344
+      type: ELLIPSE
+    trigger_type: HAND_TIP
+    zone_id: tom1
+  - gain_curve_id: default
+    impact_surface:
+      angle_rad: 0.12
+      center:
+      - 0.7357978696653814
+      - 0.3441384475299887
+      rx: 0.13206425754366688
+      ry: 0.05365110462711467
+      theta_end_rad: 6.283185307179586
+      theta_start_rad: 3.141592653589793
+      type: ARC
+    inward_normal:
+    - -0.1197122073
+    - 0.9928086359
+    name: Crash/Ride
+    sample_id: tr505-crash
+    shape:
+      angle_rad: 0.12
+      center:
+      - 0.7357978696653814
+      - 0.3441384475299887
+      rx: 0.13206425754366688
+      ry: 0.05365110462711467
+      type: ELLIPSE
+    trigger_type: HAND_TIP
+    zone_id: crash_ride
+  zones_hash: sha256:d1e4dd3e1618852f588f9812e6b0988f6af80d284c9496c59db652c7a882536e
+playing_area:
+  both_valid_fraction: 1.0
+  distance_advice: OK
+  frames: 151
+  hand_span_px:
+    LEFT:
+      median: 30.00000000000002
+      n: 151
+    RIGHT:
+      median: 30.00000000000002
+      n: 151
+  passed: true
+  status: PASSED
+  subregions:
+  - valid_frames: 73
+    x0: 0.0
+    x1: 0.3333333333333333
+  - valid_frames: 157
+    x0: 0.3333333333333333
+    x1: 0.6666666666666666
+  - valid_frames: 72
+    x0: 0.6666666666666666
+    x1: 1.0
+  warnings: []
+provenance:
+  hardware_id: HW-01
+  kind: SYNTHETIC
+  label: SYNTHETIC - scripted wizard actor; machinery self-test, never evidence
+  operator_note: SYNTHETIC example for configs/calibration (format + --calibration smoke); never evidence
+  scope: USER
+  setup_tag: null
+  user_tag: synthetic-actor
+reach_envelope:
+  box:
+  - 0.11325469462240122
+  - 0.24270149076493047
+  - 0.8870696197172617
+  - 0.7944601845402351
+  method: PERCENTILE_BOX
+  n_points: 482
+  percentiles:
+  - 5.0
+  - 95.0
+  points_per_hand:
+    LEFT: 241
+    RIGHT: 241
+  status: PASSED
+  warnings: []
+roi:
+  band:
+  - 0.45
+  - 0.75
+  px:
+  - 40
+  - 20
+  - 560
+  - 440
+schema_version: calib-v1
+settings:
+  ambiguity_gap: 0.01
+  band:
+  - 0.45
+  - 0.75
+  camera_min_frames: 20
+  camera_window_s: 3.0
+  countdown_s: 2.0
+  cue_period_s: 1.5
+  envelope_min_points: 60
+  envelope_percentiles:
+  - 5.0
+  - 95.0
+  fit:
+    margin: 0.02
+    roi_inset: 0.01
+    scale_max: 1.3
+    scale_min: 0.7
+  fps_tolerance: 0.15
+  gray_bright: 205.0
+  gray_dark: 50.0
+  l_prior_range:
+  - 0.15
+  - 0.45
+  max_cross_talk_rate: 0.2
+  max_nudge: 0.05
+  max_placement_attempts: 3
+  min_both_valid_fraction: 0.8
+  min_detection_rate: 0.8
+  min_subregion_frames: 5
+  n_subregions: 3
+  nudge_step: 0.005
+  playing_window_s: 5.0
+  span_px_range:
+  - 24.0
+  - 38.0
+  stick_max_rel_iqr: 0.15
+  stick_max_tip_speed: 0.15
+  stick_min_axis_confidence: 0.6
+  stick_min_frames: 20
+  stick_window_s: 3.0
+  strikes_per_zone: 5
+  sweep_window_s: 8.0
+  validation_lead_in_s: 1.0
+settings_hash: sha256:2380ee07bfde35d7c7c3d7de2dd78a7e6715c100fd189610a28cd9349210d20f
+stick_prior:
+  default_l_prior: 0.27
+  l_prior:
+    LEFT: 0.29
+    RIGHT: 0.26
+  per_hand:
+    LEFT:
+      median: 0.29
+      n_accepted: 91
+      n_rejected:
+        low_axis_confidence: 0
+        moving: 0
+        no_axis: 0
+        not_valid: 0
+      q25: 0.29
+      q75: 0.29
+      rel_iqr: 0.0
+      source: MEASURED
+      warnings: []
+    RIGHT:
+      median: 0.26
+      n_accepted: 91
+      n_rejected:
+        low_axis_confidence: 0
+        moving: 0
+        no_axis: 0
+        not_valid: 0
+      q25: 0.26
+      q75: 0.26
+      rel_iqr: 0.0
+      source: MEASURED
+      warnings: []
+  status: PASSED
+  units: ROI_HEIGHT
+validation:
+  arm: A
+  cue_period_s: 1.5
+  flags: []
+  label: SYNTHETIC
+  passed: true
+  per_zone:
+  - cued: 5
+    detected: 5
+    detection_rate: 1.0
+    extra_commits: 0
+    flags: []
+    wrong_zone_commits: 0
+    zone_id: hihat
+  - cued: 5
+    detected: 5
+    detection_rate: 1.0
+    extra_commits: 0
+    flags: []
+    wrong_zone_commits: 0
+    zone_id: snare
+  - cued: 5
+    detected: 5
+    detection_rate: 1.0
+    extra_commits: 0
+    flags: []
+    wrong_zone_commits: 0
+    zone_id: tom1
+  - cued: 5
+    detected: 5
+    detection_rate: 1.0
+    extra_commits: 0
+    flags: []
+    wrong_zone_commits: 0
+    zone_id: crash_ride
+  status: PASSED
+  strikes_per_zone: 5

@@ -1,0 +1,54 @@
+# Space Drums - Phase 14 Calibration Wizard settings (spacedrums.calib.wizard.WizardSettings).
+#
+# STATUS: candidate. EVERY VALUE IS A CANDIDATE, none validated on data. The phase document lists
+# coverage/distance thresholds, envelope percentiles and margins and the validation-strike count as
+# "Decisions That Must Be Experimentally Validated" (Phase 18 setups / owner review). Each calibration
+# file embeds the settings it used (settings + settings_hash), so changing this file never changes an
+# existing calibration. Units: seconds, ROI-normalized coordinates (y down), ROI pixels for spans,
+# ROI-height units for L.
+meta:
+  created: "2026-09-26"
+  phase: "14"
+  status: candidate
+  description: "Calibration Wizard tunables; candidates only (ADR-0037)."
+wizard:
+  countdown_s: 2.0               # get-ready time before every data window
+  # step 1 - camera check (delivered-rate spot check; never a native-FPS measurement)
+  camera_window_s: 3.0
+  camera_min_frames: 20
+  fps_tolerance: 0.15            # |delivered - requested| / requested above this -> warning
+  gray_dark: 50.0                # ROI mean grey below -> "too dark" hint
+  gray_bright: 205.0             # above -> "too bright" hint
+  # step 2 - playing area
+  playing_window_s: 5.0
+  band: [0.45, 0.75]             # Phase 02 stand-here band (ROI-normalized y)
+  n_subregions: 3                # left / centre / right parts of the band
+  min_both_valid_fraction: 0.8
+  min_subregion_frames: 5
+  span_px_range: [24.0, 38.0]    # Task 03.3 hand span; Phase 03 saw 28-31 px at 1.0 m (ADR-0017, factorial PENDING)
+  # step 3 - stick prior (median axis support over a still hold)
+  stick_window_s: 3.0
+  stick_min_axis_confidence: 0.6
+  stick_max_tip_speed: 0.15      # ROI-norm/s; faster frames are "moving"
+  stick_min_frames: 20
+  stick_max_rel_iqr: 0.15
+  l_prior_range: [0.15, 0.45]    # ROI-height units around the Phase 02 prior 0.27
+  # step 4 - zone placement
+  sweep_window_s: 8.0
+  envelope_percentiles: [5.0, 95.0]
+  envelope_min_points: 60
+  fit:
+    margin: 0.02                 # inset of the reach envelope on every side
+    scale_min: 0.7
+    scale_max: 1.3
+    roi_inset: 0.01
+  max_nudge: 0.05                # bounded manual nudge per zone and axis
+  nudge_step: 0.005              # one key press
+  ambiguity_gap: 0.01            # zones closer than this are flagged NEAR_NEIGHBOUR (overlap blocks save)
+  # step 5 - validation strikes (Arm A only)
+  strikes_per_zone: 5
+  cue_period_s: 1.5
+  validation_lead_in_s: 1.0
+  min_detection_rate: 0.8
+  max_cross_talk_rate: 0.2
+  max_placement_attempts: 3

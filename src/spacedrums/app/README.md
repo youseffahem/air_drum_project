@@ -1,5 +1,27 @@
 # spacedrums.app
 
+## Phase 14 calibration
+
+Status: IMPLEMENTED development machinery; developer live calibration PENDING.
+See [ADR-0037](../../../docs/decisions/ADR-0037-calibration.md), the user procedure
+[`docs/user/calibration.md`](../../../docs/user/calibration.md) and the
+[Phase 14 gate](../../../docs/gates/phase-14-gate.md).
+
+```powershell
+.venv/Scripts/python.exe -m spacedrums.app.calibrate --user-tag dev-jo            # live wizard (MVP-4)
+.venv/Scripts/python.exe -m spacedrums.app.calibrate --synthetic --user-tag t --output <file>  # SYNTHETIC
+.venv/Scripts/python.exe -m spacedrums.app.main --calibration configs/calibration/<file>.calib.yaml
+```
+
+`calibrate.py` drives the wizard with live frames, replayed frames (`--source replay`, a development
+diagnostic that skips validation) or the SYNTHETIC actor, through an **Arm-A-only** pipeline (no rule
+arm, no model). It uses the calibrated per-hand `L_prior` after step 3 and the fitted zones for the
+test strikes. Partial progress is kept for `--resume`; `--check` reports re-calibration triggers.
+`main.py` resolves configs with `calib.load_calibrated_config` (`--calibration` or `calibration_path`),
+refuses a stale calibration (exit 2) and records `calibration_status/_hash/_id` in `session.json`. A
+recorded session also keeps a copy of the calibration file. `arms.build_model_arm` verifies a model
+against the calibration's template layout and feeds ZONE features from the calibrated zones.
+
 ## Phase 13 temporal arm
 
 Status: IMPLEMENTED development integration; full gate PENDING.

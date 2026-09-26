@@ -53,10 +53,16 @@ class GeomSettings:
     refine_alpha: float = 0.05
     refine_min_axis_confidence: float = 0.7
     refine_support_range: tuple[float, float] = (0.6, 1.4)  # accepted support / L ratio
+    # Phase 14 calibration (ADR-0037): per-hand L in ROI-height units; empty = shared l_prior
+    l_prior_by_hand: tuple[tuple[str, float], ...] = ()
 
     def __post_init__(self) -> None:
         if self.l_prior <= 0:
             raise ValueError("l_prior must be > 0")
+        by_hand = tuple(sorted((HandId(k).value, float(v)) for k, v in dict(self.l_prior_by_hand).items()))
+        if any(not v > 0 for _k, v in by_hand):
+            raise ValueError("l_prior_by_hand values must be > 0")
+        object.__setattr__(self, "l_prior_by_hand", by_hand)
         if not (0.0 <= self.no_axis_confidence_factor <= 1.0):
             raise ValueError("no_axis_confidence_factor in [0, 1]")
         if not (0.0 < self.refine_alpha <= 1.0):
@@ -73,7 +79,13 @@ class GeomSettings:
                    no_axis_confidence_factor=float(g["no_axis_confidence_factor"]),
                    refine_online=bool(g["refine_online"]), refine_alpha=float(g["refine_alpha"]),
                    refine_min_axis_confidence=float(g["refine_min_axis_confidence"]),
-                   refine_support_range=(float(lo), float(hi)))
+                   refine_support_range=(float(lo), float(hi)),
+                   l_prior_by_hand=tuple(
+                       (str(k), float(v)) for k, v in (g.get("l_prior_by_hand") or {}).items()))
+
+    def prior(self, hand: HandId | str) -> float:
+        """The calibrated per-hand prior (Phase 14) when present, else the shared ``l_prior``."""
+        return dict(self.l_prior_by_hand).get(HandId(hand).value, self.l_prior)
 
 
 @dataclass(frozen=True)
@@ -220,7 +232,7 @@ class _BaseEstimator:
         self.counters: dict[str, int] = {"frames": 0, "present": 0, "no_axis": 0, "fallback": 0}
 
     def _l_px(self, hand: HandId, roi: Roi) -> float:
-        return self._l_units.get(hand, self.settings.geom.l_prior) * roi.h
+        return self._l_units.get(hand, self.settings.geom.prior(hand)) * roi.h
 
     def _refine(self, hand: HandId, an: StickAnalysis) -> None:
         g = self.settings.geom
@@ -229,7 +241,7 @@ class _BaseEstimator:
         lo, hi = g.refine_support_range
         ratio = an.axis.support_len_px / an.l_px
         if lo <= ratio <= hi:
-            cur = self._l_units.get(hand, g.l_prior)
+            cur = self._l_units.get(hand, g.prior(hand))
             new_units = an.axis.support_len_px / an.roi.h
             self._l_units[hand] = (1 - g.refine_alpha) * cur + g.refine_alpha * new_units
 

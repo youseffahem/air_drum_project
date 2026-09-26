@@ -48,7 +48,7 @@ from _runlog import RunLog  # noqa: E402
 
 from spacedrums import timing  # noqa: E402
 from spacedrums.app.main import build_parser, run  # noqa: E402
-from spacedrums.config import load_config  # noqa: E402
+from spacedrums.calib import load_calibrated_config  # noqa: E402
 from spacedrums.data.audio_capture import (  # noqa: E402
     AudioCapture,
     onsets_on_t_mono,
@@ -80,6 +80,12 @@ def build_cli() -> argparse.ArgumentParser:
     )
     ap.add_argument("--slug", default=None, help="session slug for DEV_CAPTURE / SYNTHETIC sessions")
     ap.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    ap.add_argument(
+        "--calibration",
+        type=Path,
+        default=None,
+        help="calib-v1 file (Phase 14); its hash is recorded as SessionMetadata.calibration_hash",
+    )
     ap.add_argument(
         "--output-root",
         type=Path,
@@ -153,7 +159,11 @@ def _kind(args: argparse.Namespace) -> SessionKind:
 
 def record(args: argparse.Namespace) -> dict[str, Any]:
     kind = _kind(args)
-    cfg = load_config(args.config)
+    calibrated = load_calibrated_config(args.config, calibration=args.calibration)  # Phase 14 (ADR-0037)
+    cfg = calibrated.config
+    print(f"[record] calibration: {calibrated.status} {calibrated.session_fields()['calibration_id'] or ''}")
+    for warning in calibrated.warnings:
+        print(f"[record] calibration warning: {warning}")
     registry = ZoneRegistry.from_config(cfg["zones"])
     zone_ids = [z.zone_id for z in registry]
     pad_zone = args.pad_zone
@@ -217,6 +227,8 @@ def record(args: argparse.Namespace) -> dict[str, Any]:
     ]
     if args.max_frames is not None:
         argv += ["--max-frames", str(args.max_frames)]
+    if args.calibration is not None:
+        argv += ["--calibration", str(args.calibration)]
     source_factory = None
     truth_holder: dict[str, Any] = {}
     if args.synthetic:
@@ -285,6 +297,7 @@ def record(args: argparse.Namespace) -> dict[str, Any]:
         store_crop=cfg["debug"]["record_mode"]["store_crop"],
         pad_zone_id=pad_zone,
     )
+    meta.data.update(calibrated.session_fields())  # calibration_status / _hash / _id (Phase 14)
     nominal_fps = cfg["camera_profile"].get("requested_fps")
     nfm = cfg["camera_profile"].get("native_fps_measured")
     if isinstance(nfm, dict) and nfm.get("value_fps"):
@@ -450,7 +463,7 @@ def main(argv: list[str] | None = None) -> int:
                 "scripts/build_raw_manifest.py. This recording is " + result["label"]
             )
         return 0
-    cfg = load_config(args.config)
+    cfg = load_calibrated_config(args.config, calibration=args.calibration).config
     label = "SYNTHETIC" if args.synthetic else "DEV CAPTURE"
     slug = "p06-record-synthetic" if args.synthetic else "p06-record-devcapture"
     desc = (

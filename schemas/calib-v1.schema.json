@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/calib-v1.schema.json",
+  "title": "Calibration (calib-v1)",
+  "description": "Phase 14 calibration document (ADR-0037): binds a setup (camera profile hash, ROI, geometry version) to the per-user / per-setup results of the Calibration Wizard. Stored as YAML under configs/calibration/ (developer / setup / example files) or data/calibration/ (participants, never committed). Identity = config_hash of the whole document. Structure only; spacedrums.calib.schema.semantic_errors adds the checks JSON Schema cannot express (exact layout recomputation, zone validity, overlap, hashes, provenance agreement).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "calibration_id", "created_at", "provenance", "app", "settings", "settings_hash", "camera", "roi", "playing_area", "stick_prior", "reach_envelope", "layout", "validation", "durations_s"],
+  "$defs": {
+    "step_status": {
+      "type": "string",
+      "enum": ["PASSED", "ACCEPTED_WITH_WARNINGS", "FALLBACK", "SKIPPED"],
+      "description": "PASSED: measured and every check passed. ACCEPTED_WITH_WARNINGS: the operator accepted a result that failed a non-blocking check (warnings list why). FALLBACK: the documented default was used (e.g. layout default L_prior, template layout). SKIPPED: not run."
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "box": { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4, "description": "[x0, y0, x1, y1] in ROI-normalized units (y down)." },
+    "per_hand_number": {
+      "type": "object", "additionalProperties": false, "required": ["LEFT", "RIGHT"],
+      "properties": { "LEFT": { "type": "number", "exclusiveMinimum": 0 }, "RIGHT": { "type": "number", "exclusiveMinimum": 0 } }
+    },
+    "hand_prior": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "median", "q25", "q75", "rel_iqr", "n_accepted", "n_rejected", "warnings"],
+      "properties": {
+        "source": { "type": "string", "enum": ["MEASURED", "DEFAULT"] },
+        "median": { "type": ["number", "null"] },
+        "q25": { "type": ["number", "null"] },
+        "q75": { "type": ["number", "null"] },
+        "rel_iqr": { "type": ["number", "null"] },
+        "n_accepted": { "type": "integer", "minimum": 0 },
+        "n_rejected": {
+          "type": "object", "additionalProperties": false,
+          "required": ["not_valid", "no_axis", "low_axis_confidence", "moving"],
+          "properties": {
+            "not_valid": { "type": "integer", "minimum": 0 },
+            "no_axis": { "type": "integer", "minimum": 0 },
+            "low_axis_confidence": { "type": "integer", "minimum": 0 },
+            "moving": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "warnings": { "$ref": "#/$defs/warnings" }
+      }
+    },
+    "span": {
+      "type": "object", "additionalProperties": false, "required": ["median", "n"],
+      "properties": { "median": { "type": ["number", "null"] }, "n": { "type": "integer", "minimum": 0 } }
+    },
+    "zones": { "type": "array", "minItems": 1, "items": { "$ref": "config.schema.json#/properties/zones/items" } }
+  },
+  "properties": {
+    "schema_version": { "const": "calib-v1" },
+    "calibration_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "label", "scope", "user_tag", "setup_tag", "hardware_id", "operator_note"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["DEVELOPER_LIVE", "DEVELOPER_REPLAY", "PARTICIPANT_LIVE", "SYNTHETIC"], "description": "SYNTHETIC = scripted actor, machinery self-test, never evidence. DEVELOPER_REPLAY = recorded developer frames replayed through the wizard (no cued behaviour). PARTICIPANT_LIVE files belong under data/, never in the repository." },
+        "label": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "enum": ["USER", "SETUP"], "description": "Per-user or per-setup calibration (phase Open Question: both supported)." },
+        "user_tag": { "type": ["string", "null"], "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$", "description": "Pseudonym only; never a real name." },
+        "setup_tag": { "type": ["string", "null"], "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+        "hardware_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "operator_note": { "type": "string" }
+      }
+    },
+    "app": {
+      "type": "object", "additionalProperties": false,
+      "required": ["version", "git_sha", "git_dirty", "geometry_version", "calib_algorithm"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "git_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "git_dirty": { "type": "boolean" },
+        "geometry_version": { "type": "string", "minLength": 1, "description": "spacedrums.geometry.GEOMETRY_VERSION at calibration time; a change is a re-calibration trigger." },
+        "calib_algorithm": { "type": "string", "minLength": 1 }
+      }
+    },
+    "settings": { "type": "object", "description": "Every wizard tunable in force (spacedrums.calib.wizard.WizardSettings.to_dict); all candidates." },
+    "settings_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+    "camera": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_id", "profile_hash", "resolution_px", "requested_fps", "exposure", "check"],
+      "properties": {
+        "profile_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "profile_hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "config_hash of the camera_profile block in force; a different hash at load time is a re-calibration trigger." },
+        "resolution_px": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2 },
+        "requested_fps": { "type": "number", "exclusiveMinimum": 0 },
+        "exposure": { "type": "object", "description": "camera_profile.exposure block in force (copied)." },
+        "check": {
+          "type": "object", "additionalProperties": false,
+          "required": ["status", "frames", "window_s", "delivered_fps_median", "interval_p95_s", "dropped_total", "fps_relative_error", "roi_mean_gray", "exposure_advice", "mismatches", "warnings", "label"],
+          "properties": {
+            "status": { "$ref": "#/$defs/step_status" },
+            "frames": { "type": "integer", "minimum": 0 },
+            "window_s": { "type": "number", "minimum": 0 },
+            "delivered_fps_median": { "type": ["number", "null"] },
+            "interval_p95_s": { "type": ["number", "null"] },
+            "dropped_total": { "type": "integer", "minimum": 0 },
+            "fps_relative_error": { "type": ["number", "null"] },
+            "roi_mean_gray": { "type": ["number", "null"] },
+            "exposure_advice": { "type": "string", "enum": ["OK", "TOO_DARK", "TOO_BRIGHT", "UNKNOWN"] },
+            "mismatches": { "$ref": "#/$defs/warnings" },
+            "warnings": { "$ref": "#/$defs/warnings" },
+            "label": { "type": "string", "minLength": 1, "description": "Delivered-rate spot check; never a native-FPS measurement (integrity I-5)." }
+          }
+        }
+      }
+    },
+    "roi": {
+      "type": "object", "additionalProperties": false, "required": ["px", "band"],
+      "properties": {
+        "px": { "$ref": "common.schema.json#/$defs/rect_px" },
+        "band": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 }, "minItems": 2, "maxItems": 2, "description": "Stand-here band [y0, y1] in ROI-normalized y (Phase 02 guide)." }
+      }
+    },
+    "playing_area": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "frames", "both_valid_fraction", "subregions", "hand_span_px", "distance_advice", "passed", "warnings"],
+      "properties": {
+        "status": { "$ref": "#/$defs/step_status" },
+        "frames": { "type": "integer", "minimum": 0 },
+        "both_valid_fraction": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "subregions": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["x0", "x1", "valid_frames"],
+            "properties": { "x0": { "type": "number" }, "x1": { "type": "number" }, "valid_frames": { "type": "integer", "minimum": 0 } }
+          }
+        },
+        "hand_span_px": {
+          "type": "object", "additionalProperties": false, "required": ["LEFT", "RIGHT"],
+          "properties": { "LEFT": { "$ref": "#/$defs/span" }, "RIGHT": { "$ref": "#/$defs/span" } },
+          "description": "Hand-size reference: Task 03.3 hand span (wrist-middle MCP / pinky-index MCP baseline) in ROI pixels."
+        },
+        "distance_advice": { "type": "string", "enum": ["OK", "MOVE_CLOSER", "MOVE_FARTHER", "UNKNOWN"] },
+        "passed": { "type": "boolean" },
+        "warnings": { "$ref": "#/$defs/warnings" }
+      }
+    },
+    "stick_prior": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "units", "l_prior", "default_l_prior", "per_hand"],
+      "properties": {
+        "status": { "$ref": "#/$defs/step_status" },
+        "units": { "const": "ROI_HEIGHT" },
+        "l_prior": { "$ref": "#/$defs/per_hand_number", "description": "Applied per-hand L (config stick.geom.l_prior_by_hand)." },
+        "default_l_prior": { "type": "number", "exclusiveMinimum": 0 },
+        "per_hand": {
+          "type": "object", "additionalProperties": false, "required": ["LEFT", "RIGHT"],
+          "properties": { "LEFT": { "$ref": "#/$defs/hand_prior" }, "RIGHT": { "$ref": "#/$defs/hand_prior" } }
+        }
+      }
+    },
+    "reach_envelope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "method", "percentiles", "box", "n_points", "points_per_hand", "warnings"],
+      "properties": {
+        "status": { "$ref": "#/$defs/step_status" },
+        "method": { "const": "PERCENTILE_BOX" },
+        "percentiles": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 100 }, "minItems": 2, "maxItems": 2 },
+        "box": { "anyOf": [{ "$ref": "#/$defs/box" }, { "type": "null" }] },
+        "n_points": { "type": "integer", "minimum": 0 },
+        "points_per_hand": {
+          "type": "object", "additionalProperties": false, "required": ["LEFT", "RIGHT"],
+          "properties": { "LEFT": { "type": "integer", "minimum": 0 }, "RIGHT": { "type": "integer", "minimum": 0 } }
+        },
+        "warnings": { "$ref": "#/$defs/warnings" }
+      }
+    },
+    "layout": {
+      "type": "object", "additionalProperties": false,
+      "required": ["template", "fit", "nudges", "max_nudge", "sample_overrides", "zones", "zones_hash", "checks", "attempts"],
+      "properties": {
+        "template": {
+          "type": "object", "additionalProperties": false, "required": ["layout_id", "source", "zones_hash", "zones"],
+          "properties": {
+            "layout_id": { "$ref": "common.schema.json#/$defs/identifier" },
+            "source": { "type": "string", "minLength": 1, "description": "Repository-relative path of the Phase 04 layout fragment." },
+            "zones_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+            "zones": { "$ref": "#/$defs/zones" }
+          }
+        },
+        "fit": {
+          "type": "object", "additionalProperties": false,
+          "required": ["mode", "scale", "translate", "target_box", "template_bbox", "fitted_bbox", "clamped", "settings", "warnings"],
+          "properties": {
+            "mode": { "type": "string", "enum": ["ENVELOPE", "FIXED"] },
+            "scale": { "type": "number", "exclusiveMinimum": 0 },
+            "translate": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "target_box": { "anyOf": [{ "$ref": "#/$defs/box" }, { "type": "null" }] },
+            "template_bbox": { "$ref": "#/$defs/box" },
+            "fitted_bbox": { "$ref": "#/$defs/box" },
+            "clamped": { "type": "boolean" },
+            "settings": {
+              "type": "object", "additionalProperties": false, "required": ["margin", "scale_min", "scale_max", "roi_inset"],
+              "properties": {
+                "margin": { "type": "number", "minimum": 0 },
+                "scale_min": { "type": "number", "exclusiveMinimum": 0 },
+                "scale_max": { "type": "number", "exclusiveMinimum": 0 },
+                "roi_inset": { "type": "number", "minimum": 0 }
+              }
+            },
+            "warnings": { "$ref": "#/$defs/warnings" }
+          }
+        },
+        "nudges": {
+          "type": "object",
+          "propertyNames": { "$ref": "common.schema.json#/$defs/zone_id" },
+          "additionalProperties": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+        },
+        "max_nudge": { "type": "number", "minimum": 0 },
+        "sample_overrides": {
+          "type": "object",
+          "propertyNames": { "$ref": "common.schema.json#/$defs/zone_id" },
+          "additionalProperties": { "type": "string", "minLength": 1 },
+          "description": "Per-zone drum sound choice (REQ-056); geometry unaffected."
+        },
+        "zones": { "$ref": "#/$defs/zones", "description": "ABSOLUTE calibrated zones (ROI-normalized) - authoritative; must equal template -> fit -> nudges -> sample overrides exactly." },
+        "zones_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+        "checks": {
+          "type": "object", "additionalProperties": false, "required": ["overlap", "inside_roi"],
+          "properties": {
+            "overlap": {
+              "type": "object", "additionalProperties": false, "required": ["passed", "overlapping_pairs", "near_pairs", "ambiguity_gap", "method"],
+              "properties": {
+                "passed": { "const": true, "description": "Overlapping zones block save." },
+                "overlapping_pairs": { "type": "array", "maxItems": 0 },
+                "near_pairs": {
+                  "type": "array",
+                  "items": {
+                    "type": "object", "additionalProperties": false, "required": ["zones", "gap"],
+                    "properties": {
+                      "zones": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/zone_id" }, "minItems": 2, "maxItems": 2 },
+                      "gap": { "type": "number", "minimum": 0 }
+                    }
+                  }
+                },
+                "ambiguity_gap": { "type": "number", "minimum": 0 },
+                "method": { "type": "string" }
+              }
+            },
+            "inside_roi": {
+              "type": "object", "additionalProperties": false, "required": ["passed", "outside", "inset"],
+              "properties": {
+                "passed": { "type": "boolean" },
+                "outside": {
+                  "type": "array",
+                  "items": {
+                    "type": "object", "additionalProperties": false, "required": ["zone_id", "bbox"],
+                    "properties": { "zone_id": { "$ref": "common.schema.json#/$defs/zone_id" }, "bbox": { "$ref": "#/$defs/box" } }
+                  }
+                },
+                "inset": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        },
+        "attempts": { "type": "integer", "minimum": 1, "description": "Placement attempts including repeats requested after validation." }
+      }
+    },
+    "validation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "arm", "strikes_per_zone", "cue_period_s", "per_zone", "flags", "passed", "label"],
+      "properties": {
+        "status": { "$ref": "#/$defs/step_status" },
+        "arm": { "const": "A", "description": "Reactive detection only: calibration never depends on model behaviour." },
+        "strikes_per_zone": { "type": "integer", "minimum": 1 },
+        "cue_period_s": { "type": "number", "exclusiveMinimum": 0 },
+        "per_zone": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["zone_id", "cued", "detected", "detection_rate", "wrong_zone_commits", "extra_commits", "flags"],
+            "properties": {
+              "zone_id": { "$ref": "common.schema.json#/$defs/zone_id" },
+              "cued": { "type": "integer", "minimum": 0 },
+              "detected": { "type": "integer", "minimum": 0 },
+              "detection_rate": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "wrong_zone_commits": { "type": "integer", "minimum": 0 },
+              "extra_commits": { "type": "integer", "minimum": 0 },
+              "flags": { "type": "array", "items": { "type": "string", "enum": ["LOW_DETECTION", "CROSS_TALK", "DUPLICATES", "NEAR_NEIGHBOUR"] } }
+            }
+          }
+        },
+        "flags": { "$ref": "#/$defs/warnings" },
+        "passed": { "type": ["boolean", "null"] },
+        "label": { "type": "string", "enum": ["MEASURED", "SYNTHETIC", "NOT_RUN"], "description": "MEASURED = counts from a person's cued strikes (developer or participant); SYNTHETIC = scripted actor." }
+      }
+    },
+    "durations_s": {
+      "type": "object", "additionalProperties": false,
+      "required": ["camera_check", "playing_area", "stick_prior", "zone_placement", "validation", "save", "total", "clock", "resumed"],
+      "properties": {
+        "camera_check": { "type": ["number", "null"], "minimum": 0 },
+        "playing_area": { "type": ["number", "null"], "minimum": 0 },
+        "stick_prior": { "type": ["number", "null"], "minimum": 0 },
+        "zone_placement": { "type": ["number", "null"], "minimum": 0 },
+        "validation": { "type": ["number", "null"], "minimum": 0 },
+        "save": { "type": ["number", "null"], "minimum": 0 },
+        "total": { "type": ["number", "null"], "minimum": 0 },
+        "clock": { "type": "string", "enum": ["t_mono", "replay", "synthetic"], "description": "Clock of the frames the durations come from; only t_mono (a live run) gives a MEASURED wizard duration." },
+        "resumed": { "type": "boolean" }
+      }
+    }
+  }
+}

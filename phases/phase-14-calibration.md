@@ -2,7 +2,10 @@
 
 ## Status
 
-Planned
+PENDING Exit Gate — calibration machinery IMPLEMENTED (wizard, calib-v1 file, re-calibration
+triggers, calibrated config 1.7, per-hand `L_prior`, model verified against the template layout; ADR-0037);
+developer live calibrations, `L_prior` repeatability, wizard duration and validation strikes PENDING.
+Gate record: [phase-14-gate.md](../docs/gates/phase-14-gate.md) — reviewer PENDING, 2026-09-26.
 
 ## Codex Model for This Phase
 
@@ -201,6 +204,10 @@ Do not claim that the recommended model was actually used unless the execution e
 ## Exit Gate
 
 Reviewer verifies wizard, regression test, repeatability. PASS → Phase 16 (with Phase 15).
+
+Gate record: [phase-14-gate.md](../docs/gates/phase-14-gate.md) — submitter proposes FAIL for the full
+phase (criterion 4 NOT MET: `L_prior` repeatability needs a developer at the camera; criterion 1 PARTIAL);
+reviewer PENDING, 2026-09-26.
 
 ## What Must NOT Be Done Yet
 

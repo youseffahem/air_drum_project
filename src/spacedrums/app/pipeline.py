@@ -26,9 +26,10 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from typing import Any
 
-from spacedrums.app.arms import MODEL_ARMS, ArmSwitch, build_model_arm
+from spacedrums.app.arms import MODEL_ARMS, ArmSwitch, build_model_arm, check_zone_features
 from spacedrums.app.audio_out import AudioOutput
 from spacedrums.commit import CommitSettings, PerHandCommitPolicy
+from spacedrums.config import config_hash as _hash
 from spacedrums.contracts import (
     Arm,
     AudioEvent,
@@ -121,6 +122,14 @@ class DecisionPipeline:
     ) -> None:
         self.cfg = cfg
         self.registry = registry
+        self.calibration = cfg.get("calibration")
+        if self.calibration is not None:
+            # Phase 14 (ADR-0037): geometry, features and commits share the applied calibration's zones.
+            if _hash(cfg["zones"]) != self.calibration["zones_hash"] or tuple(registry) != tuple(
+                ZoneRegistry.from_config(cfg["zones"])
+            ):
+                raise AssertionError("the geometry registry must use the applied calibration's zones")
+        self.feature_layout = None
         self.session_id = session_id
         self.clock = clock
         self.active_arm = Arm(active_arm)
@@ -170,6 +179,8 @@ class DecisionPipeline:
                 self.processing_budget = BudgetMonitor(
                     self.fallback["processing_budget_s"], self.fallback["window_frames"]
                 )
+        if self.model_arm is not None:
+            self.feature_layout = check_zone_features(self.model_arm, cfg)  # Task 14.7 runtime assertion
         self.shadow_arms = tuple(a for a in self.arms if a is not self.active_arm)
         self.audio = audio
         if gain_fn is None and audio is None:
@@ -447,7 +458,17 @@ class DecisionPipeline:
                 "recovery": "disabled; restart required",
                 "inference_p95_s": self.inference_budget.p95 if self.inference_budget else None,
                 "processing_p95_s": self.processing_budget.p95 if self.processing_budget else None,
+                "feature_layout": self.feature_layout,
             },
+            "calibration": (
+                None
+                if self.calibration is None
+                else {
+                    k: self.calibration[k]
+                    for k in ("calibration_id", "calibration_hash", "provenance_kind", "template_layout_id",
+                              "fit", "validation_passed")
+                }
+            ),
             "anticipator": {
                 str(h): {
                     "predictions": a.predictions,

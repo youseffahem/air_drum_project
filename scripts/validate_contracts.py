@@ -66,6 +66,11 @@ LABEL_SCHEMAS = [
     "split-file",
     "dataset-manifest",
 ]
+# Phase 14 calibration document (ADR-0037): example accepted; required fields removed -> rejected; unknown
+# field -> rejected; plus the rules below (overlap blocks save, Arm A only, ROI-height units). The semantic
+# rules JSON Schema cannot express (exact layout recomputation, provenance agreement) are
+# spacedrums.calib.schema.semantic_errors, tested in tests/calib/.
+CALIBRATION_SCHEMAS = ["calib-v1"]
 # Records that must carry t_capture (Task 01.3 rule). Header/audio records are exempt:
 # AudioEvent is keyed by strike_id; RecordStreamHeader is not a per-frame record.
 CARRIES_T_CAPTURE = [s for s in RECORD_SCHEMAS if s not in ("audio-event", "record-stream-header")]
@@ -218,6 +223,31 @@ def main() -> int:
     relabelled["kind"] = "PARTICIPANT"
     report(bool(errors(v, relabelled)),
            "dataset-manifest: a self-test version relabelled PARTICIPANT rejected")
+
+    # 4f (Phase 14): calibration document.
+    for stem in CALIBRATION_SCHEMAS:
+        v = validator_for(schemas[stem], registry)
+        example = json.loads((EXAMPLES / f"{stem}.valid.example.json").read_text(encoding="utf-8"))
+        errs = errors(v, example)
+        report(not errs, f"{stem}: schema valid, example accepted", errs)
+        for field in schemas[stem]["required"]:
+            broken = copy.deepcopy(example)
+            del broken[field]
+            report(bool(errors(v, broken)), f"{stem}: missing '{field}' rejected")
+        extra = copy.deepcopy(example)
+        extra["not_in_contract"] = 1
+        report(bool(errors(v, extra)), f"{stem}: unknown field rejected")
+    v = validator_for(schemas["calib-v1"], registry)
+    calib = json.loads((EXAMPLES / "calib-v1.valid.example.json").read_text(encoding="utf-8"))
+    overlap = copy.deepcopy(calib)
+    overlap["layout"]["checks"]["overlap"]["passed"] = False
+    report(bool(errors(v, overlap)), "calib-v1: a layout that failed the overlap check rejected")
+    model_arm = copy.deepcopy(calib)
+    model_arm["validation"]["arm"] = "C-GRU"
+    report(bool(errors(v, model_arm)), "calib-v1: validation strikes under a model arm rejected (Arm A only)")
+    units = copy.deepcopy(calib)
+    units["stick_prior"]["units"] = "PX"
+    report(bool(errors(v, units)), "calib-v1: stick prior outside ROI-height units rejected")
 
     # 5: wrong units flag in the stream header.
     v = validator_for(schemas["record-stream-header"], registry)

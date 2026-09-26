@@ -150,8 +150,8 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
     problems: list[str] = []
     ant = cfg.get("anticipator", {})
     if ant.get("type") == "model":
-        if cfg.get("meta", {}).get("schema_version") != "1.6":
-            problems.append("live model config requires schema_version 1.6")
+        if cfg.get("meta", {}).get("schema_version") not in ("1.6", "1.7"):
+            problems.append("live model config requires schema_version 1.6 or later")
         m = ant.get("model") or {}
         required = {"manifest_hash", "norm_stats_path", "N", "family", "cadence_window_frames",
                     "cadence_tolerance"}
@@ -255,6 +255,45 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
             problems.append(f"gain curve {cid}: proxy_min must be < proxy_max")
         if curve.get("gain_max", 0) < curve.get("gain_min", 0):
             problems.append(f"gain curve {cid}: gain_min must be <= gain_max")
+    problems.extend(_calibration_checks(cfg, version))
+    return problems
+
+
+def _calibration_checks(cfg: dict[str, Any], version: str) -> list[str]:
+    """Phase 14 (ADR-0037, schema 1.7): a calibrated document is self-consistent.
+
+    Only ``spacedrums.calib`` writes the derived ``calibration`` block, the calibrated ``zones`` and
+    ``stick.geom.l_prior_by_hand`` (config is L0 and cannot import it); these checks make every
+    resolved document - including a session's config snapshot - prove that the three agree.
+    """
+    problems: list[str] = []
+    path = cfg.get("calibration_path")
+    block = cfg.get("calibration")
+    by_hand = cfg.get("stick", {}).get("geom", {}).get("l_prior_by_hand")
+    if (path is not None or block is not None or by_hand is not None) and version in (
+        "1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6"
+    ):
+        problems.append(
+            f"calibration_path / calibration / stick.geom.l_prior_by_hand require meta.schema_version >= 1.7 "
+            f"(document declares {version})"
+        )
+    if path is not None and block is None:
+        problems.append(
+            "calibration_path is set but the derived calibration block is missing: resolve the document "
+            "with spacedrums.calib.load_calibrated_config (plain load_config does not apply calibrations)"
+        )
+    if block is None:
+        if by_hand is not None:
+            problems.append("stick.geom.l_prior_by_hand is written only by the calibration resolver")
+        return problems
+    if path is None:
+        problems.append("a calibration block requires calibration_path")
+    if config_hash(cfg.get("zones", [])) != block["zones_hash"]:
+        problems.append("zones differ from the applied calibration (calibration.zones_hash)")
+    if config_hash(block["template_zones"]) != block["template_zones_hash"]:
+        problems.append("calibration.template_zones do not match calibration.template_zones_hash")
+    if "stick" in cfg and by_hand != block["l_prior_by_hand"]:
+        problems.append("stick.geom.l_prior_by_hand must equal calibration.l_prior_by_hand")
     return problems
 
 

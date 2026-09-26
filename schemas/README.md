@@ -8,6 +8,8 @@ JSON Schemas (Draft 2020-12) that data files must validate against. Each schema 
 - `examples/` - `<name>.valid.example.json` per schema: SYNTHETIC placeholder documents used only by the schema tests (`TEST-SCHEMA-1`). They are not data and contain no measurement.
 - Phase 06 dataset documents (Tasks 06.4, 06.7, 06.8, 06.9; ADR-0019): `session-metadata` (one recording session; session kind SYNTHETIC / DEV_CAPTURE / PILOT / PARTICIPANT with structural promotion refusal), `session-verification` (`verify.json`), `exclusion-record` (unusable-recording policy), `raw-manifest` (`data/manifests/<version>.json`). Examples are SYNTHETIC.
 
+- Phase 14 calibration document (ADR-0037): `calib-v1` (`configs/calibration/*.calib.yaml`, YAML on disk; structure here, semantic rules in `spacedrums.calib.schema`). Example SYNTHETIC. `session-metadata` gains optional `calibration_status` / `calibration_hash` / `calibration_id`.
+
 Config schema lives in `configs/schema/config.schema.json` (same `$id` namespace). Later: `label-record.schema.json` (Phase 07), `feature-schema-v1.json` (Phase 08), `calib-v1.schema.json` (Phase 14).
 
 Check everything (from the repository root, Windows paths):
