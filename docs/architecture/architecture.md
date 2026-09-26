@@ -465,6 +465,15 @@ One resolved document validated against `configs/schema/config.schema.json` befo
 
 ## 15. What this phase deliberately leaves open
 
+Phase 16 development follow-up: measured stage allocations and separate 30/60 FPS
+planning targets are in [the budget table](../perf/phase-16-budget.md). Production
+keeps capture's existing bounded queue and inline perception/inference. Reversible
+thread/process experiments and their regressions are in
+[the performance log](../perf/phase-16-perf-log.md). The process experiment transfers
+original capture timestamps; parent decisions retain the original clock, and child
+wall-clock values are used only as elapsed diagnostics. No accepted cross-process
+live timing policy is claimed. Representative live `Δ_proc` remains PENDING.
+
 | Item | Marker | Resolved in |
 |---|---|---|
 | Threading vs multiprocessing for `hands`/`stick` | Pending Benchmark | Phase 16 |

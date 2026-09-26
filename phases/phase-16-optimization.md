@@ -2,7 +2,13 @@
 
 ## Status
 
-Planned
+PENDING — development execution complete at the exit gate; owner/reviewer action,
+clean reproduction and unavailable research evidence remain outstanding.
+
+Execution reports: [profiling](../docs/perf/phase-16-profiling.md),
+[optimization log](../docs/perf/phase-16-perf-log.md),
+[gate record](../docs/gates/phase-16-gate.md). These development results do not
+authorize Phase 17 or promote REQ-023 / REQ-304.
 
 ## Codex Model for This Phase
 
@@ -205,6 +211,8 @@ Do not claim that the recommended model was actually used unless the execution e
 ## Exit Gate
 
 Reviewer verifies before/after evidence, regression, causality/parity. PASS → Phase 17.
+
+Gate record: [Phase 16](../docs/gates/phase-16-gate.md) — PENDING reviewer, 2026-09-26.
 
 ## What Must NOT Be Done Yet
 

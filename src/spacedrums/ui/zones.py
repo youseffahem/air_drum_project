@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
+from functools import lru_cache
 
 import cv2
 import numpy as np
@@ -13,6 +14,15 @@ from spacedrums.geometry import Arc, Ellipse, Segment, ZoneRegistry
 
 def _px(point: tuple[float, float], width: int, height: int) -> tuple[int, int]:
     return (round(point[0] * (width - 1)), round(point[1] * (height - 1)))
+
+
+@lru_cache(maxsize=128)
+def _arc_pixels(arc: Arc, width: int, height: int) -> np.ndarray:
+    """Bounded cache keyed by immutable geometry and image size; calibration changes invalidate it."""
+    theta = np.linspace(arc.theta_start_rad, arc.theta_end_rad, 65)
+    points = np.asarray([_px(arc.point_at(float(t)), width, height) for t in theta], np.int32)
+    points.setflags(write=False)
+    return points
 
 
 def draw_zones(
@@ -41,8 +51,7 @@ def draw_zones(
             a, b = zone.impact_surface.p0, zone.impact_surface.p1
         else:
             arc: Arc = zone.impact_surface
-            theta = np.linspace(arc.theta_start_rad, arc.theta_end_rad, 65)
-            pts = np.asarray([_px(arc.point_at(float(t)), width, height) for t in theta], np.int32)
+            pts = _arc_pixels(arc, width, height)
             cv2.polylines(out, [pts], False, (40, 70, 255), 3, cv2.LINE_AA)
             a, b = arc.point_at(arc.theta_start_rad), arc.point_at(arc.theta_end_rad)
         if isinstance(zone.impact_surface, Segment):
