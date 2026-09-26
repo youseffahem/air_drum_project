@@ -157,3 +157,16 @@ Implemented `features/{schema,groups,core,batch,streaming,normalize,windows,targ
 `schemas/feature-schema-v1.json`, `configs/features/fs-v1.candidate.yaml`, the schema document,
 report, gate and ADR-0022. Generated self-test exports are ignored under `data/features/`;
 no participant feature directory or Phase 09 model was created.
+
+## Phase 12 amendment
+
+Added `src/spacedrums/models/temporal/ext/{config,representations,uncertainty,decoding,long_horizon,
+attention,tiny_transformer,model,train,adapter}.py` (optional extensions E1–E5 over the unchanged
+Phase 10 encoders), `src/spacedrums/geometry/probabilistic.py` (additive; `intersect.py` unchanged),
+`src/spacedrums/eval/probabilistic.py`, the `MODEL:C-TT` replay arm label,
+`scripts/{_p12,eval_extension,latency_extension,compare_extensions,verify_phase12}.py`,
+`tests/temporal/{ext_helpers,test_ext_*}.py`, `tests/geometry/test_geometry_probabilistic.py`,
+`docs/experiments/phase-12-{entry-decision,prereg}.md`, `docs/reports/phase-12-*.md`, ADR-0031–0035
+and the gate record. Runs live under `experiments/phase-12/` (git-ignored, hashed); the archived
+pre-declaration is `experiments/phase-12/predeclaration/`. No `models/temporal/<model_id>/` package
+was created: nothing is adopted.

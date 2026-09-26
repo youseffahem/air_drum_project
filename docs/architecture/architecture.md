@@ -469,7 +469,7 @@ One resolved document validated against `configs/schema/config.schema.json` befo
 |---|---|---|
 | Threading vs multiprocessing for `hands`/`stick` | Pending Benchmark | Phase 16 |
 | Whether `DEGRADED` commits are ever allowed | To Be Experimentally Determined | Phase 05/17 |
-| Per-step uncertainty in `TrajectoryPrediction` in V1 | Open Question (field reserved, nullable) | Phase 12 |
+| Per-step uncertainty in `TrajectoryPrediction` in V1 | Open Question (field reserved, nullable). *(Phase 12, ADR-0034)* development layouts and probabilistic geometry IMPLEMENTED; V1 use PENDING the participant go/no-go | Phase 12 re-gate (participant CV) / Phase 13 |
 | `Δ_proc` policy for replayed commit decisions | Pending Architecture Decision | Phase 09 (define), 13 (validate) |
 | Filter family, tip method, model family, thresholds | not chosen here (interfaces only) | 03, 03, 10–13, 05/09/18 |
 | Lossless vs lossy recording codec | Pending Architecture Decision | Phase 06 |

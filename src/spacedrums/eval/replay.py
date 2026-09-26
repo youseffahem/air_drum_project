@@ -77,7 +77,8 @@ ModelFn = Callable[
 CandidateGate = Callable[
     [TrajectoryPrediction, StrikeCandidate | None], tuple[TrajectoryPrediction, StrikeCandidate | None]
 ]
-TEMPORAL_ARMS = ("MODEL:C-GRU", "MODEL:C-TCN", "MODEL:C-MT")
+# Phase 12 adds the optional Tiny Transformer arm C-TT (Arm.C_TT, contracts); same trajectory path.
+TEMPORAL_ARMS = ("MODEL:C-GRU", "MODEL:C-TCN", "MODEL:C-MT", "MODEL:C-TT")
 
 
 def replay(
@@ -129,6 +130,7 @@ def replay(
         "MODEL:C-GRU": Arm.C_GRU,
         "MODEL:C-TCN": Arm.C_TCN,
         "MODEL:C-MT": Arm.C_MT,
+        "MODEL:C-TT": Arm.C_TT,
     }[arm]
     policies = {
         h: PerHandCommitPolicy(

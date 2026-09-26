@@ -109,3 +109,23 @@ sources (11.5, 11.7). `latency_mt.py` times MT versus single-task in interleaved
 measures working sets in fresh subprocesses (11.8); run it alone. `verify_phase11.py` repeats
 the gate checks and hashes/reproduces the recorded runs; add `--require-clean` after the owner
 commit. No script commits, tags, pushes, runs a held-out evaluation or starts Phase 12/13.
+
+## Phase 12 extension development tools
+
+`eval_extension.py --extension {ref,e1,e2,e3,e4,e5} --synthetic-fixture` trains the declared
+variants of one extension (Tasks 12.2–12.7; `_p12.py` holds the registry and constants of
+`docs/experiments/phase-12-prereg.md`) on the SYNTHETIC `_p11_fixture.py` folds, exports and
+parity-checks each model, and replays the fold's validation sessions over the declared τ/p grid
+through the unchanged harness. Evaluation-only rules reuse trained cells: `e2-mix2-agg` (E2 rule
+M2), `e4-ens3` and `e5-smooth` (both need `--reference-run`). E3 trains only with
+`--feasibility-run` pointing at a FEASIBLE gate. Participant plans and `--partition test` are
+refused before any file is read, and runs refuse to start if the archived pre-declaration changed.
+`latency_extension.py --feasibility` is the E3 gate (random-initialised TorchScript models, run
+before training); `--runs` times each variant's inference-to-candidate path on candidate windows
+and probes working sets. Run both alone. `compare_extensions.py` applies the go/no-go rule
+mechanically. On SYNTHETIC runs the output is a development verdict, never adoption.
+`explore_posthoc_sigma.py` is an EXPLORATORY diagnostic (not pre-declared): a post-hoc Gaussian
+variance head on frozen reference models, replayed like a declared variant but never a go/no-go
+input. `verify_phase12.py` repeats the gate checks, audits frozen files, hashes the recorded runs and
+reproduces one exported model per variant/family. Add `--require-clean` after the owner commit.
+No script commits, tags, pushes, runs a held-out evaluation or starts Phase 13.
