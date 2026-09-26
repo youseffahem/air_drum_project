@@ -1,5 +1,9 @@
 # spacedrums
 
+Phase 14 adds `calib` (Calibration Wizard, calib-v1 file, re-calibration triggers, calibrated
+config via `load_calibrated_config`; ADR-0037), `ui.wizard_views` and the runner `app.calibrate`.
+Developer live calibrations and the `L_prior` repeatability measurement remain PENDING.
+
 Phase 09 adds a development evaluation harness (`eval`) and a flattened-window
 LightGBM baseline (`models.gbdt`). Participant-fold measurements and the Phase 09
 exit gate remain pending the reviewed `ds-v1.0` dataset.
@@ -25,4 +29,4 @@ Layout and the allowed-dependency layers: `docs/architecture/architecture.md` se
 | `data` | IMPLEMENTED (Phase 06 machinery: protocol, metadata, recorder hooks, audio capture, validation, manifests; no participant data) | 06 (07 adds labels / splits) |
 | `features` | IMPLEMENTED development feature pipeline; participant statistics pending | 08 |
 | `eval`, `models.gbdt` | IMPLEMENTED development harness/model; participant results pending | 09 |
-| `calib` | PLANNED stub | 14 |
+| `calib` | IMPLEMENTED development machinery (wizard, calib-v1 I/O, triggers, calibrated config; ADR-0037); live evidence PENDING | 14 |

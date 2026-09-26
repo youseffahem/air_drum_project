@@ -91,7 +91,7 @@
       "additionalProperties": false,
       "required": ["schema_version", "created", "phase", "description", "supersedes", "status"],
       "properties": {
-        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) or 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
+        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block), 1.6 (Phase 13, ADR-0036: live model arm) or 1.7 (Phase 14, ADR-0037: calibration_path, derived calibration block, stick.geom.l_prior_by_hand). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
         "created": { "type": "string", "format": "date" },
         "phase": { "type": "string", "pattern": "^[0-2][0-9]$" },
         "description": { "type": "string", "minLength": 1 },
@@ -283,7 +283,15 @@
             "refine_online": { "type": "boolean", "description": "Causal per-hand running estimate of L from the axis support (default false: pure per-frame estimator)." },
             "refine_alpha": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
             "refine_min_axis_confidence": { "$ref": "common.schema.json#/$defs/confidence" },
-            "refine_support_range": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "minItems": 2, "maxItems": 2 }
+            "refine_support_range": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "minItems": 2, "maxItems": 2 },
+            "l_prior_by_hand": {
+              "type": "object", "additionalProperties": false, "required": ["LEFT", "RIGHT"],
+              "properties": {
+                "LEFT": { "type": "number", "exclusiveMinimum": 0 },
+                "RIGHT": { "type": "number", "exclusiveMinimum": 0 }
+              },
+              "description": "(schema 1.7, Phase 14, ADR-0037) Per-hand calibrated L in ROI-HEIGHT units. Written only by the calibration resolver (spacedrums.calib); must equal calibration.l_prior_by_hand. Absent = l_prior for both hands."
+            }
           },
           "description": "(Task 03.7) GEOM tip = grip + L * axis_dir (spacedrums.stick.tip_geom)."
         },
@@ -587,6 +595,45 @@
         "shadow": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/arm" }, "uniqueItems": true, "description": "Arms run for logging only." }
       },
       "description": "Optional in Phase 01; required from Phase 05."
+    },
+
+    "calibration_path": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "description": "(schema 1.7, Phase 14, ADR-0037) calib-v1 file applied by spacedrums.calib.load_calibrated_config. A document naming a calibration must carry the derived calibration block; plain load_config refuses one without it."
+    },
+
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["calibration_id", "calibration_hash", "provenance_kind", "template_layout_id", "template_zones", "template_zones_hash", "zones_hash", "fit", "l_prior_by_hand", "validation_passed", "geometry_version"],
+      "properties": {
+        "calibration_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "calibration_hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "config_hash of the calib-v1 document that was applied." },
+        "provenance_kind": { "type": "string", "enum": ["DEVELOPER_LIVE", "DEVELOPER_REPLAY", "PARTICIPANT_LIVE", "SYNTHETIC"] },
+        "template_layout_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "template_zones": { "type": "array", "minItems": 1, "items": { "$ref": "config.schema.json#/properties/zones/items" }, "description": "The Phase 04 layout the fit started from: the model's training-layout reference (ADR-0037 model compatibility)." },
+        "template_zones_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+        "zones_hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "config_hash of the applied zones list; must equal the document's zones." },
+        "fit": {
+          "type": "object", "additionalProperties": false, "required": ["mode", "scale", "translate"],
+          "properties": {
+            "mode": { "type": "string", "enum": ["ENVELOPE", "FIXED"] },
+            "scale": { "type": "number", "exclusiveMinimum": 0 },
+            "translate": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+          }
+        },
+        "l_prior_by_hand": {
+          "type": "object", "additionalProperties": false, "required": ["LEFT", "RIGHT"],
+          "properties": {
+            "LEFT": { "type": "number", "exclusiveMinimum": 0 },
+            "RIGHT": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "validation_passed": { "type": ["boolean", "null"], "description": "Arm A validation-strike outcome of the calibration; null = skipped." },
+        "geometry_version": { "type": "string", "minLength": 1 }
+      },
+      "description": "(schema 1.7, Phase 14, ADR-0037) DERIVED block written by the calibration resolver together with zones and stick.geom.l_prior_by_hand; never authored by hand. Makes a resolved snapshot self-contained."
     }
   }
 }

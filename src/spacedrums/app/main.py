@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from collections.abc import Callable, Iterator
@@ -39,8 +40,9 @@ from spacedrums.app.pipeline import HANDS, DecisionPipeline, FrameResult
 from spacedrums.app.recorder import SessionRecorder
 from spacedrums.app.session_summary import summarise_session
 from spacedrums.app.synthetic import SCENARIOS, scenario
+from spacedrums.calib import CalibrationError, load_calibrated_config
 from spacedrums.capture import CaptureSettings, LiveFrameSource, OpenCvCamera, ReplayFrameSource, Roi
-from spacedrums.config import ResolvedConfig, load_config
+from spacedrums.config import ResolvedConfig
 from spacedrums.contracts import (
     Arm,
     FrameSample,
@@ -286,7 +288,17 @@ def run(
     session.json. Phase 06 additions: ``source_factory`` replaces :func:`iter_source` (a composed
     SYNTHETIC protocol sequence), ``draw_hook`` draws cues on the ROI, ``on_key`` receives every
     printable key the loop does not consume itself (``a`` / ``b`` / ``c`` / ``q``)."""
-    cfg = load_config(*args.config)
+    calibrated = load_calibrated_config(*args.config, calibration=getattr(args, "calibration", None))
+    cfg = calibrated.config
+    calib_fields = calibrated.session_fields()
+    detail = (
+        f" {calib_fields['calibration_id']} ({calib_fields['calibration_hash']})"
+        if calib_fields["calibration_id"]
+        else " (default layout from the config)"
+    )
+    print(f"[app] calibration: {calibrated.status}{detail}")
+    for warning in calibrated.warnings:
+        print(f"[app] calibration warning: {warning}")
     if "arms" not in cfg.data:
         raise ValueError("config needs an arms block (active / shadow) from Phase 05 on")
     registry = ZoneRegistry.from_config(cfg["zones"])
@@ -334,9 +346,17 @@ def run(
                 "replay_delta_proc_s": args.replay_delta_proc_s if replay_like else None,
                 "audio": {"device_enabled": audio.device_enabled, "output_latency": latency.to_dict()},
                 "synthetic_truth": truth,
+                "calibration": {
+                    **calib_fields,
+                    "path": cfg.data.get("calibration_path"),
+                    "warnings": list(calibrated.warnings),
+                },
                 **(session_meta or {}),
             },
         )
+        if calibrated.calibration is not None and calibrated.calibration.path is not None:
+            # the session is self-contained: the applied calibration travels with it (hash in session.json)
+            shutil.copyfile(calibrated.calibration.path, recorder.dir / "calibration.calib.yaml")
     style = OverlayStyle(show_candidates=False, show_region=False)
     window = not args.no_window and not args.synthetic
     roi = Roi.from_rect(cfg["roi"]["px"])
@@ -424,6 +444,7 @@ def run(
         "counters": counters,
         "config_hash": cfg.config_hash,
         "active_arm_final": str(pipeline.active_arm),
+        "calibration": calib_fields,
     }
     if recorder is not None:
         if session_meta is not None:
@@ -507,6 +528,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.0,
         help="t_now = t_frame_available + this in replay/synthetic runs (provisional; Phase 09 decides)",
     )
+    ap.add_argument(
+        "--calibration",
+        type=Path,
+        default=None,
+        help="calib-v1 file to apply (sets calibration_path); made by python -m spacedrums.app.calibrate",
+    )
     ap.add_argument("--hardware-id", default="HW-01")
     ap.add_argument("--summary-json", type=Path, default=None, help="write the run summary here")
     ap.add_argument("--verbose", action="store_true")
@@ -515,7 +542,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    summary = run(args)
+    try:
+        summary = run(args)
+    except CalibrationError as exc:
+        print(f"[app] calibration refused: {exc}")
+        return 2
     c = summary["counters"]
     print(
         f"[app] {summary['session_id']}: {summary['frames']} frames; commits "

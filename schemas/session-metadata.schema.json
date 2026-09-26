@@ -120,6 +120,9 @@
     "tip_method_condition": { "type": "string", "enum": ["MARKERLESS", "MARKER"], "description": "REQ-211 / integrity I-7: MARKER iff tip_method_active is MARKER." },
     "arm_active": { "$ref": "common.schema.json#/$defs/arm" },
     "model_id": { "type": ["string", "null"], "description": "Verified Phase 13 model id; null if unavailable." },
+    "calibration_status": { "type": "string", "enum": ["CALIBRATED", "UNCALIBRATED"], "description": "Phase 14 (ADR-0037): CALIBRATED = a calib-v1 file was applied (hash below); UNCALIBRATED = the config's default layout (wizard not run or not completed)." },
+    "calibration_hash": { "anyOf": [{ "$ref": "common.schema.json#/$defs/sha256" }, { "type": "null" }], "description": "config_hash of the applied calib-v1 document (SessionMetadata.calibration_hash); null when UNCALIBRATED." },
+    "calibration_id": { "type": ["string", "null"], "description": "calibration_id of the applied calib-v1 document; null when UNCALIBRATED." },
     "arms_shadow": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/arm" } },
     "fallback_events": {
       "type": "array",

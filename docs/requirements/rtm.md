@@ -6,6 +6,14 @@ parity/causality, budget/fallback tests and recorded replay compute. See
 [`../gates/phase-13-gate.md`](../gates/phase-13-gate.md). Participant-fold parity,
 the selected shipped model, developer live timing and reviewer approval remain PENDING.
 
+Phase 14 evidence pointer (2026-09-26; statuses unchanged): REQ-057 (Calibration Wizard, calib-v1
+file, re-calibration triggers), REQ-019 (playing-area fit check, distance advice), REQ-016 (MVP-4 and
+V1-7 templates fitted per setup; V1-7 candidate overlap `tom1`/`tom2` found), REQ-018 (deterministic fit,
+zero-drift regression), REQ-056 (per-zone sound choice at the config stage) and the calibrated launch
+flow of REQ-004 are addressed by `spacedrums.calib`, `spacedrums.app.calibrate` and the tests and runs in
+[`../gates/phase-14-gate.md`](../gates/phase-14-gate.md). Developer live calibrations, `L_prior`
+repeatability, wizard duration and reviewer approval remain PENDING.
+
 **Phase:** 00 — Task 00.1 · **Status:** PLANNED (this document; no requirement is yet IMPLEMENTED / MEASURED / VALIDATED). *P06 evidence pointers added 2026-09-22 (gate `phase-06-gate.md`, review pending): rows stay PLANNED until a gate record is signed.*
 **Source of truth:** [`../../project-discovery.md`](../../project-discovery.md) (Q1–Q60, Confirmed Core Architecture, Core Research Direction, Important Scope Rules, Current Project Philosophy).
 **Roadmap:** [`../../phases/README.md`](../../phases/README.md).

@@ -184,7 +184,7 @@ def test_hands_block_optional_for_older_documents(validator, config_example):
     del cfg["hands"]
     cfg["meta"]["schema_version"] = "1.1"
     assert is_valid(v, cfg)  # 1.0 / 1.1 documents stay valid (additive minor bump)
-    cfg["meta"]["schema_version"] = "1.7"  # unknown version rejected (1.6 adds Phase 13 live model settings)
+    cfg["meta"]["schema_version"] = "1.8"  # unknown version rejected (1.7 adds Phase 14 calibration fields)
     assert not is_valid(v, cfg)
 
 

@@ -44,5 +44,7 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0033](ADR-0033-ext-tiny-transformer.md) | E3 Tiny Transformer (C-TT): CPU feasibility gate FEASIBLE on HW-01 (development), go/no-go (REQ-044) | Feasibility MEASURED (dirty tree); adoption PENDING | 2026-09-26 | 12 |
 | [ADR-0034](ADR-0034-ext-uncertainty.md) | E4 uncertainty layouts (`sigma_xy`, `members_xy`, `mixture_xy`), probabilistic geometry, crossing-probability relabelling gated by `p_commit` | IMPLEMENTED contract; adoption PENDING | 2026-09-26 | 12 |
 | [ADR-0035](ADR-0035-ext-decoding.md) | E5 residual over causal CV extrapolation and bounded-acceleration projection | IMPLEMENTED; adoption PENDING participant CV | 2026-09-26 | 12 |
+| [ADR-0036](ADR-0036-live-model-integration.md) | Verified live temporal arm, runtime switch/shadow and sticky fallback (row added in Phase 14; Phase 13 omitted it) | IMPLEMENTED development machinery; shipment PENDING | 2026-09-26 | 13 |
+| [ADR-0037](ADR-0037-calibration.md) | Calibration Wizard, calib-v1 file, re-calibration triggers, config 1.7 calibrated zones / per-hand `L_prior`, model verified against the template layout | IMPLEMENTED development machinery; live evidence PENDING | 2026-09-26 | 14 |
 
-Next free number: **ADR-0036**.
+Next free number: **ADR-0038**.

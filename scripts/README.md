@@ -2,6 +2,20 @@
 
 One-off tools. Run from the repository root with the development venv (`.venv\Scripts\python.exe`).
 
+## Phase 14
+
+- `python -m spacedrums.app.calibrate ...` is the wizard itself (see `docs/user/calibration.md`).
+- `calibration_repeatability.py --calibrations <files> --output-dir <dir> [--tolerance 0.05]` reports
+  per-hand `L_prior` spread and consecutive-pair agreement, layout, envelope, duration and validation
+  spread for repeated calibrations of one subject. MEASURED only when every input is a live
+  calibration; SYNTHETIC inputs make it a machinery check.
+- `render_calibration.py --calibration <file> --output-dir <dir> [--frame <png>]` renders the
+  calibrated layout and the review screens (Task 14.4 screenshots).
+- `verify_phase14.py [--require-clean] --executor-model <m> --executor-effort <e>` runs the full
+  gate suite plus the Phase 14 machinery (SYNTHETIC wizard, session/metadata hash, zero-drift
+  regression, pinned model on a calibrated layout, triggers, SYNTHETIC repeatability, replay
+  diagnostics). `_p14.py` holds its checks. No script issues a verdict or commits.
+
 ## Phase 13
 
 - `parity_test.py --config <resolved-yaml> --plan <json> --output <new-dir>` runs
