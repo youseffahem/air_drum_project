@@ -1,5 +1,42 @@
 # spacedrums.app
 
+## Phase 13 temporal arm
+
+Status: IMPLEMENTED development integration; full gate PENDING.
+See [ADR-0036](../../../docs/decisions/ADR-0036-live-model-integration.md) and the
+[Phase 13 gate](../../../docs/gates/phase-13-gate.md).
+
+Run from the repository root:
+
+```powershell
+# Baselines, with the other arm logged in shadow:
+.venv/Scripts/python.exe -m spacedrums.app.main --arm A --shadow B
+.venv/Scripts/python.exe -m spacedrums.app.main --arm B --shadow A
+# Experimental C, pinned SYNTHETIC-trained development package; not a shipped model:
+.venv/Scripts/python.exe -m spacedrums.app.main --config configs/live.arm-C.candidate.yaml --arm C-GRU --shadow A B --record
+# Raw replay with original timestamps:
+.venv/Scripts/python.exe -m spacedrums.app.main --config configs/live.arm-C.candidate.yaml --source replay --session-dir data/dev-captures/swing-L2-exp-5 --no-audio --record
+```
+
+Keys `a`/`b`/`c` select a running arm; `c` means the configured GRU or TCN.
+The other running arms remain shadow-only. The overlay shows the actual active arm
+and model failure. Fallback disables further model computation, chooses B (or A),
+and records its reason. Fix the package/budget/rate issue and restart to restore C.
+Already committed audio is never cancelled. Inference runs synchronously; windows
+are bounded and independent per hand.
+
+Record mode now includes KinematicFeatures and model trajectories. `session.json`
+contains model id, requested hashes/runtime, switches and fallback events, while
+every committed strike carries its actual arm/shadow flag. Use `parity_test.py` for
+formal Phase 09 comparison; ordinary app replay uses its explicit replay delay.
+
+The example's ignored Phase 10 model/statistics paths must exist locally. A missing
+or mismatched package produces a logged fallback; it does not select another model.
+The default prototype remains an A/B config. Live strokes and participant parity
+are still required before the full Phase 13 gate can pass.
+
+## Baseline application
+
 **Status:** IMPLEMENTED (Phase 05, Task 05.5; ADR-0018). Composition root (layer L8): the playable prototype.
 
 - `pipeline.DecisionPipeline` — per frame: tracking (both hands) → Phase 04 geometry on the observed trajectory (arm A) → rule-based extrapolation + the same geometry (arm B) → one commit policy per arm per hand → audio for the active arm → `TimingRecord`s. Consumes observations, so it runs on live perception, replay and labelled SYNTHETIC sequences alike.

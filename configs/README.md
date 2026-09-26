@@ -1,5 +1,34 @@
 # configs/
 
+## Phase 13 — schema 1.6 live model candidate
+
+`live.arm-C.candidate.yaml` is a complete development config pinning an existing
+SYNTHETIC-trained Phase 10 GRU. It does not record a ship decision. Older rule-only
+configs remain valid. Commands and limitations are in the app README and ADR-0036.
+
+With `anticipator.type: model`, retain `rule` for Baseline B. `model` specifies:
+
+- `path` (package directory), `hash` (export SHA-256), `manifest_hash`;
+- `norm_stats_path`, `feature_schema_id`, `family` (`gru`/`tcn`), `N`;
+- `runtime: torchscript`, `intra_op_threads`, `cadence_window_frames`, `cadence_tolerance`.
+
+N/K/dt and the explicit `features` descriptor must agree with the pinned manifest;
+capture requested FPS must match its trained step. Files are resolved from the
+repository working directory. Norm-stat content and provenance are verified too.
+
+Fallback uses `enabled`, `to: B|A`, `budget_s` (both hands' adapter time per frame),
+`processing_budget_s` (perception through scheduling), `window_frames`, `cooldown_s`
+and `automatic_recovery: false`. Budgets/windows/rate tolerance are Phase 16 candidates.
+There is no automatic recovery; cooldown is reserved and currently has no effect.
+All persisted units stay in seconds. Arms use the existing `C-GRU`/`C-TCN` enums.
+The development parity config explicitly disables fallback so any mismatch aborts
+the test; that setting is not a deployment recommendation.
+
+These configs support labelled development measurements only. A citable deployment
+configuration still needs the selected package, reviewed budgets and a frozen version.
+
+## Earlier configs
+
 **Status:** schema 1.3 IMPLEMENTED (Phase 01 schema, Phase 02 minor bump — ADR-0013, Phase 03 minor bump — ADR-0014/0015: optional `hands` and `stick` blocks, Phase 05 minor bump — ADR-0018: optional `geometry` block); one camera fragment and one prototype candidate exist; no frozen profile yet (Phase 02 C-5 stays open: ADR-0017).
 
 - `schema/config.schema.json` — the top-level configuration schema (ADR-0010). Every resolved config is validated against it before a run starts (`spacedrums.config`, docs/reproducibility-policy.md section 3).

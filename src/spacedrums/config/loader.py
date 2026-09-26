@@ -148,6 +148,20 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
     (Phase 04: impact surface on the zone boundary; Phase 13: model hash present, ...).
     """
     problems: list[str] = []
+    ant = cfg.get("anticipator", {})
+    if ant.get("type") == "model":
+        if cfg.get("meta", {}).get("schema_version") != "1.6":
+            problems.append("live model config requires schema_version 1.6")
+        m = ant.get("model") or {}
+        required = {"manifest_hash", "norm_stats_path", "N", "family", "cadence_window_frames",
+                    "cadence_tolerance"}
+        if missing := required - m.keys():
+            problems.append(f"live model missing fields: {sorted(missing)}")
+        if "features" not in cfg:
+            problems.append("live model requires explicit features schema")
+        f = ant.get("fallback")
+        if f is None or "processing_budget_s" not in f:
+            problems.append("live model requires fallback settings including processing_budget_s")
     tr = cfg.get("tracking", {})
     if "c_min" in tr and "c_valid" in tr and tr["c_min"] > tr["c_valid"]:
         problems.append(f"tracking.c_min ({tr['c_min']}) must be <= tracking.c_valid ({tr['c_valid']})")

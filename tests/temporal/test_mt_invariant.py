@@ -138,7 +138,7 @@ def test_flagged_diagnostic_mode_is_labelled_and_never_an_anticipator():
 def test_live_application_refuses_c_mt_and_never_references_the_diagnostic():
     from spacedrums.app import DecisionPipeline
 
-    with pytest.raises(ValueError, match="arms A and B"):
+    with pytest.raises(ValueError, match="got C-MT"):
         DecisionPipeline(
             CFG.data,
             registry=REGISTRY,

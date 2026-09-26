@@ -1,0 +1,338 @@
+# DEVELOPMENT fixture; all budgets are candidates, not accepted measurements.
+meta:
+  schema_version: '1.6'
+  created: '2026-09-26'
+  phase: '13'
+  description: 'DEVELOPMENT ONLY: synthetic-trained Phase 10 export; no shipped model
+    selected. Candidate budgets for Phase 16.'
+  supersedes: null
+  status: candidate
+camera_profile:
+  profile_id: hw01-integrated-webcam-v0
+  device:
+    index: 0
+    name: Integrated Webcam
+    backend: DSHOW
+  resolution_px:
+  - 640
+  - 480
+  requested_fps: 30
+  pixel_format: null
+  exposure:
+    mode: MANUAL
+    value: -6
+  timestamp_source: GRAB_RETURN
+  grab_return_bias_s: null
+  native_fps_measured: null
+  queue:
+    max_frames: 2
+    drop_policy: DROP_OLDEST
+    stall_factor: 2.0
+roi:
+  px:
+  - 40
+  - 20
+  - 560
+  - 440
+hands:
+  detector: mediapipe-hand-landmarker
+  model_asset_id: mediapipe-hand-landmarker-float16-v1
+  running_mode: VIDEO
+  num_hands: 2
+  min_hand_detection_confidence: 0.5
+  min_hand_presence_confidence: 0.5
+  min_tracking_confidence: 0.5
+  input: ROI
+  swap_handedness: false
+  identity:
+    mode: TEMPORAL
+    gate_distance: 0.15
+    max_gap_s: 0.25
+    w_label: 0.5
+    ambiguity_margin: 0.15
+    ambiguous_score_cap: 0.5
+  grip:
+    point_weights:
+      index_mcp: 0.4
+      thumb_ip: 0.2
+      thumb_tip: 0.2
+      middle_mcp: 0.2
+    direction: KNUCKLE_ROW
+    min_direction_span: 0.005
+stick:
+  method_id: GEOM
+  search_region:
+    length_factor: 4.0
+    width_factor: 1.2
+    back_factor: 0.5
+    min_span_px: 8.0
+  segment:
+    blur_ksize: 3
+    canny_low: 40.0
+    canny_high: 120.0
+    close_ksize: 3
+    min_component_px: 25
+    min_elongation: 2.0
+    angle_tol_rad: 0.7
+    max_components: 4
+  axis:
+    method: RANSAC
+    grip_tolerance_factor: 0.6
+    inlier_dist_px: 2.0
+    inlier_dist_factor: 0.3
+    min_inliers: 20
+    ransac_iters: 64
+    seed: 0
+    support_gap_factor: 0.5
+    hough_threshold: 15
+    hough_min_len_px: 15.0
+    hough_max_gap_px: 6.0
+  geom:
+    l_prior: 0.27
+    no_axis_confidence_factor: 0.4
+    refine_online: false
+    refine_alpha: 0.05
+    refine_min_axis_confidence: 0.7
+    refine_support_range:
+    - 0.6
+    - 1.4
+  axis_refined:
+    max_deviation_factor: 0.35
+    min_support_factor: 0.5
+    fallback_confidence_factor: 0.6
+  marker:
+    hsv_low:
+    - 35
+    - 80
+    - 80
+    hsv_high:
+    - 85
+    - 255
+    - 255
+    min_area_px: 12
+    search: SEARCH_REGION
+    axis_consistency_px: 12.0
+    reference_area_px: 120
+geometry:
+  v_min: 0.15
+zones:
+- zone_id: hihat
+  name: Hi-Hat
+  trigger_type: HAND_TIP
+  shape:
+    type: ELLIPSE
+    center:
+    - 0.2
+    - 0.32
+    rx: 0.13
+    ry: 0.07
+    angle_rad: 0.0
+  impact_surface:
+    type: ARC
+    center:
+    - 0.2
+    - 0.32
+    rx: 0.13
+    ry: 0.07
+    angle_rad: 0.0
+    theta_start_rad: 3.141592653589793
+    theta_end_rad: 6.283185307179586
+  inward_normal:
+  - 0.0
+  - 1.0
+  sample_id: tr505-hihat-closed
+  gain_curve_id: default
+- zone_id: snare
+  name: Snare
+  trigger_type: HAND_TIP
+  shape:
+    type: ELLIPSE
+    center:
+    - 0.4
+    - 0.68
+    rx: 0.16
+    ry: 0.1
+    angle_rad: 0.0
+  impact_surface:
+    type: ARC
+    center:
+    - 0.4
+    - 0.68
+    rx: 0.16
+    ry: 0.1
+    angle_rad: 0.0
+    theta_start_rad: 3.141592653589793
+    theta_end_rad: 6.283185307179586
+  inward_normal:
+  - 0.0
+  - 1.0
+  sample_id: tr505-snare
+  gain_curve_id: default
+- zone_id: tom1
+  name: Tom 1
+  trigger_type: HAND_TIP
+  shape:
+    type: ELLIPSE
+    center:
+    - 0.5
+    - 0.38
+    rx: 0.13
+    ry: 0.08
+    angle_rad: 0.0
+  impact_surface:
+    type: ARC
+    center:
+    - 0.5
+    - 0.38
+    rx: 0.13
+    ry: 0.08
+    angle_rad: 0.0
+    theta_start_rad: 3.141592653589793
+    theta_end_rad: 6.283185307179586
+  inward_normal:
+  - 0.0
+  - 1.0
+  sample_id: tr505-tom-h
+  gain_curve_id: default
+- zone_id: crash_ride
+  name: Crash/Ride
+  trigger_type: HAND_TIP
+  shape:
+    type: ELLIPSE
+    center:
+    - 0.8
+    - 0.29
+    rx: 0.16
+    ry: 0.065
+    angle_rad: 0.12
+  impact_surface:
+    type: ARC
+    center:
+    - 0.8
+    - 0.29
+    rx: 0.16
+    ry: 0.065
+    angle_rad: 0.12
+    theta_start_rad: 3.141592653589793
+    theta_end_rad: 6.283185307179586
+  inward_normal:
+  - -0.1197122073
+  - 0.9928086359
+  sample_id: tr505-crash
+  gain_curve_id: default
+tracking:
+  tracker_id: example-tracker
+  c_valid: 0.6
+  c_min: 0.3
+  g_max_frames: 3
+  age_max_s: 0.5
+  history_n: 16
+  filter:
+    type: kalman_cv
+    params:
+      q: 5.0
+      r_base: 0.0001
+      c_floor: 0.2
+      bridge_decay: 0.7
+      acquire_on_degraded: false
+      angle_alpha: 0.6
+      angle_beta: 0.3
+      causal_tolerance: 1.0e-06
+anticipator:
+  type: model
+  anticipator_id: rule-cv-v1
+  K: 1
+  dt_step_s: 0.03333333333333333
+  rule:
+    motion_model: CV
+    params:
+      n_min_frames: 2
+      v_min_predict: 0.2
+      a_max: 60.0
+      direction_window_frames: 3
+      speed_prob_lo: 0.2
+      speed_prob_hi: 1.5
+      combine: product
+      ca_acceleration_source: state_or_finite_difference
+      provisional: true
+  model:
+    path: experiments/phase-10/20260924-1926-synthetic-horizon/models/cell-000
+    hash: sha256:b90fbc7fdb321f0b6e9845e9ae4daa2b440c6a42ff288562e8a097cfe212c7f0
+    manifest_hash: sha256:19b12afecc178f147b59a911a59bd76f0dcd658b66caea2982f8ad7bb7a9fe59
+    runtime: torchscript
+    intra_op_threads: 1
+    feature_schema_id: fs-v1
+    family: gru
+    N: 8
+    norm_stats_path: experiments/phase-10/20260924-1926-synthetic-horizon/features/n8-k1/fold-0/norm_stats.json
+    cadence_window_frames: 15
+    cadence_tolerance: 0.25
+  fallback:
+    enabled: true
+    to: B
+    budget_s: 0.01
+    processing_budget_s: 0.03333333333333333
+    window_frames: 30
+    cooldown_s: 0
+    automatic_recovery: false
+commit:
+  commit_policy_id: commit-v1
+  tti_commit_s: 0.05
+  p_commit: 0.5
+  n_confirm_frames: 0
+  refractory_zone_s: 0.1
+  refractory_hand_s: 0.04
+  allow_degraded_commits: false
+  stale_prediction_tolerance_s: 0.02
+  max_dropped_since_last: 1
+audio:
+  audio_profile_id: example-audio-profile
+  device:
+    name: null
+    host_api: null
+  sample_rate_hz: 48000
+  buffer_frames: 128
+  sample_bank:
+    path: assets/samples
+    manifest: assets/samples/recorded-manifest.json
+  gain:
+    curves:
+    - gain_curve_id: default
+      type: LINEAR_CLIPPED
+      proxy_min: 0.5
+      proxy_max: 4.0
+      gain_min: 0.2
+      gain_max: 1.0
+debug:
+  overlay:
+    enabled: true
+    show_landmarks: true
+    show_stick: true
+    show_zones: true
+    show_track_state: true
+    show_prediction: true
+    show_candidates: true
+    show_commits: true
+    show_timing: true
+  record_mode:
+    enabled: false
+    output_dir: data/sessions
+    store_crop: FULL
+arms:
+  active: C-GRU
+  shadow:
+  - A
+  - B
+features:
+  schema_id: fs-v1
+  groups:
+  - POS
+  - VEL
+  - ACC
+  - AXIS
+  - HAND
+  - ZONE
+  - CONF
+  - TIME
+  epsilon: 1.0e-06
+  tts_clip_s: 2.0

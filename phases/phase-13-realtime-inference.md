@@ -2,7 +2,9 @@
 
 ## Status
 
-Planned
+PENDING Exit Gate — development integration implemented; participant-fold parity,
+selected shipped model and live developer strike timing remain PENDING.
+Gate record: [phase-13-gate.md](../docs/gates/phase-13-gate.md) — reviewer PENDING, 2026-09-26.
 
 ## Codex Model for This Phase
 

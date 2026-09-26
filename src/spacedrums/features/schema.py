@@ -12,6 +12,7 @@ from spacedrums.geometry.zones import ZoneRegistry
 
 @dataclass(frozen=True)
 class KinematicFeatures:
+    SCHEMA_VERSION = "1.0"
     frame_id: int
     t_capture: float
     hand_id: str

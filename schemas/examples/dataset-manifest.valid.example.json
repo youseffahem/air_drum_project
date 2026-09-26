@@ -73,7 +73,7 @@
       "participant_id": "SYNTHETIC",
       "source_kind": "SYNTHETIC",
       "path": "synthetic-example",
-      "set_hash": "sha256:a0e28015116887e02802d6bc3cbb9fe697037393171728305af8f82d56d91021",
+      "set_hash": "sha256:2988283b38749c731eab2c40f8eafc4b7add0abddbdf0baffc5d643ed5f9f675",
       "n_labels": 6,
       "by_class": {
         "NEG_FAKE_SWING": 1,
@@ -107,5 +107,5 @@
   "exclusions": [],
   "withdrawals": [],
   "notes": "",
-  "manifest_hash": "sha256:11adaa1a479d7c475ab2f4eac67a248b61ed056f2cf96c8da2ea0aceb0c8a4f2"
+  "manifest_hash": "sha256:52bf0c8928e0f9598fb336b6e18fcc54536b46767d87ea2d1008486e2a581b76"
 }

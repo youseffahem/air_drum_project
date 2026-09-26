@@ -91,7 +91,7 @@
       "additionalProperties": false,
       "required": ["schema_version", "created", "phase", "description", "supersedes", "status"],
       "properties": {
-        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) or 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
+        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) or 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
         "created": { "type": "string", "format": "date" },
         "phase": { "type": "string", "pattern": "^[0-2][0-9]$" },
         "description": { "type": "string", "minLength": 1 },
@@ -439,7 +439,13 @@
             "hash": { "$ref": "common.schema.json#/$defs/sha256", "description": "Verified at load (Phase 13, Task 13.2)." },
             "runtime": { "type": "string", "enum": ["onnxruntime", "torchscript"], "description": "Pending Benchmark (Phase 13)." },
             "intra_op_threads": { "type": "integer", "minimum": 1 },
-            "feature_schema_id": { "type": "string", "minLength": 1 }
+            "feature_schema_id": { "type": "string", "minLength": 1 },
+            "manifest_hash": { "$ref": "common.schema.json#/$defs/sha256" },
+            "norm_stats_path": { "type": "string", "minLength": 1 },
+            "family": { "enum": ["gru", "tcn"] },
+            "N": { "type": "integer", "minimum": 1, "maximum": 128 },
+            "cadence_window_frames": { "type": "integer", "minimum": 3 },
+            "cadence_tolerance": { "type": "number", "exclusiveMinimum": 0, "maximum": 0.4 }
           },
           "description": "Required when type = model; null otherwise."
         },
@@ -450,7 +456,9 @@
             "to": { "type": "string", "enum": ["B", "A"] },
             "budget_s": { "type": "number", "exclusiveMinimum": 0, "description": "Per-frame inference budget; candidates To Be Experimentally Determined (Phase 16)." },
             "window_frames": { "type": "integer", "minimum": 1 },
-            "cooldown_s": { "type": "number", "minimum": 0 }
+            "cooldown_s": { "type": "number", "minimum": 0 },
+            "processing_budget_s": { "type": "number", "exclusiveMinimum": 0 },
+            "automatic_recovery": { "const": false }
           },
           "description": "Reserved for Phase 13 (Task 13.4); null until then."
         }

@@ -98,6 +98,7 @@ class TimingCollector:
         t_tracking_done: float | None,
         t_inference_done: float | None,
         audio: AudioEvent | None,
+        t_features_done: float | None = None,
     ) -> TimingRecord:
         if audio is not None and committed.shadow:
             raise ValueError("a shadow commit has no audio event")
@@ -112,7 +113,7 @@ class TimingCollector:
                 t_capture=sample.t_capture,
                 t_frame_available=sample.t_frame_available,
                 t_tracking_done=t_tracking_done,
-                t_features_done=None,
+                t_features_done=t_features_done,
                 t_inference_done=t_inference_done,
                 t_candidate=candidate.t_candidate,
                 t_commit=committed.t_commit,

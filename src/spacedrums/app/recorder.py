@@ -39,10 +39,12 @@ from spacedrums.contracts import (
     TrackState,
     TrajectoryPrediction,
 )
+from spacedrums.features.schema import KinematicFeatures
 from spacedrums.timing import CLOCK_ID, wall_clock_iso
 from spacedrums.timing.logger import RecordStreamWriter, stream_header
 
 RECORD_TYPES: dict[str, type] = {
+    "KinematicFeatures": KinematicFeatures,
     "HandObservation": HandObservation,
     "StickObservation": StickObservation,
     "TrackState": TrackState,
@@ -143,6 +145,10 @@ class SessionRecorder:
             self.streams["TrackState"].write(hf.track)
             if hf.prediction is not None:
                 self.streams["TrajectoryPrediction"].write(hf.prediction)
+            if hf.model_prediction is not None:
+                self.streams["TrajectoryPrediction"].write(hf.model_prediction)
+            if hf.features is not None:
+                self.streams["KinematicFeatures"].write(hf.features)
             for c in hf.candidates:
                 self.streams["StrikeCandidate"].write(c)
             for c in hf.commits:
