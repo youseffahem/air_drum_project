@@ -87,8 +87,8 @@ line (lock digest and run id).
      README §10.1 describes.
    - Every matched `L_pred` therefore lies in [−W, +W], and an anticipatory commit made more than
      `W` early counts as one FP plus one FN. This also bounds every Phase 10–12 development lead.
-   - S1 (§10.1 reference time) is pre-declared as a sensitivity; the owner decides the primary
-     before the lock.
+   - S1 (§10.1 reference time) is pre-declared as a sensitivity. The owner decided on 2026-09-27
+     to keep ADR-0023 primary (decision A1).
 2. **Held-out participant count (§6).** Rule P07-SPLIT-1 holds out 2–3 participants at the planned
    10–12. The participant-bootstrap interval then equals [min, max] of the participant values, so
    offline decisions read "every held-out participant meets the criterion".

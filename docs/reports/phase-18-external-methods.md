@@ -5,7 +5,7 @@
 | Method | Decision | Why |
 |---|---|---|
 | **M1** (pad + microphone) | **NO_GO** with HW-01's built-in microphone array; **Pending Benchmark** with an external microphone | Part (i), the known-separation click check, failed on the built-in array; the developer pad pilot (part ii) needs a person, a pad and a microphone at the pad |
-| **M2** (high-frame-rate video) | **Pending Benchmark** | no ≥ 200 FPS camera or LED reference in the inventory |
+| **M2** (high-frame-rate video) | **Pending Benchmark**; used only if M1 fails its declared pilot (decision E1) | no ≥ 200 FPS camera or LED reference in the inventory |
 | **M3** (software stamps) | **ESTIMATE ONLY**, by definition | the Phase 04 output latency is still PENDING, so the DAC path is excluded |
 
 - Acceptance rules: pre-registration §8, declared before any pilot data.
@@ -69,9 +69,11 @@ fixed and was re-run.
   - speaker / microphone placement.
 
 **Consequence.** M1 needs an **external microphone without processing**, placed near the pad and
-the speaker, and then a new part (i) run before the pad pilot. If the owner prefers an
-envelope-onset estimator for the sound onset, that is a pre-registration amendment (a new archived
-version) before the live lock, not a post-hoc switch.
+the speaker, and then a new part (i) run before the pad pilot.
+
+**Owner decision E1 (2026-09-27).** M1 is equipped and evaluated as the primary timing method. The
+§8 thresholds and the declared estimator stay unchanged, and M2 is used only if M1 fails its
+declared pilot.
 
 ## 3. What remains (person / equipment)
 
@@ -80,5 +82,5 @@ version) before the live lock, not a post-hoc switch.
 | M1 part (i) with an external microphone | a microphone without DSP, placed at the pad | `external_methods_pilot.py --m1-clicks --allow-audio-device --input-device <mic>` |
 | M1 part (ii): developer pad pilot, ≥ 30 pad strikes on the pad zone | practice pad; microphone; developer | `run_live_session.py --live --kind DEV_CAPTURE --pad-zone <zone> --mic-device <mic> ...`, then `external_methods_pilot.py --m1-pad --session <dir> --recording <dir>/audio_track.wav` |
 | M1 decision | parts (i) and (ii) | `external_methods_pilot.py --decide --click <result.json> --pad <result.json>` |
-| M2 pilot: ≥ 30 LED / flash events at known `t_mono`, ≥ 200 FPS, with an independent bias reference | phone camera; LED driven by the audio output (hardware) | `external_sync.py --method M2 ...` and `video.m2_validation` |
+| M2 pilot, only if M1 fails (decision E1): ≥ 30 LED / flash events at known `t_mono`, ≥ 200 FPS, with an independent bias reference | phone camera; LED driven by the audio output (hardware) | `external_sync.py --method M2 ...` and `video.m2_validation` |
 | Phase 04 output latency (M3's DAC term) | post-DAC loopback cable or external recorder | Phase 04 procedure (`docs/audio-profile-hw01-realtek.md`) |
