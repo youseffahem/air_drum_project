@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -57,6 +59,9 @@ class SoundDeviceOutput:
 
     Import is delayed so geometry/tests do not need an audio device. Device callback timestamps
     are mapped into the project's monotonic clock before the mixer computes sample offsets.
+    Phase 17: ``stream_factory`` (default ``sounddevice.OutputStream``) and ``clock`` are injectable;
+    ``alive()`` reports whether callbacks still arrive (a removed device stops calling back or
+    deactivates the stream), and a restart re-opens the stream with a fresh clock mapping.
     """
 
     def __init__(
@@ -66,14 +71,31 @@ class SoundDeviceOutput:
         sample_rate_hz: int,
         buffer_frames: int,
         device: int | str | None = None,
+        stream_factory: Callable[..., Any] | None = None,
+        clock: Callable[[], float] = now,
     ) -> None:
         self.mixer, self.mapper = mixer, DeviceClockMapper()
         self.sample_rate_hz, self.buffer_frames = int(sample_rate_hz), int(buffer_frames)
         self.device = device
         self.stream: Any | None = None
+        self.stream_factory = stream_factory
+        self.clock = clock
+        self.callbacks = 0
+        self.last_callback_t: float | None = None
+        self.started_t: float | None = None
+
+    def alive(self, t_now: float, stall_s: float) -> bool:
+        """True while the stream is active and called back within ``stall_s`` (or since the start)."""
+        if self.stream is None or not bool(getattr(self.stream, "active", True)):
+            return False
+        ref = self.last_callback_t if self.last_callback_t is not None else self.started_t
+        return ref is not None and (t_now - ref) <= stall_s
 
     def _callback(self, outdata: np.ndarray, frames: int, time_info: Any, status: Any) -> None:
-        self.mapper.update(float(time_info.currentTime), now())
+        t = self.clock()
+        self.callbacks += 1
+        self.last_callback_t = t
+        self.mapper.update(float(time_info.currentTime), t)
         if bool(getattr(status, "output_underflow", False)):
             self.mixer.note_underrun()
         t_buffer_start = self.mapper.to_mono(float(time_info.outputBufferDacTime))
@@ -82,9 +104,12 @@ class SoundDeviceOutput:
     def start(self) -> None:
         if self.stream is not None:
             raise RuntimeError("audio stream already started")
-        import sounddevice as sd
+        factory = self.stream_factory
+        if factory is None:
+            import sounddevice as sd
 
-        self.stream = sd.OutputStream(
+            factory = sd.OutputStream
+        stream = factory(
             samplerate=self.sample_rate_hz,
             blocksize=self.buffer_frames,
             channels=self.mixer.channels,
@@ -92,13 +117,28 @@ class SoundDeviceOutput:
             device=self.device,
             callback=self._callback,
         )
-        self.stream.start()
+        try:
+            stream.start()
+        except BaseException:
+            with contextlib.suppress(Exception):
+                stream.close()
+            raise
+        self.mapper = DeviceClockMapper()  # a re-opened device may restart its stream clock
+        self.last_callback_t = None
+        self.started_t = self.clock()
+        self.stream = stream
 
     def stop(self) -> None:
-        if self.stream is not None:
-            self.stream.stop()
-            self.stream.close()
-            self.stream = None
+        """Stop and close; errors from a device that is already gone are swallowed (Phase 17)."""
+        stream, self.stream = self.stream, None
+        if stream is None:
+            return
+        try:
+            stream.stop()
+        except Exception:  # noqa: BLE001 - the device may have vanished; closing must still happen
+            pass
+        with contextlib.suppress(Exception):
+            stream.close()
 
     def __enter__(self) -> SoundDeviceOutput:
         self.start()

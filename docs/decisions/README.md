@@ -46,5 +46,9 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0035](ADR-0035-ext-decoding.md) | E5 residual over causal CV extrapolation and bounded-acceleration projection | IMPLEMENTED; adoption PENDING participant CV | 2026-09-26 | 12 |
 | [ADR-0036](ADR-0036-live-model-integration.md) | Verified live temporal arm, runtime switch/shadow and sticky fallback (row added in Phase 14; Phase 13 omitted it) | IMPLEMENTED development machinery; shipment PENDING | 2026-09-26 | 13 |
 | [ADR-0037](ADR-0037-calibration.md) | Calibration Wizard, calib-v1 file, re-calibration triggers, config 1.7 calibrated zones / per-hand `L_prior`, model verified against the template layout | IMPLEMENTED development machinery; live evidence PENDING | 2026-09-26 | 14 |
+| [ADR-0038](ADR-0038-dashboard-framework.md) | Bounded OpenCV dashboard worker (row added in Phase 17; Phase 15 omitted it) | Accepted for development; owner review pending | 2026-09-26 | 15 |
+| [ADR-0039](ADR-0039-degraded-commits.md) | DEGRADED commits: paired VALID vs VALID+DEGRADED experiment and default | Decided on development evidence (default unchanged); participant confirmation PENDING | 2026-09-26 | 17 |
+| [ADR-0040](ADR-0040-hardening-rules.md) | Safety invariants I1–I6, audible continuity across arm switches, time-gap reset, missing-frame guard, timestamp refusal, model/audio fault handling, health / messages / crash reports, single-user identity rule (config 1.8) | IMPLEMENTED development; thresholds candidates; live confirmation PENDING | 2026-09-26 | 17 |
+| [ADR-0041](ADR-0041-reacquisition-thresholds.md) | Re-acquisition thresholds `g_max_frames` / `age_max_s`: sweep; `g_max_frames` 3 kept, an explicit engineering deviation from the pre-declared rule (which selected 6); `age_max_s` 0.5 confirmed | DECIDED by the owner 2026-09-27 on development evidence; participant confirmation PENDING | 2026-09-27 | 17 |
 
-Next free number: **ADR-0038**.
+Next free number: **ADR-0042**.

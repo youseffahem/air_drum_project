@@ -18,6 +18,13 @@ list; Phase 09 defines the ``Delta_proc`` policy). Audio: the device plays unles
 scheduler always runs. The audio output latency is PENDING on HW-01 (Phase 04 gate): pass
 ``--audio-output-latency-s`` **with** ``--audio-latency-run-id`` only for an accepted measurement;
 otherwise ``t_audio_out_est`` is withheld from the timing records.
+
+Phase 17 (Task 17.9, ADR-0040): every session runs the safety-invariant monitor (``--invariants
+log`` by default, ``raise`` for test builds), the health monitor (camera / tracking / model / audio;
+non-OK components are shown on the overlay and the dashboard), a structured event log
+(``--log-dir``; in memory when not given, ``data/logs`` for live sessions) and supervises the audio
+device. An unexpected exception writes a crash report (config / model / calibration hashes) before
+it propagates; a missing camera is a user message and exit code 3, not a traceback.
 """
 
 from __future__ import annotations
@@ -36,6 +43,9 @@ import numpy as np
 
 from spacedrums import timing
 from spacedrums.app.audio_out import AudioOutput, OutputLatency
+from spacedrums.app.errors import EventLog, ReportedError, user_text, write_crash_report
+from spacedrums.app.health import HealthMonitor, HealthSettings, Level
+from spacedrums.app.invariants import InvariantMonitor
 from spacedrums.app.pipeline import HANDS, DecisionPipeline, FrameResult
 from spacedrums.app.recorder import SessionRecorder
 from spacedrums.app.session_summary import summarise_session
@@ -168,8 +178,16 @@ def render(
 # ----------------------------------------------------------------------------- sources
 
 
+def camera_factory():
+    """The live camera backend (a seam for the Phase 17 system tests' failing camera)."""
+    return OpenCvCamera()
+
+
 def iter_source(
-    args: argparse.Namespace, cfg: ResolvedConfig, registry: ZoneRegistry
+    args: argparse.Namespace,
+    cfg: ResolvedConfig,
+    registry: ZoneRegistry,
+    on_idle: Callable[[float], None] | None = None,
 ) -> tuple[
     Iterator[tuple[FrameSample, FrameView | None, Observations | None]],
     Callable[[], None],
@@ -216,8 +234,11 @@ def iter_source(
             None,
         )
     settings = CaptureSettings.from_config(cfg.data)
-    live = LiveFrameSource(OpenCvCamera(), settings)
-    mode = live.start()
+    live = LiveFrameSource(camera_factory(), settings)
+    try:
+        mode = live.start()
+    except (RuntimeError, OSError, ValueError) as exc:
+        raise ReportedError("SD-CAM-001", f"{type(exc).__name__}: {exc}") from exc
     print(
         f"[app] negotiated {mode.backend} {mode.width}x{mode.height} {mode.fourcc} "
         f"fps_prop={mode.fps_prop} (advertised)"
@@ -235,6 +256,8 @@ def iter_source(
             if f is None:
                 if live._queue.closed:
                     return
+                if on_idle is not None:  # Phase 17: a camera stall is reported while waiting
+                    on_idle(timing.now())
                 continue
             n += 1
             try:
@@ -275,12 +298,20 @@ def run(
     source_factory: SourceFactory | None = None,
     draw_hook: Callable[[np.ndarray, ZoneRegistry], None] | None = None,
     on_key: Callable[[str], None] | None = None,
+    observation_hook: Callable[[FrameSample, Observations], Observations] | None = None,
+    gain_scale: float = 1.0,
 ) -> dict[str, Any]:
     """Run one session. ``on_frame`` (returns False to stop) and ``status_lines`` (overlay text) let the
     protocol scripts drive the loop without re-implementing it; ``session_meta`` is merged into
     session.json. Phase 06 additions: ``source_factory`` replaces :func:`iter_source` (a composed
     SYNTHETIC protocol sequence), ``draw_hook`` draws cues on the ROI, ``on_key`` receives every
-    printable key the loop does not consume itself (``a`` / ``b`` / ``c`` / ``q``)."""
+    printable key the loop does not consume itself (``a`` / ``b`` / ``c`` / ``q``). Phase 17:
+    ``observation_hook`` (test builds only: ``app.faults``) replaces perception output per frame
+    (fault injection, the soak's scripted strokes); ``gain_scale`` attenuates played samples only."""
+    if observation_hook is not None:
+        from spacedrums.app.faults import require_test_build
+
+        require_test_build()
     opencv_threads = getattr(args, "opencv_threads", 1)
     if type(opencv_threads) is not int or opencv_threads < 1:
         raise ValueError("opencv_threads must be a positive integer")
@@ -310,26 +341,87 @@ def run(
         raise ValueError(
             "--audio-output-latency-s requires --audio-latency-run-id (an accepted measurement run)"
         )
-    audio = AudioOutput(cfg.data, latency=latency, device_enabled=not args.no_audio and not args.synthetic)
-    session_id = args.session_id or f"dev-{timing.wall_clock_local_compact()}-{args.synthetic or args.source}"
-    pipeline = DecisionPipeline(
+    audio = AudioOutput(
         cfg.data,
-        registry=registry,
-        session_id=session_id,
-        active_arm=active,
-        shadow_arms=shadow,
-        hardware_id=args.hardware_id,
-        config_hash=cfg.config_hash,
-        audio=audio,
+        latency=latency,
+        device_enabled=not args.no_audio and not args.synthetic,
+        output_scale=gain_scale,
     )
+    session_id = args.session_id or f"dev-{timing.wall_clock_local_compact()}-{args.synthetic or args.source}"
+    live_source = not args.synthetic and args.source == "live"
+    log_dir = getattr(args, "log_dir", None) or (ROOT / "data" / "logs" if live_source else None)
+    session_log_dir = Path(log_dir) / session_id if log_dir is not None else None
+    events = EventLog(
+        session_log_dir / "events.jsonl" if session_log_dir is not None else None,
+        context={"session_id": session_id, "config_hash": cfg.config_hash},
+    )
+    crash_context = {
+        "session_id": session_id,
+        "config_hash": cfg.config_hash,
+        "calibration_hash": calib_fields.get("calibration_hash"),
+        "git_sha": git_sha(),
+        "model": {
+            k: (cfg["anticipator"].get("model") or {}).get(k)
+            for k in ("path", "hash", "manifest_hash", "family")
+        },
+        "source": getattr(args, "source", None),
+        "synthetic": getattr(args, "synthetic", None),
+    }
+    try:
+        pipeline = DecisionPipeline(
+            cfg.data,
+            registry=registry,
+            session_id=session_id,
+            active_arm=active,
+            shadow_arms=shadow,
+            hardware_id=args.hardware_id,
+            config_hash=cfg.config_hash,
+            audio=audio,
+        )
+    except Exception as exc:
+        report = write_crash_report(
+            exc, session_log_dir or ROOT / "data" / "logs", context=crash_context, events=events
+        )
+        print(user_text("SD-APP-001", str(report)))
+        raise
+    if pipeline.model_error:
+        events.emit("SD-MDL-002", detail={"reason": pipeline.model_error[:300]})
+        print(user_text("SD-MDL-002", pipeline.model_error[:160]))
+    invariant_mode = getattr(args, "invariants", "log")
+    monitor = (
+        None if invariant_mode == "off" else InvariantMonitor.for_pipeline(pipeline, mode=invariant_mode)
+    )
+    health = HealthMonitor(HealthSettings.from_config(cfg.data), events=events)
+    reported: set[str] = set()
+    previous_status: dict[HandId, str] = {}
+
+    def announce(status) -> None:
+        """Print a component's user message once per transition into a non-OK state."""
+        for comp in status.components().values():
+            if comp.code and comp.level in (Level.WARN, Level.FAIL) and comp.code not in reported:
+                reported.add(comp.code)
+                print(user_text(comp.code))
+        for code in list(reported):
+            if not any(c.code == code for c in status.components().values()):
+                reported.discard(code)
+
+    def on_idle(t: float) -> None:
+        status = health.observe_no_frame(t)
+        if status is not None:
+            announce(status)
     # Initialize native libraries before the capture thread starts filling its bounded queue.
     # Phase 16's unattended baseline lost 23 frames during this initialization.
     perception = None if args.synthetic else Perception(cfg.data)
     try:
-        frames, stop, source_meta, truth = (source_factory or iter_source)(args, cfg, registry)
-    except BaseException:
+        if source_factory is None:
+            frames, stop, source_meta, truth = iter_source(args, cfg, registry, on_idle=on_idle)
+        else:
+            frames, stop, source_meta, truth = source_factory(args, cfg, registry)
+    except BaseException as exc:
         if perception is not None:
             perception.close()
+        if isinstance(exc, ReportedError):
+            events.emit(exc.code, detail={"error": exc.detail})
         raise
     replay_like = bool(args.synthetic) or args.source in ("replay", "devcapture")
     recorder: SessionRecorder | None = None
@@ -380,6 +472,9 @@ def run(
     per_frame_s: list[float] = []
     try:
         audio.start()
+        if audio.device_state == "DOWN":
+            events.emit("SD-AUD-001", detail={"reason": audio.last_error})
+            print(user_text("SD-AUD-001", audio.last_error))
         if dashboard is not None:
             dashboard.start()
         if window:
@@ -391,12 +486,32 @@ def run(
             if obs is None:
                 assert perception is not None and view is not None
                 obs = perception(view)
+            if observation_hook is not None:
+                obs = observation_hook(sample, obs)
             t_now = (sample.t_frame_available + args.replay_delta_proc_s) if replay_like else None
+            audio.check_health(timing.now())
             result = pipeline.step(sample, obs, t_now=t_now, processing_started=t0)
+            if monitor is not None:
+                for violation in monitor.observe(result, pipeline):
+                    if monitor.counts[violation.invariant] <= 20:  # bounded log (release mode)
+                        events.emit("SD-INV-001", detail=violation.to_dict())
             processing_s = timing.now() - t0
             per_frame_s.append(processing_s)
             audio_stats = audio.stats() if audio is not None else {}
             audio_underruns = int((audio_stats.get("mixer") or {}).get("underruns", 0))
+            status = health.observe_frame(
+                result,
+                pipeline,
+                t_now=timing.now(),
+                audio_state=audio.device_state,
+                audio_underruns=audio_underruns,
+                clamped_timestamps=(source_meta.get("capture_stats") or {}).get("clamped_timestamps"),
+            )
+            announce(status)
+            for h, hf in result.hands.items():  # re-acquisition after a loss (INFO event)
+                if previous_status.get(h) in ("INVALID", "STALE") and hf.track.status == "VALID":
+                    events.emit("SD-TRK-002", detail={"hand_id": str(h), "frame_id": sample.frame_id})
+                previous_status[h] = str(hf.track.status)
             capture_drops_total += sample.dropped_since_last
             capture_stats = source_meta.get("capture_stats") or {}
             capture_fps = capture_stats.get("fps_measured")
@@ -426,6 +541,7 @@ def run(
                             for h in HANDS
                         ),
                         strike_zones=tuple((commit.strike_id, commit.zone_id) for commit in result.commits),
+                        health=_health_line(status),
                     )
                 )
             n += 1
@@ -455,7 +571,8 @@ def run(
                     pipeline.active_arm,
                     style,
                     (status_lines() if status_lines is not None else [])
-                    + ([f"MODEL DISABLED: {pipeline.model_error}"] if pipeline.model_error else []),
+                    + ([f"MODEL DISABLED: {pipeline.model_error}"] if pipeline.model_error else [])
+                    + [m for m in status.messages() if not m.startswith(("[SD-MDL", "[SD-TRK-002"))],
                     draw_hook,
                     overlay_config,
                     RuntimeStats(
@@ -485,6 +602,17 @@ def run(
                     on_key(chr(key))
             if args.max_frames is not None and n >= args.max_frames:
                 break
+    except (KeyboardInterrupt, ReportedError):
+        raise
+    except Exception as exc:
+        report = write_crash_report(
+            exc,
+            session_log_dir or ROOT / "data" / "logs",
+            context={**crash_context, "frames": n},
+            events=events,
+        )
+        print(user_text("SD-APP-001", str(report)))
+        raise
     finally:
         stop()
         audio.stop()
@@ -497,6 +625,15 @@ def run(
             cv2.waitKey(1)
     counters = pipeline.counters()
     counters["runtime_threads"] = {"opencv": cv2.getNumThreads()}
+    counters["invariants"] = monitor.finish() if monitor is not None else {"mode": "off"}
+    counters["health"] = {
+        "final": health.status.to_dict() if health.status is not None else None,
+        "transitions": health.transitions,
+    }
+    counters["events"] = {
+        **events.summary(),
+        "log": str(session_log_dir / "events.jsonl") if session_log_dir is not None else None,
+    }
     counters["ui"] = {
         "overlay_mode": getattr(args, "overlay_mode", "experiment"),
         "dashboard": dashboard_subscription.stats() if dashboard_subscription is not None else None,
@@ -627,6 +764,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="calib-v1 file to apply (sets calibration_path); made by python -m spacedrums.app.calibrate",
     )
+    ap.add_argument(
+        "--invariants",
+        choices=("log", "raise", "off"),
+        default="log",
+        help="safety-invariant monitor I1-I6 (Phase 17): log in release, raise in test builds",
+    )
+    ap.add_argument(
+        "--log-dir",
+        type=Path,
+        default=None,
+        help="structured event log + crash reports (<dir>/<session>/); default data/logs for live sessions",
+    )
     ap.add_argument("--hardware-id", default="HW-01")
     ap.add_argument("--summary-json", type=Path, default=None, help="write the run summary here")
     ap.add_argument("--verbose", action="store_true")
@@ -640,6 +789,9 @@ def main(argv: list[str] | None = None) -> int:
     except CalibrationError as exc:
         print(f"[app] calibration refused: {exc}")
         return 2
+    except ReportedError as exc:
+        print(user_text(exc.code, exc.detail))
+        return 3
     c = summary["counters"]
     print(
         f"[app] {summary['session_id']}: {summary['frames']} frames; commits "
@@ -659,6 +811,15 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(summary, indent=2, allow_nan=False, default=str), encoding="utf-8"
         )
     return 0
+
+
+def _health_line(status) -> str | None:
+    if status is None:
+        return None
+    parts = [
+        f"{name} {c.level}" + (f" {c.code}" if c.code else "") for name, c in status.components().items()
+    ]
+    return "health: " + " | ".join(parts)
 
 
 if __name__ == "__main__":

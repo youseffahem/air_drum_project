@@ -13,9 +13,11 @@ Timestamp policy (architecture.md section 5.2, Task 02.2), per frame and labelle
   driver stamp are labelled ``GRAB_RETURN`` (honest per-frame labelling, never a guess);
 * otherwise ``t_capture = t_grab_return - grab_return_bias_s`` and ``GRAB_RETURN``.
 
-``t_frame_available = now()`` at enqueue. Two invariants are enforced by clamping *and counted*
+``t_frame_available = now()`` at enqueue. Two invariants are enforced *and counted*
 (``CaptureStats.clamped_timestamps``; must be 0 in a healthy run): ``t_capture <=
-t_frame_available`` and monotone ``t_capture``.
+t_frame_available`` (clamped) and **strictly increasing** ``t_capture``: a frame whose stamp would
+not exceed the previous delivered one is refused, never delivered with an equal stamp (Phase 17:
+an equal stamp stopped the decision pipeline; ``timestamp_report()["refused_non_monotone"]``).
 
 Duplicate policy (Task 02.4 finding on HW-01): a frame that is byte-identical to the previous
 delivered frame carries no new observation (a real sensor frame always differs by noise) and is
@@ -130,6 +132,7 @@ class LiveFrameSource:
         self._duplicates = 0
         self._stalled = 0
         self._clamped = 0
+        self._refused = 0
         self._read_failures = 0
         self._raw_frames = 0
         self._driver_mapped = 0
@@ -246,9 +249,11 @@ class LiveFrameSource:
             if t_cap > t_avail:
                 t_cap = t_avail
                 clamped = 1
-            if last_t_capture is not None and t_cap < last_t_capture:
-                t_cap = last_t_capture
-                clamped = 1
+            if last_t_capture is not None and t_cap <= last_t_capture:
+                with self._lock:  # Phase 17: refused (never delivered with an equal / earlier stamp)
+                    self._clamped += 1
+                    self._refused += 1
+                continue
             last_t_capture = t_cap
             with self._lock:
                 self._clamped += clamped
@@ -332,6 +337,7 @@ class LiveFrameSource:
                 "grab_return_bias_s": self.settings.grab_return_bias_s,
                 "raw_frames_read": self._raw_frames,
                 "read_failures": self._read_failures,
+                "refused_non_monotone": self._refused,
                 "capture_thread_cpu_s": self._thread_cpu_s,
                 "capture_thread_wall_s": self._thread_wall_s,
                 "capture_thread_cpu_fraction": (self._thread_cpu_s / self._thread_wall_s)

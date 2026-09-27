@@ -150,7 +150,7 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
     problems: list[str] = []
     ant = cfg.get("anticipator", {})
     if ant.get("type") == "model":
-        if cfg.get("meta", {}).get("schema_version") not in ("1.6", "1.7"):
+        if cfg.get("meta", {}).get("schema_version") not in ("1.6", "1.7", "1.8"):
             problems.append("live model config requires schema_version 1.6 or later")
         m = ant.get("model") or {}
         required = {"manifest_hash", "norm_stats_path", "N", "family", "cadence_window_frames",

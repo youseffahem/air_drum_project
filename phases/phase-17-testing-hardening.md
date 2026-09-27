@@ -2,7 +2,20 @@
 
 ## Status
 
-Planned
+PENDING — development execution complete at the exit gate (2026-09-26/27); reviewer action,
+person-dependent physical tests, the person-played soak, the participant replay set and clean
+post-owner-commit reproduction remain outstanding. The owner decided the re-acquisition thresholds
+on 2026-09-27 (ADR-0041: `g_max_frames` 3 kept, an explicit engineering deviation from the
+pre-declared sweep rule, which selected 6).
+
+Execution reports: [test matrix](../docs/testing/test-matrix.md),
+[failure injection](../docs/testing/failure-injection-report.md),
+[soak](../docs/testing/soak-report.md),
+[failure catalogue](../docs/testing/failure-catalogue.md),
+[user messages](../docs/testing/user-messages.md); decisions
+[ADR-0039](../docs/decisions/ADR-0039-degraded-commits.md),
+[ADR-0040](../docs/decisions/ADR-0040-hardening-rules.md) and
+[ADR-0041](../docs/decisions/ADR-0041-reacquisition-thresholds.md) (decided by the owner; deviation from the declared rule).
 
 ## Codex Model for This Phase
 
@@ -229,6 +242,8 @@ Do not claim that the recommended model was actually used unless the execution e
 ## Exit Gate
 
 Reviewer verifies invariant results, injection reports, soak, catalogue. PASS → Phase 18.
+
+Gate record: [Phase 17](../docs/gates/phase-17-gate.md) — PENDING reviewer, submitted 2026-09-27.
 
 ## What Must NOT Be Done Yet
 

@@ -199,3 +199,25 @@ checks, raw regression/causality/parity, faults and three-repeat final profiling
 Use `--require-clean` after the owner commits. Live soak, camera capability and
 model-cost evidence are separate artifacts. Review the pending participant-fold,
 shipped-model, live-delay and owner gates in `docs/gates/phase-16-gate.md`.
+
+## Phase 17 (testing, hardening, failure handling)
+
+All Phase 17 scripts record who runs them: pass `--executor-model "<model>" --executor-effort
+"<effort>"` (never inferred). Outputs go under `experiments/phase-17/`.
+
+`inject_faults.py --suite synthetic switch model capture-live audio devcapture fasthit guard` (or
+`--suite all`, `--quick` for a reduced grid) runs the failure-injection campaign: SYNTHETIC
+observation and capture faults placed during the approach / impact / idle, arm switches over the
+Phase 18 threshold range, model load and mid-session faults, live-source timestamp faults, audio
+device removal, developer-capture image faults through real perception, the SYNTHETIC fast-hit
+sweep and the frame-drop guard threshold experiment. `invariant_replay.py` runs the invariants over
+the full development replay set and the system-level TEST-CAUSAL-1. `degraded_experiment.py` is the
+paired VALID vs VALID+DEGRADED commit experiment and `reacquisition_experiment.py [--workers N]` the
+`g_max_frames` × `age_max_s` sweep (decision rules in their docstrings; the sweep also reports a
+separately labelled post-hoc fake-out sensitivity). `soak_test.py --minutes 60` is the live soak
+with SYNTHETIC scripted strokes (`--gain-scale` attenuates only played samples; writes
+`soak-report.json`, `soak-samples.json`, `app-summary.json`). Never run the soak together with
+another campaign.
+`build_test_matrix.py [--check]` regenerates / checks `docs/testing/test-matrix.md`.
+`verify_phase17.py [--require-clean]` repeats the executable gate checks (13 commands; the
+live-mode assertion set, the soak and every person-dependent check are separate).

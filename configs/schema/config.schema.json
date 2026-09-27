@@ -91,7 +91,7 @@
       "additionalProperties": false,
       "required": ["schema_version", "created", "phase", "description", "supersedes", "status"],
       "properties": {
-        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block), 1.6 (Phase 13, ADR-0036: live model arm) or 1.7 (Phase 14, ADR-0037: calibration_path, derived calibration block, stick.geom.l_prior_by_hand). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
+        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block), 1.6 (Phase 13, ADR-0036: live model arm), 1.7 (Phase 14, ADR-0037: calibration_path, derived calibration block, stick.geom.l_prior_by_hand) or 1.8 (Phase 17, ADR-0040: optional hands.identity.user_min_relative_area). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
         "created": { "type": "string", "format": "date" },
         "phase": { "type": "string", "pattern": "^[0-2][0-9]$" },
         "description": { "type": "string", "minLength": 1 },
@@ -192,7 +192,8 @@
             "max_gap_s": { "type": "number", "exclusiveMinimum": 0, "description": "A previous wrist older than this (seconds on t_mono) carries no continuity information; labels alone decide after a longer gap (tunable candidate)." },
             "w_label": { "$ref": "common.schema.json#/$defs/confidence", "description": "Weight of the estimator label term in the combined identity score; the continuity term weighs 1 - w_label (tunable candidate)." },
             "ambiguity_margin": { "$ref": "common.schema.json#/$defs/confidence", "description": "If the best assignment beats the second-best by less than this, the frame is AMBIGUOUS: no guess, both hands' handedness_score capped (tunable candidate)." },
-            "ambiguous_score_cap": { "$ref": "common.schema.json#/$defs/confidence", "description": "handedness_score cap applied to every hand in an AMBIGUOUS frame. Loader check: tracking.c_min <= cap < tracking.c_valid, so an ambiguous identity can at most be DEGRADED, never VALID (README section 8, Q33)." }
+            "ambiguous_score_cap": { "$ref": "common.schema.json#/$defs/confidence", "description": "handedness_score cap applied to every hand in an AMBIGUOUS frame. Loader check: tracking.c_min <= cap < tracking.c_valid, so an ambiguous identity can at most be DEGRADED, never VALID (README section 8, Q33)." },
+            "user_min_relative_area": { "type": "number", "minimum": 0, "exclusiveMaximum": 1, "description": "(1.8, Phase 17, ADR-0040) single-user rule: a detection whose box area is below this fraction of the user's hand size (the larger of the largest detection in the frame and the running user-hand size) is a background hand and is never assigned. 0 or absent = off (default until the live two-person test sets it; candidate 0.35)." }
           },
           "description": "(1.2, Phase 03 Task 03.2, ADR-0014 amendment) LEFT/RIGHT identity assignment parameters."
         },

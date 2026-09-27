@@ -4,6 +4,10 @@
 timing), ``AudioOutput``, ``SessionRecorder`` (record mode), ``session_summary`` (Phase 05 developer
 summaries), ``synthetic`` (labelled SYNTHETIC observation sequences) and ``main`` (CLI: live /
 replay / dev-capture / synthetic sources, keyboard arm switch). May import everything.
+
+Phase 17: ``invariants`` (runtime safety-invariant monitor I1-I6), ``health`` (HealthStatus for the
+UI), ``errors`` (message catalogue, structured event log, crash reports) and ``faults`` (fault
+injection; test builds only - never imported by the CLI).
 """
 
 from spacedrums.app.audio_out import AudioOutput, OutputLatency

@@ -145,6 +145,22 @@ Specified and executed in `contracts.md` §5 (`tests/contracts/`, `scripts/valid
 - A component is called **causal** in any document only after `TEST-CAUSAL-1` and `TEST-CAUSAL-2` have passed on the exact `git_sha` cited.
 - Tolerances are declared **before** the run in the phase document; a run that needs a looser tolerance than declared fails and the discrepancy is recorded.
 
+## Phase 17 hardened-build evidence
+
+`TEST-CAUSAL-1/2` were re-run on the hardened build (Task 17.2): every component suite in the
+full pytest run, the Phase 13 raw live/offline parity + future-blackout check
+(`scripts/parity_test.py`), and a system-level `TEST-CAUSAL-1` over the live loop in replay mode
+with GARBAGE / REMOVED / SHIFTED suffixes for every developer capture and arm set-up
+(`scripts/invariant_replay.py`). The runtime monitor's invariant **I2** checks the causality
+contract on every processed frame in replay and live mode (no record with `t_capture` after the
+current frame; delivered frames strictly increase; histories hold delivered frames only).
+`TEST-CONFORM-7` is strengthened: the live source now delivers **strictly increasing** `t_capture`
+(a non-increasing stamp is refused and counted), and the replay source refuses such recordings at
+load (ADR-0040 D5). In live mode, prefix invariance under a perturbed future cannot be
+constructed (the future is the camera's), so the live-mode assertion set runs the monitor in
+`raise` mode instead (I2: 37,587 checks, 0 violations; unattended, development evidence; a session
+with a person is PENDING). Results and run ids: `docs/gates/phase-17-gate.md`.
+
 ## Phase 08 implementation evidence
 
 `tests/features/test_causality.py` implements TEST-CAUSAL-1 (REMOVED/GARBAGE/SHIFTED,

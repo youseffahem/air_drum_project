@@ -43,6 +43,16 @@ class RefractoryTimers:
         self.last_commit_t = float(t_commit)
         return until
 
+    def absorb(self, other: RefractoryTimers) -> None:
+        """Merge another arm's timers (latest wins): refractory can only suppress (Phase 17)."""
+        for zone_id, until in other._until.items():
+            if until > self._until.get(zone_id, float("-inf")):
+                self._until[zone_id] = until
+        if other.last_commit_t is not None and (
+            self.last_commit_t is None or other.last_commit_t > self.last_commit_t
+        ):
+            self.last_commit_t = other.last_commit_t
+
     def reset(self, reason: ResetReason) -> None:
         if reason is ResetReason.SESSION_START:
             self._until.clear()

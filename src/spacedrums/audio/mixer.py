@@ -24,6 +24,7 @@ class AudioStats:
     events_mixed: int
     clipped_samples: int
     output_latency_measured_s: float | None
+    voices_cleared: int = 0
 
 
 class CallbackMixer:
@@ -37,6 +38,7 @@ class CallbackMixer:
         self._queue: SimpleQueue[Voice] = SimpleQueue()
         self._voices: list[Voice] = []
         self._underruns = self._events_late = self._events_mixed = self._clipped_samples = 0
+        self._voices_cleared = 0
 
     def enqueue(self, event: AudioEvent, samples: np.ndarray) -> None:
         audio = np.asarray(samples, dtype=np.float32)
@@ -46,6 +48,19 @@ class CallbackMixer:
 
     def note_underrun(self) -> None:
         self._underruns += 1
+
+    def clear(self) -> int:
+        """Drop queued and playing voices (Phase 17: a recovered device never replays a backlog)."""
+        n = len(self._voices)
+        while True:
+            try:
+                self._queue.get_nowait()
+                n += 1
+            except Empty:
+                break
+        self._voices = []
+        self._voices_cleared += n
+        return n
 
     def mix(self, frames: int, t_buffer_start: float) -> np.ndarray:
         while True:
@@ -89,6 +104,7 @@ class CallbackMixer:
             self._events_mixed,
             self._clipped_samples,
             self.output_latency_measured_s,
+            self._voices_cleared,
         )
 
 

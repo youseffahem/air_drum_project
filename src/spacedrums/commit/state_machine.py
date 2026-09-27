@@ -128,8 +128,31 @@ class ZoneCommitMachine:
         s.inside, s.commit_pending, s.committed_in_episode, s.pending_target_t = False, False, False, None
 
     def reset(self) -> None:
-        """Reset-matrix reset (any reason): like invalidate; timers live in ``RefractoryTimers``."""
+        """Reset-matrix reset (any reason but ARM_SWITCH): like invalidate; timers live elsewhere."""
         self.invalidate()
+
+    def discard_armed(self) -> None:
+        """ARM_SWITCH (Phase 17, ADR-0040): pending ARMED candidates are discarded (no cross-arm
+        carry-over of a decision in progress); the episode bookkeeping (``inside``, a pending
+        anticipated entry, committed-in-episode) is kept - geometry keeps its episodes on an arm
+        switch, and these flags can only suppress a commit."""
+        s = self.s
+        if s.phase is CommitPhase.ARMED:
+            s.phase, s.armed_frames = CommitPhase.IDLE, 0
+
+    def absorb(self, other: ZoneCommitState) -> None:
+        """Merge another arm's suppression state for this (hand, zone): safe direction only.
+
+        Used when an arm starts sounding: the strike the previously sounding arm committed (pending
+        its entry, or inside its episode) must not sound a second time from the new arm.
+        """
+        s = self.s
+        if other.commit_pending and other.pending_target_t is not None:
+            later = s.pending_target_t is None or other.pending_target_t > s.pending_target_t
+            if not s.commit_pending or later:
+                s.commit_pending, s.pending_target_t = True, other.pending_target_t
+        if other.committed_in_episode and s.inside:  # the same episode this machine observes
+            s.committed_in_episode = True
 
 
 __all__ = ["CommitPhase", "ZoneCommitMachine", "ZoneCommitState"]

@@ -7,7 +7,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from spacedrums.commit import CommitSettings, PerHandCommitPolicy
+from spacedrums.commit import CommitSettings, PerHandCommitPolicy, frames_missing
 from spacedrums.contracts import (
     Arm,
     CandidateDerivation,
@@ -99,8 +99,12 @@ def replay(
     dropped_by_frame: Mapping[int, int] | None = None,
     candidate_gate: CandidateGate | None = None,
     diagnostic_direct: bool = False,
+    nominal_dt_s: float | None = None,
 ) -> ReplayResult:
     """Each call owns fresh per-hand state. The model sees only current/past inputs.
+
+    ``nominal_dt_s`` (Phase 17) makes the commit guard count camera stalls as missing frames, as the
+    live pipeline does (``commit.frames_missing``); None keeps the Phase 09 behaviour (queue drops only).
 
     ``diagnostic_direct`` is the explicitly flagged no-trajectory harness mode of arm C-MT
     (ADR-0007 amendment): DIRECT_HEAD candidates are accepted only there, results carry
@@ -161,6 +165,13 @@ def replay(
         arm=arm, candidates=[], committed=[], decisions=[], predictions=[], diagnostic=diagnostic_direct
     )
     previous_key: tuple[float, int, str] | None = None
+    previous_frame: tuple[int, float] | None = None  # (frame_id, t_capture) of the previous frame
+    frame_gap: dict[int, float | None] = {}
+    for track in tracks:
+        if previous_frame is None or track.frame_id != previous_frame[0]:
+            gap = None if previous_frame is None else track.t_capture - previous_frame[1]
+            frame_gap[track.frame_id] = gap
+            previous_frame = (track.frame_id, track.t_capture)
     for index, track in enumerate(tracks):
         key = (track.t_capture, track.frame_id, str(track.hand_id))
         if previous_key is not None and key <= previous_key:
@@ -250,7 +261,11 @@ def replay(
                 candidates,
                 track,
                 clock_t[0],
-                dropped_since_last=(dropped_by_frame or {}).get(track.frame_id, 0),
+                dropped_since_last=frames_missing(
+                    frame_gap[track.frame_id] if nominal_dt_s else None,
+                    nominal_dt_s,
+                    (dropped_by_frame or {}).get(track.frame_id, 0),
+                ),
             )
         )
         result.decisions.extend({"hand_id": str(h), **trace.to_dict()} for trace in policies[h].trace)

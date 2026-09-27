@@ -10,7 +10,8 @@ Gate order per candidate (every threshold from the ``commit`` config block; all 
  1. **safety — status**: ``track_state.status`` must be ``VALID`` (``DEGRADED`` only when
     ``allow_degraded_commits``); otherwise every candidate is discarded, every zone machine goes IDLE
     (ARMED discarded) and *nothing is emitted* (README section 8; Q34-Q35). Refractory timers persist.
- 2. **safety — frame-drop guard**: ``dropped_since_last > max_dropped_since_last`` -> no commit this frame.
+ 2. **safety — frame-drop guard**: ``dropped_since_last > max_dropped_since_last`` -> no commit this frame
+    (Phase 17: the pipeline passes ``frames_missing``, which also counts camera stalls).
  3. **zone validity**: the zone exists in the registry and allows this hand.
  4. **stale prediction**: anticipatory candidate with ``t_impact_pred < t_now - stale_prediction_tolerance_s``
     -> rejected (a prediction about the past cannot be scheduled).
@@ -34,6 +35,7 @@ the scheduler refuses shadow commits, Phase 04). Instances share nothing.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -54,6 +56,22 @@ from spacedrums.contracts import (
 from spacedrums.geometry import ZoneRegistry
 
 ARM_FOR_SOURCE = {CandidateSource.REACTIVE: Arm.A, CandidateSource.RULE: Arm.B}
+
+
+def frames_missing(dt_s: float | None, nominal_dt_s: float | None, dropped_since_last: int) -> int:
+    """Frames missing before a delivered frame (Phase 17, ADR-0040): queue drops and camera stalls alike.
+
+    ``max(dropped_since_last, round(dt / nominal_dt) - 1)`` (half rounds up). A stall delivers no
+    frames and so reports no queue drop, yet leaves the same sparse trajectory behind; the commit
+    guard ``max_dropped_since_last`` therefore applies to both. Without a nominal interval only the
+    queue drops count.
+    """
+    missing = int(dropped_since_last)
+    if dt_s is not None and nominal_dt_s:
+        missing = max(missing, int(math.floor(dt_s / nominal_dt_s + 0.5)) - 1)
+    return max(0, missing)
+
+
 GainFn = Callable[[str, float], float]
 EpisodeFn = Callable[[HandId, str], str | None]
 
@@ -195,8 +213,25 @@ class PerHandCommitPolicy:
     # -- CommitPolicy protocol -------------------------------------------------------------
     def reset(self, reason: ResetReason) -> None:
         for m in self.machines.values():
-            m.reset()
+            if reason is ResetReason.ARM_SWITCH:
+                m.discard_armed()  # Phase 17: episode suppression survives an arm switch
+            else:
+                m.reset()
         self.timers.reset(reason)
+
+    def absorb_suppression(self, other: PerHandCommitPolicy) -> None:
+        """Audible continuity across an arm switch (Phase 17, ADR-0040).
+
+        The arm that starts sounding inherits the refractory timers and the open-episode
+        suppression of the arm that stops sounding, so one physical strike never sounds twice.
+        Only suppression moves between arms; ARMED candidates never do (reset matrix).
+        """
+        if other.hand_id is not self.hand_id:
+            raise ValueError("suppression can only move between policies of the same hand")
+        self.timers.absorb(other.timers)
+        for zone_id, machine in self.machines.items():
+            if zone_id in other.machines:
+                machine.absorb(other.machines[zone_id].s)
 
     def step(
         self,
@@ -264,9 +299,12 @@ class PerHandCommitPolicy:
         if zone is None or self.hand_id not in zone.allowed_hands:
             return Decision.REJECT_ZONE
         t_ref = self._t_ref(c)
+        if not math.isfinite(t_ref):  # Phase 17: an undefined time can never be scheduled
+            return Decision.REJECT_STALE
         if c.t_impact_pred is not None and t_ref < t_now - s.stale_prediction_tolerance_s:
             return Decision.REJECT_STALE
-        if c.strike_probability is not None and c.strike_probability < s.p_commit:
+        # ``not (p >= p_commit)`` also rejects a NaN probability (a NaN passes ``p < p_commit``)
+        if c.strike_probability is not None and not c.strike_probability >= s.p_commit:
             return Decision.REJECT_PROBABILITY
         if t_ref - t_now > s.tti_commit_s:
             return Decision.REJECT_TTI
@@ -321,4 +359,11 @@ class PerHandCommitPolicy:
         }
 
 
-__all__ = ["ARM_FOR_SOURCE", "CommitSettings", "Decision", "GateTrace", "PerHandCommitPolicy"]
+__all__ = [
+    "ARM_FOR_SOURCE",
+    "CommitSettings",
+    "Decision",
+    "GateTrace",
+    "PerHandCommitPolicy",
+    "frames_missing",
+]

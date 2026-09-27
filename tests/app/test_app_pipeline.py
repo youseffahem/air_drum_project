@@ -244,7 +244,8 @@ def test_frame_drop_guard_blocks_commit_on_that_frame(registry, make_pipeline):
     ref = all_commits(run_sequence(make_pipeline(active="A", shadow=()), seq))
     assert len(ref) == 1
     frame = ref[0].frame_id
-    dropped = scenario("single", registry, t_down=FAST, dropped={frame: 3})
+    # Phase 17: the guard allows up to commit.max_dropped_since_last = 3 missing frames (ADR-0040 D4)
+    dropped = scenario("single", registry, t_down=FAST, dropped={frame: 4})
     got = all_commits(run_sequence(make_pipeline(active="A", shadow=()), dropped))
     assert got == []  # the crossing frame was guarded; the episode rule prevents a later re-commit
 

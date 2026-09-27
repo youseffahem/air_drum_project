@@ -125,6 +125,7 @@ def parity(cfg, frames, *, session_id, measured_delay=True, clock=now):
         feature_records=reference_features,
         dropped_by_frame=drops,
         delay=DelayPolicy("per_frame", per_frame_s=delays),
+        nominal_dt_s=pipe.nominal_dt_s,
     )
     features = [hf.features for r in results for hf in r.hands.values()]
     predictions = [hf.model_prediction for r in results for hf in r.hands.values() if hf.model_prediction]

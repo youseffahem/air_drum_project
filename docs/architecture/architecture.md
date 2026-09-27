@@ -284,6 +284,12 @@ Rules encoded by the matrix (Q34–Q35):
 - `DEGRADED` bridging uses existing state only, for at most `g_max` frames (config), and never future frames — the causal one-step bridge is itself subject to `TEST-CAUSAL-1`.
 - `reset_reason` is written into the `TrackState` of the frame where the reset happened, so a replay can prove where resets occurred.
 
+> **Amended by Phase 17 (2026-09-26, [ADR-0040](../decisions/ADR-0040-hardening-rules.md)).**
+> (1) *Time gaps are gaps:* a frame interval above `(g_max_frames + 1.5)` nominal frame periods (a camera stall, a drop burst or a clock jump) triggers the `GAP_EXCEEDED` column before the frame is processed; the frame's observation then re-acquires ("initialise from observation"), so the filter never extrapolates across the gap.
+> (2) *`ARM_SWITCH` and the commit FSM:* "→ IDLE" discards ARMED candidates only; the zone machines' episode flags (tip inside, pending anticipated entry, committed in episode) **persist**, like geometry's episodes. The arm that starts sounding **absorbs** the refractory timers and open-episode flags of the arm that stops sounding (safe direction: suppression only), so one physical strike never sounds twice across a switch or a model fallback. Decisions in progress still never cross arms.
+> (3) *Missing frames:* the commit frame-drop guard counts camera stalls like queue drops (`commit.frames_missing`).
+> (4) The safety invariants I1–I6 are checked at runtime by `app.invariants.InvariantMonitor` (definitions in ADR-0040).
+
 ---
 
 ## 7. Threading / process model — candidates (Pending Architecture Decision, Phase 16)

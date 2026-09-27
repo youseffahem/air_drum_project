@@ -14,6 +14,17 @@ flow of REQ-004 are addressed by `spacedrums.calib`, `spacedrums.app.calibrate` 
 [`../gates/phase-14-gate.md`](../gates/phase-14-gate.md). Developer live calibrations, `L_prior`
 repeatability, wizard duration and reviewer approval remain PENDING.
 
+Phase 17 evidence pointer (2026-09-26/27; statuses unchanged): REQ-012, REQ-027, REQ-028, REQ-029,
+REQ-034, REQ-035 and REQ-305 (owned) and REQ-060b (contributed) are addressed by the runtime
+safety-invariant monitor I1–I6 (replay set and live-mode assertion set), the failure-injection suites
+and campaign, the hardening fixes of ADR-0040 and the DEGRADED decision of ADR-0039; the
+re-acquisition thresholds of README §8 were swept and kept at `g_max_frames` 3 / `age_max_s` 0.5
+(ADR-0041; keeping 3 is an owner-decided deviation from the declared sweep rule); REQ-052 / REQ-209
+gained an automated offline check.
+Requirement → test mapping: [`../testing/test-matrix.md`](../testing/test-matrix.md). Evidence and
+run ids: [`../gates/phase-17-gate.md`](../gates/phase-17-gate.md). Physical (person-dependent)
+injection, the second-person test, the person-played soak and the participant replay set remain PENDING.
+
 **Phase:** 00 — Task 00.1 · **Status:** PLANNED (this document; no requirement is yet IMPLEMENTED / MEASURED / VALIDATED). *P06 evidence pointers added 2026-09-22 (gate `phase-06-gate.md`, review pending): rows stay PLANNED until a gate record is signed.*
 **Source of truth:** [`../../project-discovery.md`](../../project-discovery.md) (Q1–Q60, Confirmed Core Architecture, Core Research Direction, Important Scope Rules, Current Project Philosophy).
 **Roadmap:** [`../../phases/README.md`](../../phases/README.md).
