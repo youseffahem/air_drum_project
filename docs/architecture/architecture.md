@@ -75,6 +75,7 @@ Modules are ordered in **layers**. A module may import from its own layer's *low
 | L6 — output | `audio` | L0 |
 | L7 — tooling | `ui`, `eval`, `data`, `calib` | any lower layer (read-only use of records; `eval` may *drive* L1–L6 through the interfaces in §11) |
 | L8 — root | `app` | everything |
+| L8 — evaluation (Phase 18, ADR-0042) | `live_eval` | every layer except `app` (confirmatory analysis over the frozen `eval` harness and live-experiment tooling; nothing in the pipeline imports it) |
 
 Rules that follow:
 

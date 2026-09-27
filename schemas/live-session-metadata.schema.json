@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/live-session-metadata.schema.json",
+  "title": "LiveSessionMetadata",
+  "description": "One Phase 18 live-experiment session (Experiment 2; phases/phase-18-evaluation-experiments.md, Interfaces / Contracts). Written as <session_dir>/live-session.json next to the unchanged Phase 06 metadata.json, which it extends by composition: base_metadata names that file by SHA-256 and the identity fields repeat it (checked by spacedrums.live_eval.metadata.consistency_errors). Adds arm_blocks[] (assigned live arm per block, recorded span, switches, commits per arm, fallbacks), external_methods[] (M1 pad + microphone, M2 high-frame-rate video, M3 software stamps: status, recordings with hashes, sync result, uncertainty), sync_markers[], the calibration hash, blinding, questionnaire inclusion, dataset overlap and the pre-registration / lock provenance. SYNTHETIC and DEV_CAPTURE sessions cannot carry consent records; PILOT and PARTICIPANT sessions need signed consent (integrity item I-4).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "session_id", "session_kind", "participant_id", "consent_status", "consent_record_id",
+    "base_metadata", "evidence_label", "prereg", "lock", "live_protocol", "arm_blocks", "external_methods",
+    "sync_markers", "calibration", "blinding", "questionnaire", "overlap_with_dataset", "notes"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "session_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "session_kind": {"type": "string", "enum": ["SYNTHETIC", "DEV_CAPTURE", "PILOT", "PARTICIPANT"]},
+    "participant_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "consent_status": {"type": "string", "enum": ["SIGNED", "PENDING", "NOT_REQUIRED", "WITHDRAWN"]},
+    "consent_record_id": {"type": ["string", "null"]},
+    "base_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"const": "metadata.json"},
+        "sha256": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]}
+      }
+    },
+    "evidence_label": {"type": "string", "minLength": 1, "description": "SYNTHETIC / DEV CAPTURE / participant classification printed with every derived number"},
+    "prereg": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "version", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "version": {"type": ["integer", "null"], "minimum": 1},
+        "sha256": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]}
+      }
+    },
+    "lock": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/digest"}}
+        }
+      ]
+    },
+    "live_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_id", "version", "arm_order", "sequence_index", "participant_index", "design", "duration_scale",
+        "pad_zone_id"
+      ],
+      "properties": {
+        "protocol_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "version": {"type": "string", "minLength": 1},
+        "arm_order": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/live_arm"}},
+        "sequence_index": {"type": "integer", "minimum": 0},
+        "participant_index": {"type": "integer", "minimum": 1},
+        "design": {"type": "string", "pattern": "^Williams-[0-9]+$"},
+        "duration_scale": {"type": "number", "exclusiveMinimum": 0},
+        "pad_zone_id": {"anyOf": [{"type": "null"}, {"$ref": "common.schema.json#/$defs/zone_id"}]}
+      }
+    },
+    "arm_blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "block_id", "arm", "kind", "segment_ids", "analysed", "t_start", "t_end", "status", "switches",
+          "commits_by_arm", "fallback_events"
+        ],
+        "properties": {
+          "block_id": {"$ref": "common.schema.json#/$defs/identifier"},
+          "arm": {"$ref": "#/$defs/live_arm"},
+          "kind": {"type": "string", "enum": ["FAMILIARISATION", "AIR", "PAD"]},
+          "segment_ids": {"type": "array", "minItems": 1, "items": {"$ref": "common.schema.json#/$defs/identifier"}},
+          "analysed": {"type": "boolean"},
+          "t_start": {"anyOf": [{"type": "null"}, {"$ref": "common.schema.json#/$defs/t_mono"}]},
+          "t_end": {"anyOf": [{"type": "null"}, {"$ref": "common.schema.json#/$defs/t_mono"}]},
+          "status": {"type": "string", "enum": ["NOT_RUN", "PARTIAL", "COMPLETED"]},
+          "switches": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["block_id", "arm_label", "from_arm", "to_arm", "t_mono", "frame_id"],
+              "properties": {
+                "block_id": {"$ref": "common.schema.json#/$defs/identifier"},
+                "arm_label": {"$ref": "#/$defs/live_arm"},
+                "from_arm": {"type": "string", "minLength": 1},
+                "to_arm": {"type": "string", "minLength": 1},
+                "t_mono": {"$ref": "common.schema.json#/$defs/t_mono"},
+                "frame_id": {"type": "integer", "minimum": 0}
+              }
+            }
+          },
+          "commits_by_arm": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["sounding", "shadow"],
+              "properties": {"sounding": {"type": "integer", "minimum": 0}, "shadow": {"type": "integer", "minimum": 0}}
+            }
+          },
+          "fallback_events": {"type": "array", "items": {"type": "object"}}
+        }
+      }
+    },
+    "external_methods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["method", "status", "validation_ref", "u_s", "recordings", "sync"],
+        "properties": {
+          "method": {"type": "string", "enum": ["M1", "M2", "M3"]},
+          "status": {"type": "string", "enum": ["GO", "NO_GO", "PENDING", "ESTIMATE_ONLY", "NOT_USED"]},
+          "validation_ref": {"type": ["string", "null"]},
+          "u_s": {"type": ["number", "null"], "minimum": 0},
+          "recordings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sha256", "kind", "rate", "device"],
+              "properties": {
+                "path": {"type": "string", "minLength": 1},
+                "sha256": {"$ref": "#/$defs/digest"},
+                "kind": {"type": "string", "enum": ["AUDIO", "VIDEO"]},
+                "rate": {"type": "number", "exclusiveMinimum": 0, "description": "sample rate (Hz) or measured frame rate (FPS)"},
+                "device": {"type": "string", "minLength": 1},
+                "t_mono_first_sample": {"anyOf": [{"type": "null"}, {"$ref": "common.schema.json#/$defs/t_mono"}]},
+                "synthetic": {"type": "boolean"}
+              }
+            }
+          },
+          "sync": {
+            "anyOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["status", "reason", "n_matched", "map"],
+                "properties": {
+                  "status": {"type": "string", "enum": ["OK", "FAILED"]},
+                  "reason": {"type": ["string", "null"]},
+                  "n_matched": {"type": "integer", "minimum": 0},
+                  "map": {"type": ["object", "null"]}
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sync_markers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["marker_id", "kind", "t_mono", "source", "note"],
+        "properties": {
+          "marker_id": {"$ref": "common.schema.json#/$defs/identifier"},
+          "kind": {"type": "string", "enum": ["CLAP", "FLASH", "CLICK"]},
+          "t_mono": {"$ref": "common.schema.json#/$defs/t_mono"},
+          "source": {"type": "string", "enum": ["SOFTWARE_EMITTED", "OPERATOR_KEY", "SYNTHETIC"]},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["calibration_status", "calibration_id", "calibration_hash"],
+      "properties": {
+        "calibration_status": {"type": ["string", "null"]},
+        "calibration_id": {"type": ["string", "null"]},
+        "calibration_hash": {"type": ["string", "null"]}
+      }
+    },
+    "blinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["participant_view", "overlay_mode", "note"],
+      "properties": {
+        "participant_view": {"type": "string", "enum": ["BLINDED", "UNBLINDED"]},
+        "overlay_mode": {"type": "string", "enum": ["off", "experiment", "full"]},
+        "note": {"type": "string"}
+      }
+    },
+    "questionnaire": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["included", "ref"],
+      "properties": {
+        "included": {"type": ["boolean", "null"], "description": "null = Open Question not yet decided by the owner"},
+        "ref": {"type": ["string", "null"]}
+      }
+    },
+    "overlap_with_dataset": {"type": "string", "enum": ["YES", "NO", "NOT_COLLECTED", "NOT_APPLICABLE"]},
+    "notes": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"session_kind": {"enum": ["SYNTHETIC", "DEV_CAPTURE"]}}},
+      "then": {
+        "properties": {
+          "consent_status": {"const": "NOT_REQUIRED"},
+          "consent_record_id": {"type": "null"},
+          "overlap_with_dataset": {"const": "NOT_APPLICABLE"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"session_kind": {"enum": ["PILOT", "PARTICIPANT"]}}},
+      "then": {
+        "properties": {
+          "consent_status": {"const": "SIGNED"},
+          "consent_record_id": {"type": "string", "minLength": 1},
+          "overlap_with_dataset": {"enum": ["YES", "NO", "NOT_COLLECTED"]},
+          "prereg": {"properties": {"version": {"type": "integer"}, "sha256": {"$ref": "#/$defs/digest"}}}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "live_arm": {"type": "string", "enum": ["A", "B", "C"]}
+  }
+}

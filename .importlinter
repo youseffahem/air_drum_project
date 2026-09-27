@@ -9,11 +9,13 @@
 [importlinter]
 root_package = spacedrums
 
+# Phase 18: spacedrums.live_eval (confirmatory analysis over the frozen eval harness, live-experiment
+# tooling) sits beside app in the top layer; the two never import each other (ADR-0042 D4).
 [importlinter:contract:layers]
 name = Space Drums pipeline layers
 type = layers
 layers =
-    spacedrums.app
+    spacedrums.app | spacedrums.live_eval
     spacedrums.ui | (spacedrums.eval) | (spacedrums.data) | (spacedrums.calib)
     spacedrums.commit | (spacedrums.audio)
     spacedrums.prediction | spacedrums.models

@@ -221,3 +221,35 @@ another campaign.
 `build_test_matrix.py [--check]` regenerates / checks `docs/testing/test-matrix.md`.
 `verify_phase17.py [--require-clean]` repeats the executable gate checks (13 commands; the
 live-mode assertion set, the soak and every person-dependent check are separate).
+
+## Phase 18 (evaluation and experiments)
+
+Every Phase 18 script records who runs it: pass `--executor-model "<model>" --executor-effort
+"<effort>"`; it is never inferred. Outputs go under `experiments/phase-18/`.
+
+- **Rules and inputs.** The pre-registration is `docs/experiments/phase-18-prereg.md`; its hash
+  record is `docs/experiments/phase-18-prereg.hashes.json`.
+  - `prereg_archive.py archive | verify [--cite <report>] | approve` hashes a new version,
+    verifies it (and that reports quote the digest), and records owner / supervisor approval.
+  - `confirmatory_lock.py template | validate | archive | build-rehearsal` handles the
+    frozen-inputs locks. `archive` accepts only a complete PARTICIPANT lock from a clean tree
+    after approval. `build-rehearsal` trains fold-0 SYNTHETIC models on the kinematic fixture and
+    writes a SYNTHETIC rehearsal lock.
+- **Experiment 1.** `run_offline_confirmatory.py --lock <lock> (--require-clean | --rehearsal)`.
+  - It refuses to start without an archived lock and an unchanged frozen source. A participant
+    lock also needs an approval and runs once (ledger `phase-18-confirmatory-ledger.jsonl`).
+  - Before touching test data it runs `pytest tests/eval tests/live_eval` and TEST-CAUSAL-1 on
+    every locked arm.
+- **Regeneration.** `regenerate_phase18.py --run <dir> [--from-raw]` regenerates every table and
+  figure (Task 18.9).
+- **External timing pilot.** `external_methods_pilot.py --selftest | --m1-clicks
+  --allow-audio-device | --m1-pad | --decide` is the Task 18.3 pilot. `--m1-clicks` plays clicks
+  and records the room; the audio stays in memory.
+- **Experiment 2.**
+  - `run_live_session.py --live --kind ... --participant-index N ...` is PERSON-DEPENDENT;
+    `--synthetic --synthetic-mic` is the rehearsal.
+  - `external_sync.py --session <dir> --method M1|M2 --recording <file>` aligns an external
+    recording.
+  - `analyze_live.py --session <dir> ...` gives M3, M1, H4 and live FP / FN.
+- `verify_phase18.py [--require-clean]` runs the executable gate checks (16 commands: repository
+  checks, pre-registration hash, SYNTHETIC rehearsal chains).

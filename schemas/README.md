@@ -10,6 +10,8 @@ JSON Schemas (Draft 2020-12) that data files must validate against. Each schema 
 
 - Phase 14 calibration document (ADR-0037): `calib-v1` (`configs/calibration/*.calib.yaml`, YAML on disk; structure here, semantic rules in `spacedrums.calib.schema`). Example SYNTHETIC. `session-metadata` gains optional `calibration_status` / `calibration_hash` / `calibration_id`.
 
+- Phase 18 documents (ADR-0042): `live-session-metadata` (`live-session.json` beside the unchanged Phase 06 `metadata.json`, which it references by SHA-256; arm blocks, external methods, sync markers, blinding) and `confirmatory-lock` (the frozen-inputs lock of `docs/experiments/phase-18-prereg.md`; semantic rules in `spacedrums.live_eval.prereg.lock_errors`). Examples SYNTHETIC.
+
 Config schema lives in `configs/schema/config.schema.json` (same `$id` namespace). Later: `label-record.schema.json` (Phase 07), `feature-schema-v1.json` (Phase 08), `calib-v1.schema.json` (Phase 14).
 
 Check everything (from the repository root, Windows paths):

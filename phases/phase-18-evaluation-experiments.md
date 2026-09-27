@@ -2,7 +2,11 @@
 
 ## Status
 
-Planned
+PENDING — development execution complete at the exit gate (2026-09-27); the pre-registration is
+declared and hashed, the evaluation / live-experiment machinery is implemented and rehearsed on
+SYNTHETIC data only. The offline confirmatory run (no `ds-v1.0`), the external-method pad / video
+pilots, every live session with a person (ethics Open Question), reviewer action and clean
+post-owner-commit reproduction remain outstanding. See the gate record.
 
 ## Codex Model for This Phase
 
@@ -237,6 +241,8 @@ Do not claim that the recommended model was actually used unless the execution e
 ## Exit Gate
 
 Reviewer verifies pre-registration precedence, completeness, labelling, reproducibility. PASS → Phase 19 and Phase 20.
+
+Gate record: [Phase 18](../docs/gates/phase-18-gate.md) — PENDING reviewer, submitted 2026-09-27.
 
 ## What Must NOT Be Done Yet
 

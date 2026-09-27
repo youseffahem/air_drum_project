@@ -1,0 +1,19 @@
+{
+  "schema": "spacedrums.phase18.prereg-record/1.0",
+  "document": "docs/experiments/phase-18-prereg.md",
+  "digest": "sha256 over the UTF-8 bytes with CRLF normalised to LF (documents); canonical JSON (locks)",
+  "versions": [
+    {
+      "version": 1,
+      "sha256": "sha256:e901f280efb4681d35607a072909d9409e9aeaf3ab1c128112769f8c25793ba0",
+      "archived_at": "2026-09-27T08:44:07+03:00",
+      "git_head": "6730b81b261658784a33812b551acdf043a60be8",
+      "git_dirty": true,
+      "note": "Version 1 declared by the Phase 18 submitter (Claude Opus 5.5 via Claude Code) before any Phase 18 runner was executed on any data; owner / supervisor approval PENDING",
+      "new_preregistered_run": false,
+      "after_lock_reason": null
+    }
+  ],
+  "locks": [],
+  "approvals": []
+}

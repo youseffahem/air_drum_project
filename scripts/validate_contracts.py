@@ -71,6 +71,10 @@ LABEL_SCHEMAS = [
 # rules JSON Schema cannot express (exact layout recomputation, provenance agreement) are
 # spacedrums.calib.schema.semantic_errors, tested in tests/calib/.
 CALIBRATION_SCHEMAS = ["calib-v1"]
+# Phase 18 documents (ADR-0042): live-session metadata (extends SessionMetadata by composition) and the
+# frozen-inputs lock of the pre-registration; example accepted, required fields removed -> rejected,
+# unknown field -> rejected, plus the consent / evidence conditionals below.
+LIVE_EVAL_SCHEMAS = ["live-session-metadata", "confirmatory-lock"]
 # Records that must carry t_capture (Task 01.3 rule). Header/audio records are exempt:
 # AudioEvent is keyed by strike_id; RecordStreamHeader is not a per-frame record.
 CARRIES_T_CAPTURE = [s for s in RECORD_SCHEMAS if s not in ("audio-event", "record-stream-header")]
@@ -140,7 +144,7 @@ def main() -> int:
             report(bool(errors(v, wrong)), f"{stem}: non-numeric t_capture rejected")
 
     # 4d (Phase 06/07): dataset and label documents.
-    for stem in DATASET_SCHEMAS + LABEL_SCHEMAS:
+    for stem in DATASET_SCHEMAS + LABEL_SCHEMAS + LIVE_EVAL_SCHEMAS:
         v = validator_for(schemas[stem], registry)
         example = json.loads((EXAMPLES / f"{stem}.valid.example.json").read_text(encoding="utf-8"))
         errs = errors(v, example)
@@ -166,6 +170,20 @@ def main() -> int:
     report(
         bool(errors(v, dsv)), "session-metadata: SYNTHETIC session in a participant dataset version rejected"
     )
+
+    # Phase 18: a SYNTHETIC live session cannot carry a consent record; a participant lock must be clean.
+    v = validator_for(schemas["live-session-metadata"], registry)
+    live = json.loads((EXAMPLES / "live-session-metadata.valid.example.json").read_text(encoding="utf-8"))
+    consented = copy.deepcopy(live)
+    consented["consent_record_id"] = "CF-LIVE-X"
+    report(
+        bool(errors(v, consented)), "live-session-metadata: SYNTHETIC session with a consent record rejected"
+    )
+    v = validator_for(schemas["confirmatory-lock"], registry)
+    lock = json.loads((EXAMPLES / "confirmatory-lock.valid.example.json").read_text(encoding="utf-8"))
+    dirty = copy.deepcopy(lock)
+    dirty["evidence"] = "PARTICIPANT"
+    report(bool(errors(v, dirty)), "confirmatory-lock: PARTICIPANT lock from a dirty tree rejected")
 
     # 4e (Phase 07): non-causality and kind gating of the label artefacts.
     v = validator_for(schemas["label-record"], registry)

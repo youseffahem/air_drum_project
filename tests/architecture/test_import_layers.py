@@ -40,6 +40,7 @@ LAYERS: dict[str, int] = {
     "data": 9,
     "calib": 9,
     "app": 10,
+    "live_eval": 10,  # Phase 18 (ADR-0042 D4): beside app, never imported by it
 }
 SAME_LAYER_ALLOWED = {("features", "geometry")}  # read-only zone access (section 2.2)
 FORBIDDEN = {
