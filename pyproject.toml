@@ -42,7 +42,9 @@ markers = [
 ]
 # src/ so tests run without installing; tests/contracts keeps its conftest helpers importable and
 # tests/data exports the SYNTHETIC session builder the Phase 07 label tests reuse (tests/README.md).
-pythonpath = ["src", "tests/contracts", "tests/data"]
+# tests/invariants exports inv_helpers (Phase 17 fixtures shared by the invariants, failure-injection
+# and system suites).
+pythonpath = ["src", "tests/contracts", "tests/data", "tests/invariants"]
 
 [tool.ruff]
 line-length = 110

@@ -284,7 +284,7 @@ commit:
   refractory_hand_s: 0.04
   allow_degraded_commits: false
   stale_prediction_tolerance_s: 0.02
-  max_dropped_since_last: 1
+  max_dropped_since_last: 3
 audio:
   audio_profile_id: example-audio-profile
   device:

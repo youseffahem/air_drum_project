@@ -196,7 +196,7 @@ commit:                         # shared commit policy (Task 05.3); all values P
   refractory_hand_s: 0.04       # candidate: r_hand per hand (rapid alternating on different zones stays possible)
   allow_degraded_commits: false # README section 8 default; enabling is an explicit experiment (Phase 17)
   stale_prediction_tolerance_s: 0.02   # candidate: also the release time for an unobserved predicted crossing
-  max_dropped_since_last: 1     # candidate: frame-drop guard
+  max_dropped_since_last: 3     # candidate: frame-drop guard = g_max_frames (Phase 17 guard experiment, ADR-0040 D4)
 
 audio:
   audio_profile_id: example-audio-profile

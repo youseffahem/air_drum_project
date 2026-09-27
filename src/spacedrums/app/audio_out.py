@@ -8,10 +8,18 @@ the operator from an accepted run) or ``unmeasured`` (value 0.0 used *only* so t
 place the sample as early as possible; ``t_audio_out_est`` is then **not** copied into any
 ``TimingRecord`` — see ``spacedrums.timing.records``). Sound still plays either way; only the
 software estimate of the DAC instant is withheld.
+
+Phase 17 (Task 17.5, ADR-0040): the device is supervised. ``check_health(t_now)`` (called once per
+processed frame) marks the output ``DOWN`` when the stream stops calling back for ``stall_s`` or
+fails to start, and retries every ``retry_s`` (candidates). While ``DOWN`` a commit is still
+scheduled and logged (``AudioEvent``) but not enqueued (``dropped_while_down``); a restart clears the
+mixer so a recovered device never plays a backlog of stale sounds. Nothing here raises into the
+decision loop.
 """
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -19,6 +27,10 @@ from typing import Any
 from spacedrums.audio import AudioScheduler, CallbackMixer, GainCurve, SampleBank, SoundDeviceOutput
 from spacedrums.contracts import AudioEvent, CommittedStrike
 from spacedrums.timing import now
+
+log = logging.getLogger(__name__)
+STALL_S = 0.5  # candidate: no callback for this long -> DOWN (a 128-sample buffer calls back every ~2.7 ms)
+RETRY_S = 1.0  # candidate: restart attempts while DOWN
 
 
 @dataclass(frozen=True)
@@ -59,10 +71,23 @@ class AudioOutput:
         latency: OutputLatency,
         device_enabled: bool,
         clock: Callable[[], float] = now,
+        stream_factory: Callable[..., Any] | None = None,
+        stall_s: float = STALL_S,
+        retry_s: float = RETRY_S,
+        output_scale: float = 1.0,
     ) -> None:
         audio = cfg["audio"]
         self.latency = latency
         self.device_enabled = bool(device_enabled)
+        self.clock = clock
+        self.stall_s, self.retry_s = float(stall_s), float(retry_s)
+        # output_scale attenuates played samples only (unattended soak runs); never a gain curve
+        self.output_scale = float(output_scale)
+        self.device_state = "DISABLED" if not device_enabled else "STOPPED"
+        self.recoveries = self.start_failures = self.outages = 0
+        self.dropped_while_down = 0
+        self.last_error: str | None = None
+        self._next_retry: float | None = None
         self.sample_rate_hz = int(audio["sample_rate_hz"])
         self.buffer_frames = int(audio["buffer_frames"])
         zone_samples = {z["zone_id"]: z["sample_id"] for z in cfg["zones"]}
@@ -93,6 +118,8 @@ class AudioOutput:
                 sample_rate_hz=self.sample_rate_hz,
                 buffer_frames=self.buffer_frames,
                 device=audio["device"]["name"],
+                stream_factory=stream_factory,
+                clock=clock,
             )
         self.events: int = 0
 
@@ -100,18 +127,61 @@ class AudioOutput:
         return float(self.curves[self.zone_curve[zone_id]](intensity_proxy))
 
     def start(self) -> None:
-        if self.device is not None:
+        """Open the device; a failure leaves the output DOWN (retried by ``check_health``), no raise."""
+        if self.device is None:
+            return
+        try:
             self.device.start()
+            self.device_state = "RUNNING"
+        except Exception as exc:  # noqa: BLE001 - no audio device must not stop the session
+            self.start_failures += 1
+            self._down(f"start failed: {type(exc).__name__}: {exc}", self.clock())
 
     def stop(self) -> None:
         if self.device is not None:
             self.device.stop()
+            if self.device_state != "DISABLED":
+                self.device_state = "STOPPED"
+
+    def _down(self, reason: str, t_now: float) -> None:
+        if self.device_state != "DOWN":
+            self.outages += 1
+            log.warning("audio output down: %s", reason)
+        self.device_state = "DOWN"
+        self.last_error = reason
+        self._next_retry = t_now + self.retry_s
+
+    def check_health(self, t_now: float) -> str:
+        """Supervise the stream once per frame: detect loss, retry, recover. Returns the state."""
+        if self.device is None:
+            return self.device_state
+        if self.device_state == "RUNNING" and not self.device.alive(t_now, self.stall_s):
+            self._down(f"no audio callback for more than {self.stall_s:.2f} s", t_now)
+        if self.device_state == "DOWN" and self._next_retry is not None and t_now >= self._next_retry:
+            self.device.stop()
+            assert self.mixer is not None
+            self.mixer.clear()  # a recovered device never plays the backlog
+            try:
+                self.device.start()
+            except Exception as exc:  # noqa: BLE001 - keep retrying; the session goes on silently
+                self.start_failures += 1
+                self.last_error = f"restart failed: {type(exc).__name__}: {exc}"
+                self._next_retry = t_now + self.retry_s
+            else:
+                self.device_state = "RUNNING"
+                self.recoveries += 1
+                log.warning("audio output recovered")
+        return self.device_state
 
     def play(self, committed: CommittedStrike) -> AudioEvent:
         """Schedule (never a shadow commit — the scheduler refuses) and enqueue if a device runs."""
         event = self.scheduler.schedule(committed)
         if self.mixer is not None and self.bank is not None:
-            self.mixer.enqueue(event, self.bank[event.sample_id].data)
+            if self.device_state == "RUNNING":
+                data = self.bank[event.sample_id].data
+                self.mixer.enqueue(event, data if self.output_scale == 1.0 else data * self.output_scale)
+            else:
+                self.dropped_while_down += 1
         self.events += 1
         return event
 
@@ -120,6 +190,16 @@ class AudioOutput:
             "events_scheduled": self.events,
             "device_enabled": self.device_enabled,
             "output_latency": self.latency.to_dict(),
+            "device": {
+                "state": self.device_state,
+                "outages": self.outages,
+                "recoveries": self.recoveries,
+                "start_failures": self.start_failures,
+                "dropped_while_down": self.dropped_while_down,
+                "last_error": self.last_error,
+                "callbacks": getattr(self.device, "callbacks", None),
+                "output_scale": self.output_scale,
+            },
         }
         if self.mixer is not None:
             st = self.mixer.stats
@@ -128,6 +208,7 @@ class AudioOutput:
                 "events_late": st.events_late,
                 "events_mixed": st.events_mixed,
                 "clipped_samples": st.clipped_samples,
+                "voices_cleared": st.voices_cleared,
             }
         return out
 

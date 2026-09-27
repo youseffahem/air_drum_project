@@ -50,6 +50,9 @@ class ReplayFrameSource:
                 rec = FrameSample.from_dict(json.loads(line))
                 if rec.frame_id <= last_id:
                     raise ValueError(f"{frames}: frame_id {rec.frame_id} not strictly increasing")
+                # Phase 17: a broken timestamp stream is refused here, never mid-run in the pipeline
+                if samples and rec.t_capture <= samples[-1].t_capture:
+                    raise ValueError(f"{frames}: t_capture of frame {rec.frame_id} not strictly increasing")
                 if rec.image_ref.path is None:
                     raise ValueError(f"{frames}: frame {rec.frame_id} has no FILE image_ref")
                 last_id = rec.frame_id

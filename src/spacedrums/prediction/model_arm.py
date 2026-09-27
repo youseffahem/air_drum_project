@@ -1,5 +1,6 @@
 """Causal live wrapper around the injected Phase 10 adapter; shared weights, per-hand windows."""
 
+import math
 from collections import defaultdict, deque
 from dataclasses import replace
 
@@ -63,6 +64,19 @@ class ModelArm:
                 "inference_s": max(0.0, end - done),
             }
         if pred is not None:
+            check_finite(pred)
             self.predictions += 1
             pred = replace(pred, t_inference_done=end)
         return pred
+
+
+def check_finite(pred):
+    """Phase 17: a corrupt model must fail loudly (fallback), not go silent or pass a NaN gate."""
+    values = [v for p in pred.positions for v in p]
+    aux = pred.aux
+    for name in ("strike_prob_within_H", "intensity_proxy", "tti"):
+        value = getattr(aux, name, None) if aux is not None else None
+        if value is not None:
+            values.append(value)
+    if not all(math.isfinite(float(v)) for v in values):
+        raise ValueError("model produced a non-finite prediction")

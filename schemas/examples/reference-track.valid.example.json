@@ -29,7 +29,7 @@
     "loss_intervals": []
   },
   "n_samples": 117,
-  "config_hash": "sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85",
+  "config_hash": "sha256:c0341a9f284892ba25dabe90b1043e53d9c65168606af89c91c0173f111fdde8",
   "git_sha": "0000000000000000000000000000000000000000",
   "clock_id": "perf_counter",
   "generator": {

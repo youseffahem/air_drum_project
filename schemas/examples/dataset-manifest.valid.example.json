@@ -29,7 +29,7 @@
     "zone_layout_id": "mvp4",
     "v_min": 0.15,
     "interpolation": "QUADRATIC",
-    "config_hash": "sha256:fd7d0926aa672c6815a34b5a67d057b4bb05d4d7a2fe364dbf37be32869dba85",
+    "config_hash": "sha256:c0341a9f284892ba25dabe90b1043e53d9c65168606af89c91c0173f111fdde8",
     "git_sha": "0000000000000000000000000000000000000000",
     "generator": {
       "tool": "spacedrums.data.labels.generate",
@@ -37,7 +37,7 @@
     },
     "reference_track_ref": "tracks_reference.jsonl",
     "causal_track_ref": "tracks_causal.jsonl",
-    "session_metadata_sha256": "sha256:2f5e72c8c26ab91e9b0d82df82a1c2fb2795f9ba7cc500a550f6ce233ddc469e",
+    "session_metadata_sha256": "sha256:c76b4e363455fe2fe612dc71fbfebf663c9512bfe1ee855999a2f7b53d9644d7",
     "labels_hash": "sha256:084a58389df137fa4218d23eb03531528a6dec7d97162691924db69b5c3997e3"
   },
   "splits": {
@@ -73,7 +73,7 @@
       "participant_id": "SYNTHETIC",
       "source_kind": "SYNTHETIC",
       "path": "synthetic-example",
-      "set_hash": "sha256:2988283b38749c731eab2c40f8eafc4b7add0abddbdf0baffc5d643ed5f9f675",
+      "set_hash": "sha256:615797037953fbc55564143eef71dcd16e729fe62586362eb3c5ecf20eb93e51",
       "n_labels": 6,
       "by_class": {
         "NEG_FAKE_SWING": 1,
@@ -85,19 +85,19 @@
         {
           "path": "labels.jsonl",
           "bytes": 17651,
-          "sha256": "sha256:a8301a446d3b7062f277c489a3abc2dd56adeb88d95ae21d7745f084abbf6c37",
+          "sha256": "sha256:4bfd7423614c27f70608f98979dac7ca8f80b2121874c8ef04c3c3ac65e8103f",
           "causal": false
         },
         {
           "path": "tracks_causal.jsonl",
           "bytes": 140408,
-          "sha256": "sha256:fda782722bd9db84779f57be459814156250c63579cd4cdd05cbecb470b15415",
+          "sha256": "sha256:ac10eed849bd92585ac8bf48fbdc2e566d4bf84aea76fcf7dad4f07ccff95cec",
           "causal": true
         },
         {
           "path": "tracks_reference.jsonl",
           "bytes": 51911,
-          "sha256": "sha256:0ee52074d16d0f1a1738bfe57b25955588ad77fcdb1342794351713ce78fec49",
+          "sha256": "sha256:dbb03b2d7a903761c77cb927ea72983bdc377935b7be26cc406d9cef9ddbe461",
           "causal": false
         }
       ]
@@ -107,5 +107,5 @@
   "exclusions": [],
   "withdrawals": [],
   "notes": "",
-  "manifest_hash": "sha256:52bf0c8928e0f9598fb336b6e18fcc54536b46767d87ea2d1008486e2a581b76"
+  "manifest_hash": "sha256:a2269294d3429bb6a1df8b64a5fd666df292a48e22a990da8b0afacf06ac16cc"
 }

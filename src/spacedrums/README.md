@@ -1,5 +1,12 @@
 # spacedrums
 
+Phase 17 adds `app.invariants` (runtime safety-invariant monitor I1–I6; `commit.invariants` holds the
+I1/I3/I4 core), `app.health` (`HealthStatus {camera, tracking, model, audio}`), `app.errors` (message
+catalogue, structured event log, crash reports) and `app.faults` (fault injection, test builds only),
+plus the hardening fixes of ADR-0040 (audible continuity across arm switches, time-gap tracking reset,
+missing-frame commit guard, strictly increasing capture timestamps, model and audio fault handling,
+config schema 1.8 single-user identity rule). Physical and participant evidence remain PENDING.
+
 Phase 14 adds `calib` (Calibration Wizard, calib-v1 file, re-calibration triggers, calibrated
 config via `load_calibrated_config`; ADR-0037), `ui.wizard_views` and the runner `app.calibrate`.
 Developer live calibrations and the `L_prior` repeatability measurement remain PENDING.

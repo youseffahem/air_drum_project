@@ -62,6 +62,10 @@ class TrackerSettings:
     angle_alpha: float = 0.6
     angle_beta: float = 0.3
     causal_tolerance: float = 1e-6  # declared TEST-CAUSAL-2 tolerance (ROI-norm units) for N_eff
+    # Phase 17 (ADR-0040): a frame interval above this is a tracking gap (None disables the rule).
+    # Derived, not a new tunable: (g_max_frames + 1.5) nominal frame periods, i.e. more than g_max
+    # frames missing at the requested rate. Not part of ``tracker_id`` (derived from g_max + fps).
+    max_frame_gap_s: float | None = None
 
     def __post_init__(self) -> None:
         if self.history_n < 1:
@@ -75,12 +79,15 @@ class TrackerSettings:
         params = dict(tr["filter"].get("params", {}))
         roi = cfg.get("roi", {}).get("px")
         aspect = (roi[2] / roi[3]) if roi else 1.0
+        fps = (cfg.get("camera_profile") or {}).get("requested_fps")
+        machine = StateMachineSettings.from_config(tr)
         return cls(tracker_id=str(tr["tracker_id"]), filter_type=str(tr["filter"]["type"]),
-                   filter_params=params, machine=StateMachineSettings.from_config(tr),
+                   filter_params=params, machine=machine,
                    history_n=int(tr["history_n"]), roi_aspect=float(aspect),
                    angle_alpha=float(params.get("angle_alpha", 0.6)),
                    angle_beta=float(params.get("angle_beta", 0.3)),
-                   causal_tolerance=float(params.get("causal_tolerance", 1e-6)))
+                   causal_tolerance=float(params.get("causal_tolerance", 1e-6)),
+                   max_frame_gap_s=(machine.g_max_frames + 1.5) / float(fps) if fps else None)
 
     def full_id(self) -> str:
         m = self.machine
@@ -105,6 +112,7 @@ class CausalTracker:
         self._t_prev: float | None = None
         self.resets: list[TrackReset] = []
         self.frames = 0
+        self.gap_resets = 0
 
     # -- Tracker protocol ------------------------------------------------------------------
     @property
@@ -132,6 +140,17 @@ class CausalTracker:
         dt = (t_capture - self._t_prev) if self._t_prev is not None else 0.0
         if dt < 0:
             raise ValueError("t_capture must be non-decreasing (frames processed in order)")
+        gap = self.settings.max_frame_gap_s
+        if gap is not None and self._t_prev is not None and dt > gap and \
+                self.machine.state.status in (TrackStatus.VALID, TrackStatus.DEGRADED):
+            # Phase 17: too long without a frame to bridge - reset now, re-acquire below if possible
+            self.machine.expire(ResetReason.GAP_EXCEEDED)
+            self.filter.reset()
+            self.angle.reset()
+            self._history.clear()
+            self.resets.append(TrackReset(self.hand_id, t_capture, ResetReason.GAP_EXCEEDED,
+                                          hand_obs.frame_id))
+            self.gap_resets += 1
         self._t_prev = t_capture
         has_obs = bool(stick_obs.present and stick_obs.tip is not None)
         conf = float(stick_obs.tip_confidence) if has_obs else 0.0

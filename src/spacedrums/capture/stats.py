@@ -130,8 +130,9 @@ class CaptureStats:
 
     Fields of the Phase 02 interface contract plus ``duplicates`` (byte-identical consecutive
     frames the backend delivered and capture refused to count: Task 02.4 finding on HW-01) and
-    ``clamped_timestamps`` (frames whose mapped ``t_capture`` had to be clamped to keep
-    ``t_capture <= t_frame_available`` and monotone: must be 0 in a healthy run).
+    ``clamped_timestamps`` (timestamp-policy interventions: a mapped ``t_capture`` clamped to keep
+    ``t_capture <= t_frame_available``, or - Phase 17 - a frame refused because its ``t_capture``
+    would not strictly increase; must be 0 in a healthy run).
     """
 
     delivered: int

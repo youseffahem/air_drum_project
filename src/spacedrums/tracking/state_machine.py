@@ -15,6 +15,11 @@ Rules implemented (Q34-Q35: never fabricate, never use the future):
 * re-acquisition from ``INVALID``/``STALE`` needs ``conf >= c_valid`` (a DEGRADED-level observation
   does not re-acquire — tunable ``acquire_on_degraded``); the filter is initialised from that
   observation and history starts empty (architecture.md 6.2, "initialise from observation").
+* Phase 17 (ADR-0040): a *frame interval* longer than the bridging allowance (more than
+  ``g_max_frames`` frames missing at the requested rate: a camera stall, a drop burst or a clock
+  jump) is a gap too — :meth:`TrackingStateMachine.expire` makes the state ``INVALID`` with reset
+  reason ``GAP_EXCEEDED`` before the frame is processed, so a fresh observation re-acquires instead
+  of being extrapolated to across the gap.
 
 The machine decides *what* the tracker does with the filter (``init`` / ``update`` / ``predict`` /
 ``reset`` / ``none``); the tracker executes it. Kept separate so every transition is unit-testable
@@ -91,6 +96,14 @@ class TrackingStateMachine:
 
     def reset(self, reason: ResetReason) -> None:
         self.state.reset(reason)
+
+    def expire(self, reason: ResetReason = ResetReason.GAP_EXCEEDED) -> None:
+        """Time-gap reset (Phase 17): the live state is too old to bridge. ``INVALID``; the reset is
+        reported on the next ``step``; ``last_valid_t`` / ``frames_since_valid`` are kept (STALE)."""
+        st = self.state
+        last_valid, fsv = st.last_valid_t, st.frames_since_valid
+        st.reset(reason)
+        st.last_valid_t, st.frames_since_valid = last_valid, fsv
 
     def step(self, t: float, has_obs: bool, conf: float) -> Decision:
         s, st = self.s, self.state

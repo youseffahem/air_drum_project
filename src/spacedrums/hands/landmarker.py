@@ -322,7 +322,8 @@ class HandLandmarker:
 
         candidates = [
             IdentityCandidate(index=i, wrist=(float(d.landmarks[WRIST, 0]), float(d.landmarks[WRIST, 1])),
-                              raw_hand_id=d.hand_id, raw_score=d.score)
+                              raw_hand_id=d.hand_id, raw_score=d.score,
+                              area=float(d.bbox[2] * d.bbox[3]))
             for i, d in enumerate(detections)
         ]
         ident = self.identity.assign(candidates, sample.frame_id, sample.t_capture)

@@ -28,7 +28,7 @@ from typing import Any
 
 from spacedrums.app.arms import MODEL_ARMS, ArmSwitch, build_model_arm, check_zone_features
 from spacedrums.app.audio_out import AudioOutput
-from spacedrums.commit import CommitSettings, PerHandCommitPolicy
+from spacedrums.commit import CommitSettings, PerHandCommitPolicy, frames_missing
 from spacedrums.config import config_hash as _hash
 from spacedrums.contracts import (
     Arm,
@@ -89,6 +89,11 @@ class FrameResult:
     t_inference_done: float | None
     hands: dict[HandId, HandFrame]
     timing: list[TimingRecord]
+    # Phase 17 (Task 17.2, invariant I5): pipeline state at the commit stage of this frame.
+    active_arm: Arm | None = None
+    transition_seq: int = 0  # arm switches + model fallbacks recorded before this frame's commit stage
+    commits_skipped: bool = False  # commit stage skipped (arm-switch / fallback transition window)
+    model_disabled: bool = False  # the configured model arm was already disabled at the commit stage
 
     @property
     def commits(self) -> list[CommittedStrike]:
@@ -146,6 +151,7 @@ class DecisionPipeline:
         self.model_label = requested_models[0] if requested_models else None
         self.model_error = None
         self.fallback_events = []
+        self.transition_seq = 0  # Phase 17: every arm switch / fallback, for the I5 audit
         self._skip_commits = False
         self._previous_sample = None
         self.fallback = cfg["anticipator"].get("fallback") or {"enabled": False}
@@ -168,7 +174,7 @@ class DecisionPipeline:
                 self.cadence = CadenceMonitor(
                     self.model_arm.manifest["dt_step"], m["cadence_window_frames"], m["cadence_tolerance"]
                 )
-            except (OSError, ValueError, KeyError, RuntimeError, ImportError) as exc:
+            except Exception as exc:  # noqa: BLE001 - Phase 17: any load failure is a fallback, never a crash
                 if not self.fallback["enabled"]:
                     raise
                 load_error = f"load failure: {type(exc).__name__}: {exc}"
@@ -202,6 +208,8 @@ class DecisionPipeline:
             else {}
         )
         self.commit_settings = CommitSettings.from_config(cfg)
+        fps = (cfg.get("camera_profile") or {}).get("requested_fps")
+        self.nominal_dt_s = 1.0 / float(fps) if fps else None  # Phase 17: stalls count as missing frames
         self.policies: dict[Arm, dict[HandId, PerHandCommitPolicy]] = {
             arm: {
                 h: PerHandCommitPolicy(
@@ -239,14 +247,18 @@ class DecisionPipeline:
         arm = Arm(arm)
         if arm in MODEL_ARMS and (self.model_arm is None or self.model_error):
             raise ValueError("model unavailable; restart after correcting the recorded fault")
+        previous = self.active_arm
         if not self.switch.select(arm, t_now):
             return
+        self.transition_seq += 1
         self.active_arm = arm
         self.shadow_arms = tuple(a for a in self.arms if a is not arm)
         for a in self.arms:
             for h in HANDS:
                 self.policies[a][h].shadow = a is not arm
-                self.policies[a][h].reset(ResetReason.ARM_SWITCH)  # IDLE; timers persist (reset matrix)
+                self.policies[a][h].reset(ResetReason.ARM_SWITCH)  # ARMED dropped; timers/episodes persist
+        for h in HANDS:  # Phase 17 (ADR-0040): one physical strike never sounds twice across a switch
+            self.policies[arm][h].absorb_suppression(self.policies[previous][h])
         self._skip_commits = True
 
     def _fallback(self, reason, t):
@@ -256,6 +268,7 @@ class DecisionPipeline:
             raise RuntimeError(reason)
         target = fallback_target(self.fallback["to"], self.arms)
         self.model_error = reason
+        self.transition_seq += 1
         if self.model_arm is not None:
             self.model_arm.reset()
         # A faulty shadow model is disabled without changing the sounding baseline.
@@ -285,6 +298,11 @@ class DecisionPipeline:
                 if (obs.frame_id, obs.t_capture, obs.hand_id) != (sample.frame_id, sample.t_capture, h):
                     raise AssertionError("only observations from the current delivered frame are allowed")
         self._previous_sample = sample
+        self.missing_frames = frames_missing(
+            None if old is None else sample.t_capture - old.t_capture,
+            self.nominal_dt_s,
+            sample.dropped_since_last,
+        )
         self.frames += 1
         if self.cadence and not self.model_error:
             try:
@@ -366,7 +384,7 @@ class DecisionPipeline:
                                 v * n for v, n in zip(candidate.crossing_velocity, normal, strict=True)
                             )
                             hf.model_candidate = replace(candidate, intensity_proxy=max(0.0, speed))
-                except (OSError, ValueError, RuntimeError) as exc:
+                except Exception as exc:  # noqa: BLE001 - Phase 17: any model fault is a fallback, never a crash
                     self._fallback(
                         f"inference failure: {type(exc).__name__}: {exc}",
                         self.clock() if t_now is None else t_now,
@@ -381,6 +399,12 @@ class DecisionPipeline:
                 raise ValueError("choose explicit replay time or measured replay time")
             t_now = sample.t_frame_available + max(0.0, self.clock() - start)
         t_now = float(self.clock() if t_now is None else t_now)
+        commit_stage = {
+            "active_arm": self.active_arm,
+            "transition_seq": self.transition_seq,
+            "commits_skipped": self._skip_commits,
+            "model_disabled": self.model_error is not None,
+        }
         timing: list[TimingRecord] = [
             self.timing.frame(
                 sample,
@@ -403,7 +427,7 @@ class DecisionPipeline:
                 if self._skip_commits or (arm in MODEL_ARMS and self.model_error):
                     continue
                 commits = self.policies[arm][h].step(
-                    by_arm.get(arm, []), hf.track, t_now, dropped_since_last=sample.dropped_since_last
+                    by_arm.get(arm, []), hf.track, t_now, dropped_since_last=self.missing_frames
                 )
                 hf.decision_traces.extend(
                     {"arm": str(arm), "hand_id": str(h), **trace.to_dict()}
@@ -446,6 +470,7 @@ class DecisionPipeline:
             t_inference_done=t_inference_done,
             hands=hands,
             timing=timing,
+            **commit_stage,
         )
 
     # -- diagnostics -----------------------------------------------------------------------

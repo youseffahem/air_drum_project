@@ -49,3 +49,24 @@ parity and tamper refusal per extension, two-rate targets as dense-grid columns,
 to Baseline B's CV extrapolation, known crossing probabilities (including 1 − Φ(d/σ)), a gate that
 only relabels geometry candidates, the C-TT replay arm, script refusals, the declared variant
 registry and the mechanical go/no-go rule. Fixtures are SYNTHETIC.
+
+Phase 17: `tests/invariants/` (TEST-INV-1..3: every safety invariant I1–I6 fires on a constructed
+violation; zero violations with non-zero check counts on every SYNTHETIC scenario, the recorded
+SYNTHETIC P07 session and its Phase 09 harness replay), `tests/failure_injection/` (TEST-FI-TRK:
+occlusion 100–1000 ms at approach / impact / idle with README §8 transitions and re-acquisition,
+hand out of the ROI, low confidence, background hand, swaps, hit types; TEST-FI-VIS: occlusion
+masks, lighting gain/gamma and a distractor on the developer capture through real perception,
+skipped when the git-ignored capture is absent; TEST-FI-CAP: live-source timestamp anomalies,
+stalls and disconnects, replay refusal of broken recordings, drop accounting, the time-gap reset
+and the missing-frame commit guard; TEST-FI-MDL / TEST-FI-AUD / TEST-FI-SW: model exceptions of
+any type, non-finite outputs, slow and corrupt packages, audio device removal / re-attach and
+underrun bursts, and the arm-switch double-strike regression; TEST-FI-ID: the single-user identity
+rule) and `tests/system/` (TEST-SYS: the application entry point end to end with the monitors
+raising, crash reports, the missing-camera message, the offline guarantee, and the test-matrix
+freshness check). `tests/app/test_app_health_errors.py` covers the health monitor, the message
+catalogue, the structured event log and crash reports; `tests/scripts/test_phase17_scripts.py`
+pins the re-acquisition sweep's declared decision rule. Shared fixtures live in
+`tests/invariants/inv_helpers.py` (on pytest's `pythonpath`); each new directory's `conftest.py`
+only re-exports them. Fault injection is enabled for the test process
+(`SPACEDRUMS_FAULT_INJECTION=1`, set by `inv_helpers`). Every input is SYNTHETIC or a developer
+capture; none is participant data.

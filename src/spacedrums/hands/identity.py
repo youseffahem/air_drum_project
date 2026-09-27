@@ -34,6 +34,11 @@ Events (logged at INFO via ``logging`` and returned in the frame result):
 * ``IDENTITY_JUMP`` — the assigned detection lies outside the gate of the hand's own previous
   wrist but inside the gate of the *other* hand's previous wrist (a possible track swap);
 * ``AMBIGUOUS`` — margin below threshold; both hands capped.
+* ``BACKGROUND_REJECTED`` — Phase 17 single-user rule (ADR-0040; ``user_min_relative_area`` > 0): a
+  detection whose box area is below that fraction of the user's hand size (the larger of the
+  largest detection in the frame and the running user-hand size) is someone else's hand in the
+  background and is never assigned (V1 is single-user, REQ-051 / REQ-204). Off (0) by default until
+  the live two-person test (Task 17.6, PENDING) sets the value.
 
 Nothing here is a result: swap rates are *measured* by ``scripts/hands_landmark_check.py`` and
 reported per capture; the crossing-scenario measurement needs a dev capture with deliberate
@@ -69,6 +74,7 @@ class IdentityEventKind(StrEnum):
     CONTINUITY_OVERRIDE = "CONTINUITY_OVERRIDE"
     IDENTITY_JUMP = "IDENTITY_JUMP"
     AMBIGUOUS = "AMBIGUOUS"
+    BACKGROUND_REJECTED = "BACKGROUND_REJECTED"
 
 
 @dataclass(frozen=True)
@@ -81,6 +87,7 @@ class IdentitySettings:
     w_label: float = 0.5  # weight of the estimator label term; continuity weight is 1 - w_label
     ambiguity_margin: float = 0.15  # best-vs-second total-score margin below which the frame is ambiguous
     ambiguous_score_cap: float = 0.5  # handedness_score cap when ambiguous; in [c_min, c_valid) (loader)
+    user_min_relative_area: float = 0.0  # Phase 17 single-user rule; 0 = off (schema 1.8, ADR-0040)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "mode", IdentityMode(self.mode))
@@ -92,6 +99,8 @@ class IdentitySettings:
             v = getattr(self, name)
             if not (0.0 <= v <= 1.0):
                 raise ValueError(f"{name} must lie in [0, 1], got {v!r}")
+        if not (0.0 <= self.user_min_relative_area < 1.0):
+            raise ValueError("user_min_relative_area must lie in [0, 1)")
 
     @classmethod
     def from_config(cls, hands_cfg: dict[str, Any]) -> IdentitySettings:
@@ -99,13 +108,15 @@ class IdentitySettings:
         return cls(mode=IdentityMode(i["mode"]), gate_distance=float(i["gate_distance"]),
                    max_gap_s=float(i["max_gap_s"]), w_label=float(i["w_label"]),
                    ambiguity_margin=float(i["ambiguity_margin"]),
-                   ambiguous_score_cap=float(i["ambiguous_score_cap"]))
+                   ambiguous_score_cap=float(i["ambiguous_score_cap"]),
+                   user_min_relative_area=float(i.get("user_min_relative_area", 0.0)))
 
     def id_fragment(self) -> str:
         if self.mode is IdentityMode.RAW:
             return "id-raw"
+        user = f"-ua{self.user_min_relative_area:.2f}" if self.user_min_relative_area > 0 else ""
         return (f"id-temporal-g{self.gate_distance:.2f}-gap{self.max_gap_s:.2f}-wl{self.w_label:.2f}"
-                f"-m{self.ambiguity_margin:.2f}-cap{self.ambiguous_score_cap:.2f}")
+                f"-m{self.ambiguity_margin:.2f}-cap{self.ambiguous_score_cap:.2f}{user}")
 
 
 @dataclass(frozen=True)
@@ -116,6 +127,7 @@ class IdentityCandidate:
     wrist: tuple[float, float]
     raw_hand_id: HandId | None  # swap-mapped estimator label; None = unknown label
     raw_score: float
+    area: float | None = None  # Phase 17: ROI-normalized box area (single-user rule); None = unknown
 
 
 @dataclass(frozen=True)
@@ -162,6 +174,7 @@ class IdentityCounters:
     continuity_overrides: int = 0
     identity_jumps: int = 0
     unassigned: int = 0
+    background_rejected: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return dict(self.__dict__)
@@ -190,9 +203,35 @@ class IdentityAssigner:
         self.settings = settings
         self.counters = IdentityCounters()
         self._memory: dict[HandId, _Memory] = {}
+        self._user_area: float | None = None  # running size of the user's assigned hands (causal)
 
     def reset(self) -> None:
         self._memory.clear()
+        self._user_area = None
+
+    def _single_user(self, candidates: Sequence[IdentityCandidate], frame_id: int,
+                     t_capture: float) -> tuple[list[IdentityCandidate], list[IdentityEvent]]:
+        """Phase 17 rule: drop detections much smaller than the user's hands (background people)."""
+        ratio = self.settings.user_min_relative_area
+        areas = [c.area for c in candidates if c.area]
+        if ratio <= 0 or not areas:
+            return list(candidates), []
+        reference = max(areas + ([self._user_area] if self._user_area else []))
+        keep, events = [], []
+        for c in candidates:
+            if c.area is not None and c.area < ratio * reference:
+                self.counters.background_rejected += 1
+                events.append(IdentityEvent(frame_id, t_capture, IdentityEventKind.BACKGROUND_REJECTED, None,
+                                            {"area": c.area, "reference_area": reference, "ratio": ratio,
+                                             "raw_label": str(c.raw_hand_id)}))
+            else:
+                keep.append(c)
+        return keep, events
+
+    def _remember_area(self, assigned: Sequence[IdentityCandidate]) -> None:
+        for c in assigned:
+            if c.area:
+                self._user_area = c.area if self._user_area is None else 0.9 * self._user_area + 0.1 * c.area
 
     # -- scoring -----------------------------------------------------------------------------
     def _memory_for(self, hand: HandId, t_capture: float) -> _Memory | None:
@@ -221,8 +260,13 @@ class IdentityAssigner:
         self.counters.frames += 1
         if candidates:
             self.counters.frames_with_detections += 1
+        candidates, background = self._single_user(candidates, frame_id, t_capture)
         if s.mode is IdentityMode.RAW:
-            return self._assign_raw(candidates, frame_id, t_capture)
+            result = self._assign_raw(candidates, frame_id, t_capture)
+            self._remember_area([a.candidate for a in result.assignments.values()])
+            return IdentityFrameResult(result.assignments, result.ambiguous, result.margin,
+                                       tuple(background) + result.events,
+                                       result.n_unassigned + len(background))
 
         mems = {h: self._memory_for(h, t_capture) for h in _HANDS}
         # score table: (hand, candidate index) -> (combined, p_label, p_temp, d)
@@ -240,8 +284,8 @@ class IdentityAssigner:
             chosen = {h: cand_by_index[p] for h, p in zip(_HANDS, pick, strict=True) if p is not None}
             options.append((total, chosen))
         if not options:
-            return IdentityFrameResult(assignments={}, ambiguous=False, margin=None, events=(),
-                                       n_unassigned=0)
+            return IdentityFrameResult(assignments={}, ambiguous=False, margin=None, events=tuple(background),
+                                       n_unassigned=len(background))
         # the score sum rewards assigning a second hand whenever its score > 0; a tie between the
         # two-hand assignment and its swap yields margin 0 -> ambiguous (never a guess)
         options.sort(key=lambda o: -o[0])
@@ -249,7 +293,7 @@ class IdentityAssigner:
         margin = (best_total - options[1][0]) if len(options) > 1 else None
         ambiguous = margin is not None and margin < s.ambiguity_margin
 
-        events: list[IdentityEvent] = []
+        events: list[IdentityEvent] = list(background)
         assignments: dict[HandId, HandAssignment] = {}
         for h, c in best.items():
             combined, p_label, p_temp, d_own = table[(h, c.index)]
@@ -290,11 +334,12 @@ class IdentityAssigner:
         # until max_gap_s expires (a hand hidden for a moment must still be recognised).
         for h, a in assignments.items():
             self._memory[h] = _Memory(a.candidate.wrist, t_capture)
+        self._remember_area([a.candidate for a in assignments.values()])
         self.counters.assigned += len(assignments)
         n_unassigned = len(candidates) - len(assignments)
         self.counters.unassigned += n_unassigned
         return IdentityFrameResult(assignments=assignments, ambiguous=ambiguous, margin=margin,
-                                   events=tuple(events), n_unassigned=n_unassigned)
+                                   events=tuple(events), n_unassigned=n_unassigned + len(background))
 
     def _assign_raw(self, candidates: Sequence[IdentityCandidate], frame_id: int,
                     t_capture: float) -> IdentityFrameResult:

@@ -34,6 +34,7 @@ class DashboardRecord:
     timing: tuple[TimingRecord, ...] = ()
     hands: tuple[dict[str, Any], ...] = ()
     strike_zones: tuple[tuple[str, str], ...] = ()
+    health: str | None = None  # Phase 17: HealthStatus summary line (camera / tracking / model / audio)
 
 
 class Subscription:
@@ -221,6 +222,10 @@ def render_dashboard(
     for index, line in enumerate(lines):
         cv2.putText(
             image, line, (24, 38 + index * 28), cv2.FONT_HERSHEY_SIMPLEX, 0.58, theme.text, 1, cv2.LINE_AA
+        )
+    if latest is not None and latest.health:  # Phase 17: only drawn when the app supplies it
+        cv2.putText(
+            image, latest.health[:110], (24, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.40, theme.muted, 1, cv2.LINE_AA
         )
     cv2.putText(
         image,
