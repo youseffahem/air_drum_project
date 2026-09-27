@@ -170,3 +170,18 @@ Phase 10 encoders), `src/spacedrums/geometry/probabilistic.py` (additive; `inter
 and the gate record. Runs live under `experiments/phase-12/` (git-ignored, hashed); the archived
 pre-declaration is `experiments/phase-12/predeclaration/`. No `models/temporal/<model_id>/` package
 was created: nothing is adopted.
+
+## Phase 18 amendment
+
+Added the subpackage `src/spacedrums/live_eval/` (top import layer beside `app/`, ADR-0042 D4):
+confirmatory statistics and decision rules, the pre-registration record and execute-once ledger,
+counterbalancing and the live protocol, `LiveSessionMetadata`, sync and the external timing methods
+M1 / M2 / M3, the offline metrics layer and TEST-CAUSAL-1 on evaluated arms. `eval/` is unchanged.
+Also added `schemas/{confirmatory-lock,live-session-metadata}.schema.json`,
+`scripts/{_p18,_p18_live,_p18_report,run_offline_confirmatory,confirmatory_lock,prereg_archive,
+regenerate_phase18,external_methods_pilot,external_sync,run_live_session,analyze_live,
+verify_phase18}.py`, `tests/live_eval/`, `docs/experiments/phase-18-prereg{.md,.hashes.json}`,
+`docs/protocols/phase-18-{live-protocol,questionnaire}.md`, `docs/ethics/consent-form-live-addendum.md`,
+`docs/reports/phase-18-*.md`, ADR-0042 and the gate record. Runs live under `experiments/phase-18/`
+(git-ignored). The confirmatory ledger `docs/experiments/phase-18-confirmatory-ledger.jsonl` is
+created by the first participant run; none exists.

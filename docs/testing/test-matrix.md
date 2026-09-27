@@ -20,7 +20,7 @@ and none exists. RTM statuses are **not** advanced here (only a signed gate may 
 Test counts are `def test_` functions per file (parametrised cases are counted by pytest
 separately).
 
-**Summary:** 103 requirements; COVERED: 53; COVERED + PENDING evidence: 26; JUSTIFIED (non-test verification): 24; GAP: 0.
+**Summary:** 103 requirements; COVERED: 53; COVERED + PENDING evidence: 32; JUSTIFIED (non-test verification): 18; GAP: 0.
 
 ## Gap list
 
@@ -43,16 +43,16 @@ participant-dependent checks, and review-only scope rules; each names its eviden
 | REQ | Type | Owner(s) | RTM verification | Unit | Integration | System | Failure injection | Invariants | Other evidence / justification | Matrix status |
 |---|---|---|---|---|---|---|---|---|---|---|
 | REQ-001 | F/R | 01, 05, 13, 20 | review (01), system test (05, 13, 20) | - | `app/test_app_pipeline.py` (12)<br>`parity/test_live_model.py` (18) | `system/test_system_app.py` (6) | - | `invariants/test_inv_replay.py` (3) | architecture review (Phase 01) | COVERED |
-| REQ-002 | R | 10, 18 | measurement (18, external timing) | - | - | - | - | - | research measurement, Phase 18 external timing (PENDING) | JUSTIFIED (non-test verification) |
+| REQ-002 | R | 10, 18 | measurement (18, external timing) | `live_eval/test_live_eval_methods.py` (10)<br>`live_eval/test_live_eval_protocol.py` (6)<br>`live_eval/test_live_eval_stats.py` (10) | - | - | - | - | external timing machinery (M1/M2/M3, live protocol) on SYNTHETIC recordings; live measurement with people PENDING (18) | COVERED + PENDING evidence |
 | REQ-003 | C | 06, 22 | review (protocol difficulty in 06; demo framing in 22) | - | - | - | - | - | review: protocol difficulty (06), demo framing (22) | JUSTIFIED (non-test verification) |
 | REQ-004 | F | 05, 02, 04, 14, 20 | system test (05, 20); test (02 guide, 04 zones) | `calib/test_calib_app.py` (8)<br>`ui/test_guide.py` (9) | `app/test_app_pipeline.py` (12) | `system/test_system_app.py` (6) | - | - | live system test with a person PENDING (C-05-1) | COVERED + PENDING evidence |
-| REQ-005 | R | 09, 10, 18 | measurement (harness 09; final 18) | `eval/test_harness.py` (6) | - | - | - | - | measurement: harness (09), final (18) PENDING | COVERED + PENDING evidence |
+| REQ-005 | R | 09, 10, 18 | measurement (harness 09; final 18) | `eval/test_harness.py` (6)<br>`live_eval/test_live_eval_offline.py` (7)<br>`live_eval/test_live_eval_stats.py` (10) | - | - | - | - | harness (09) + Phase 18 confirmatory layer; participant measurement PENDING | COVERED + PENDING evidence |
 | REQ-006 | C | 05, 20, 22 | review + system test | - | - | `system/test_system_app.py` (6) | - | - | review + usability demonstration PENDING (C-05-1) | COVERED + PENDING evidence |
 | REQ-007 | C | 03, 05 | system test with real sticks (05) | `stick/test_estimators.py` (14) | - | - | - | - | system test with real sticks PENDING (person) | COVERED + PENDING evidence |
 | REQ-008 | X | 00 (register), 03 | review | - | `architecture/test_import_layers.py` (3) | - | - | - | review (out-of-scope register) | COVERED |
-| REQ-009 | C | 03, 18 | benchmark (03 tip-method comparison); review (labelling of marker condition, 18) | `stick/test_estimators.py` (14) | - | - | - | - | benchmark (03) and marker labelling review (18) | COVERED |
+| REQ-009 | C | 03, 18 | benchmark (03 tip-method comparison); review (labelling of marker condition, 18) | `stick/test_estimators.py` (14) | - | - | - | - | benchmark (03); Phase 18: no marker condition used | COVERED |
 | REQ-010 | F | 03 | test + measurement (tracking latency, 03) | `hands/test_landmarker.py` (17)<br>`stick/test_estimators.py` (14)<br>`tracking/test_tracker.py` (10) | - | - | - | - | tracking latency measured (03) | COVERED |
-| REQ-011 | F | 04, 05, 18 | test (04/05: no hand–zone restriction); review (18: revisit) | `geometry/test_zones.py` (5) | `app/test_app_pipeline.py` (12) | - | - | - | revisit in Phase 18 (review) | COVERED |
+| REQ-011 | F | 04, 05, 18 | test (04/05: no hand–zone restriction); review (18: revisit) | `geometry/test_zones.py` (5) | `app/test_app_pipeline.py` (12) | - | - | - | revisit PENDING participant evidence (18) | COVERED + PENDING evidence |
 | REQ-012 | F | 05, 06, 17 | system test (05); protocol coverage (06); failure-injection (17) | - | `app/test_app_pipeline.py` (12) | - | `failure_injection/test_fi_tracking.py` (5) | `invariants/test_inv_monitor.py` (14) | live protocol with a person PENDING; fast-hit limit machinery SYNTHETIC | COVERED + PENDING evidence |
 | REQ-013 | R | 05, 18 | measurement | - | - | - | `failure_injection/test_fi_tracking.py` (5) | - | max hit rate: developer-played measurement PENDING (Phase 17 Open Question) | COVERED + PENDING evidence |
 | REQ-014 | F | 04, 07, 11 | test (04 gain mapping); review (07 GT-proxy definition); measurement (11 agreement) | `audio/test_bank_gain.py` (3)<br>`temporal/test_mt_heads_losses.py` (5) | - | - | - | - | agreement measurement (11) PENDING | COVERED + PENDING evidence |
@@ -68,8 +68,8 @@ participant-dependent checks, and review-only scope rules; each names its eviden
 | REQ-024 | C | 02, 06 | review (placement in camera profile / session metadata) | - | - | - | - | - | review (placement recorded per session) | JUSTIFIED (non-test verification) |
 | REQ-025 | R | 02, 03 | benchmark | - | - | - | - | - | distance benchmark PENDING (person) | JUSTIFIED (non-test verification) |
 | REQ-026 | C | 02 | review (ROI definition) | `capture/test_roi.py` (8) | - | - | - | - | review (ROI definition) | COVERED |
-| REQ-027 | C/R | 02, 06, 17, 18 | measurement (lighting conditions recorded per session; robustness tests) | - | - | - | `failure_injection/test_fi_vision.py` (2) | - | lighting replay perturbation (17, development); multi-lighting sessions (06/18) PENDING | COVERED + PENDING evidence |
-| REQ-028 | C | 06, 17, 18 | measurement (background variation in dataset; failure injection) | - | - | - | `failure_injection/test_fi_tracking.py` (5)<br>`failure_injection/test_fi_vision.py` (2) | - | occlusion / background injection (17); dataset variation (06/18) PENDING | COVERED + PENDING evidence |
+| REQ-027 | C/R | 02, 06, 17, 18 | measurement (lighting conditions recorded per session; robustness tests) | `live_eval/test_live_eval_offline.py` (7) | - | - | `failure_injection/test_fi_vision.py` (2) | - | lighting replay perturbation (17, development); multi-lighting sessions (06/18) PENDING | COVERED + PENDING evidence |
+| REQ-028 | C | 06, 17, 18 | measurement (background variation in dataset; failure injection) | `live_eval/test_live_eval_offline.py` (7) | - | - | `failure_injection/test_fi_tracking.py` (5)<br>`failure_injection/test_fi_vision.py` (2) | - | occlusion / background injection (17); dataset variation (06/18) PENDING | COVERED + PENDING evidence |
 | REQ-029 | F | 03, 17 | test (17 background-person injection) | `hands/test_identity.py` (17) | - | - | `failure_injection/test_fi_tracking.py` (5)<br>`failure_injection/test_fi_vision.py` (2) | - | live second-person test PENDING (two people) | COVERED + PENDING evidence |
 | REQ-030 | C | 03 | benchmark | - | - | - | - | - | stick-colour benchmark (03) PENDING | JUSTIFIED (non-test verification) |
 | REQ-031 | F | 03 | benchmark (`TipEstimator` methods vs reference) | `stick/test_estimators.py` (14)<br>`stick/test_geometry.py` (13) | - | - | - | - | tip-method benchmark (03) | COVERED |
@@ -81,19 +81,19 @@ participant-dependent checks, and review-only scope rules; each names its eviden
 | REQ-037 | F | 04 | unit test | `geometry/test_intersect.py` (6) | - | - | - | - | - | COVERED |
 | REQ-038 | F | 04, 07 | test (04 output fields); review (07 labels include position) | `geometry/test_intersect.py` (6)<br>`labels/test_label_generator.py` (22) | - | - | - | - | - | COVERED |
 | REQ-039 | F | 04 | unit test | `geometry/test_impact.py` (4) | - | - | - | - | - | COVERED |
-| REQ-040 | R | 09, 10, 18 | measurement (threshold/horizon sweeps) | `eval/test_harness.py` (6) | - | - | - | - | threshold/horizon sweeps (09/10/18) PENDING participant data | COVERED + PENDING evidence |
+| REQ-040 | R | 09, 10, 18 | measurement (threshold/horizon sweeps) | `eval/test_harness.py` (6)<br>`live_eval/test_live_eval_offline.py` (7) | `scripts/test_phase18_scripts.py` (6) | - | - | - | sweeps (09/10) + Phase 18 declared curve sweep; participant data PENDING | COVERED + PENDING evidence |
 | REQ-041 | R | 10, 11 | measurement (per-task metrics) | `temporal/test_mt_heads_losses.py` (5) | - | - | - | - | per-task participant metrics PENDING | COVERED + PENDING evidence |
 | REQ-042 | C/R | 10, 13 | review + test (geometry code path shared with Phase 04, unchanged) | `temporal/test_adapter.py` (4)<br>`geometry/test_intersect.py` (6) | `parity/test_live_model.py` (18) | - | - | - | - | COVERED |
 | REQ-043 | R | 05, 09, 10 | review (baselines A, B, C-GBDT exist) | `prediction/test_rule_based.py` (12)<br>`eval/test_gbdt_adapter.py` (1) | - | - | - | - | review (baselines exist) | COVERED |
 | REQ-044 | R | 09, 10, 12, 13 | measurement (multi-criteria selection ADR) | `temporal/test_models.py` (6)<br>`temporal/test_ext_causal.py` (4)<br>`eval/test_gbdt_adapter.py` (1) | - | - | - | - | selection measurement PENDING participant data | COVERED + PENDING evidence |
-| REQ-045 | R | 09, 18 | measurement (harness implements README §10) | `eval/test_harness.py` (6) | - | - | - | - | measurement (18) PENDING | COVERED + PENDING evidence |
+| REQ-045 | R | 09, 18 | measurement (harness implements README §10) | `eval/test_harness.py` (6)<br>`live_eval/test_live_eval_offline.py` (7) | `scripts/test_phase18_scripts.py` (6) | - | - | - | README 10 metrics + Spearman, causal-target ADE/FDE, strata; participant data PENDING | COVERED + PENDING evidence |
 | REQ-046 | C | 06 | review (recording manifest) | - | - | - | - | - | review: recording manifest (0 participants, PENDING) | JUSTIFIED (non-test verification) |
 | REQ-047 | C | 06 | review | `data/test_protocol.py` (7) | - | - | - | - | review | COVERED |
 | REQ-048 | F | 06, 07 | review (protocol segments; QC coverage table) | `data/test_protocol.py` (7)<br>`labels/test_label_rules.py` (25) | - | - | - | - | QC coverage on participant data PENDING | COVERED + PENDING evidence |
 | REQ-049 | C | 00 (consent), 06, 07, 23 | review (consent opt-ins; dataset card; release decision) | `labels/test_dataset_splits.py` (28)<br>`data/test_manifest.py` (6) | - | - | - | - | release decision (23) | COVERED |
 | REQ-050a | R | 05, 20, 22 | system test + demo rehearsal | - | - | `system/test_system_app.py` (6) | - | `invariants/test_inv_replay.py` (3) | soak (17, development); demo rehearsal (22) PENDING | COVERED + PENDING evidence |
-| REQ-050b | R | 10, 18 | measurement | - | - | - | - | - | measurement (18) PENDING | JUSTIFIED (non-test verification) |
-| REQ-050c | R | 18, 21 | measurement + review (claims audit) | - | - | - | - | - | measurement + claims audit (18/21) | JUSTIFIED (non-test verification) |
+| REQ-050b | R | 10, 18 | measurement | `live_eval/test_live_eval_stats.py` (10)<br>`live_eval/test_live_eval_offline.py` (7) | - | - | - | - | declared H1a/H2/H3 rules tested; participant measurement (18) PENDING | COVERED + PENDING evidence |
+| REQ-050c | R | 18, 21 | measurement + review (claims audit) | `live_eval/test_live_eval_stats.py` (10)<br>`live_eval/test_live_eval_methods.py` (10)<br>`live_eval/test_live_eval_prereg.py` (6) | - | - | - | - | pre-registered rules + external methods; measurement and claims audit (18/21) PENDING | COVERED + PENDING evidence |
 | REQ-051 | C | 01, 03 | review | `hands/test_identity.py` (17) | - | - | - | - | review (single LEFT/RIGHT identity) | COVERED |
 | REQ-052 | C | 01, 13, 23 | review + test (no network calls; packaged bundle runs offline) | - | - | `system/test_system_offline.py` (3) | - | - | packaged bundle offline check (23) | COVERED |
 | REQ-053 | F | 04 | test | `audio/test_bank_gain.py` (3) | - | - | - | - | - | COVERED |
@@ -105,7 +105,7 @@ participant-dependent checks, and review-only scope rules; each names its eviden
 | REQ-059 | C | 22 | review | - | - | - | - | - | review (22) | JUSTIFIED (non-test verification) |
 | REQ-060a | C | 00 (checklist), all gates | review (integrity checklist at every gate) | - | - | - | - | - | integrity checklist at every gate | JUSTIFIED (non-test verification) |
 | REQ-060b | C | 01 (causality test), 03, 08, 09, 10, 13, 17 | test (future-perturbation invariance, defined Phase 01) | `tracking/test_causal.py` (3)<br>`prediction/test_causal_anticipator.py` (3)<br>`commit/test_causal_commit.py` (2)<br>`features/test_causality.py` (3)<br>`temporal/test_ext_causal.py` (4) | `parity/test_live_model.py` (18) | - | - | `invariants/test_inv_monitor.py` (14)<br>`invariants/test_inv_replay.py` (3) | system-level TEST-CAUSAL-1 re-run (17, development) | COVERED |
-| REQ-060c | C | 18, 21 | review (claims audit) | - | - | - | - | - | claims audit (18/21) | JUSTIFIED (non-test verification) |
+| REQ-060c | C | 18, 21 | review (claims audit) | `live_eval/test_live_eval_methods.py` (10) | - | - | - | - | sound-before-impact only from external measurement (none yet); claims audit (18/21) | COVERED |
 | REQ-060d | C | 00 (policy), 21 | review | - | - | - | - | - | review (00 policy, 21) | JUSTIFIED (non-test verification) |
 | REQ-101 | F | 02 | test | `capture/test_source.py` (9)<br>`capture/test_hardware_capture.py` (1) | - | - | `failure_injection/test_fi_capture.py` (6) | - | - | COVERED |
 | REQ-102 | F | 02 | test | `capture/test_roi.py` (8) | - | - | - | - | - | COVERED |
@@ -123,7 +123,7 @@ participant-dependent checks, and review-only scope rules; each names its eviden
 | REQ-114 | F | 05 | test (invariants: one commit per episode; refractory) | `commit/test_commit_policy.py` (18)<br>`commit/test_commit_state_machine.py` (7)<br>`commit/test_causal_commit.py` (2) | - | - | `failure_injection/test_fi_model_audio.py` (9) | `invariants/test_inv_monitor.py` (14) | - | COVERED |
 | REQ-115 | F | 04 | test | `audio/test_bank_gain.py` (3)<br>`audio/test_device_mixer.py` (4) | - | - | - | - | - | COVERED |
 | REQ-116 | F | 04 | measurement (audio output latency) | `audio/test_scheduler_integration.py` (4)<br>`audio/test_device_mixer.py` (4) | - | - | `failure_injection/test_fi_model_audio.py` (9) | - | output-latency measurement PENDING (04) | COVERED + PENDING evidence |
-| REQ-117 | R | 10, 18 | measurement | - | - | - | - | - | research measurement (10/18) | JUSTIFIED (non-test verification) |
+| REQ-117 | R | 10, 18 | measurement | `live_eval/test_live_eval_stats.py` (10)<br>`live_eval/test_live_eval_offline.py` (7) | - | - | - | - | research measurement (10/18) PENDING | COVERED + PENDING evidence |
 | REQ-201 | X | 00, 23 | review | - | - | - | - | - | review (out-of-scope register) | JUSTIFIED (non-test verification) |
 | REQ-202 | X | 00, 23 | review | - | - | - | - | - | review (out-of-scope register) | JUSTIFIED (non-test verification) |
 | REQ-203 | X | 00, 23 | review | - | - | - | - | - | review (out-of-scope register) | JUSTIFIED (non-test verification) |
@@ -134,14 +134,14 @@ participant-dependent checks, and review-only scope rules; each names its eviden
 | REQ-208 | X | 00, 23 | review | - | - | - | - | - | review (out-of-scope register) | JUSTIFIED (non-test verification) |
 | REQ-209 | X | 00, 13, 23 | review + test (offline) | - | - | `system/test_system_offline.py` (3) | - | - | review + offline test | COVERED |
 | REQ-210 | X | 00, 03, 23 | review | `stick/test_estimators.py` (14) | - | - | - | - | review (markerless primary) | COVERED |
-| REQ-211 | C | 03, 18, 21 | review (every marker result labelled as such) | `stick/test_estimators.py` (14) | - | - | - | - | review (marker results labelled) | COVERED |
+| REQ-211 | C | 03, 18, 21 | review (every marker result labelled as such) | `stick/test_estimators.py` (14) | - | - | - | - | review (marker results labelled); none in Phase 18 | COVERED |
 | REQ-301 | C | 00, 21 | review (integrity checklist; claims audit) | - | - | - | - | - | integrity checklist / claims audit | JUSTIFIED (non-test verification) |
 | REQ-302 | C | 01, 03, 08, 09, 10, 13 | test (causality invariance) | `tracking/test_causal.py` (3)<br>`prediction/test_causal_anticipator.py` (3)<br>`commit/test_causal_commit.py` (2)<br>`features/test_causality.py` (3)<br>`temporal/test_ext_causal.py` (4) | - | - | - | `invariants/test_inv_monitor.py` (14)<br>`invariants/test_inv_replay.py` (3) | - | COVERED |
 | REQ-303 | C | 09, 18 | measurement | `eval/test_harness.py` (6) | - | - | - | - | measurement (09/18) | COVERED |
 | REQ-304 | C | 13, 16 | measurement (latency budgets) | - | `parity/test_live_model.py` (18)<br>`scripts/test_phase16.py` (11) | - | - | - | latency budgets measured (13/16); live PENDING | COVERED + PENDING evidence |
 | REQ-305 | C | 03, 17 | test (failure injection) | - | - | - | `failure_injection/test_fi_tracking.py` (5)<br>`failure_injection/test_fi_vision.py` (2)<br>`failure_injection/test_fi_capture.py` (6)<br>`failure_injection/test_fi_model_audio.py` (9) | `invariants/test_inv_monitor.py` (14) | physical injection with a person PENDING | COVERED + PENDING evidence |
 | REQ-306 | R | 10, 19 | measurement (ablations show contribution) | - | - | - | - | - | ablation measurement (19) | JUSTIFIED (non-test verification) |
-| REQ-307 | R | 18 | measurement (pre-registered A/B/C) | - | - | - | - | - | pre-registered comparison (18) | JUSTIFIED (non-test verification) |
+| REQ-307 | R | 18 | measurement (pre-registered A/B/C) | `live_eval/test_live_eval_prereg.py` (6)<br>`live_eval/test_live_eval_stats.py` (10) | `scripts/test_phase18_scripts.py` (6) | - | - | - | pre-registered comparison: machinery + SYNTHETIC rehearsal; participant run PENDING | COVERED + PENDING evidence |
 | REQ-308 | C | 00, 09, 21 | review (reproducibility policy; manifests) | `contracts/test_record_schemas.py` (24) | `scripts/test_phase16.py` (11) | - | - | - | reproducibility policy review | COVERED |
 | REQ-309 | C | 21 | review | - | - | - | - | - | review (21); Phase 17 failure catalogue feeds it | JUSTIFIED (non-test verification) |
 | REQ-310 | C | 15, 22 | review | - | - | - | - | - | review (15/22) | JUSTIFIED (non-test verification) |

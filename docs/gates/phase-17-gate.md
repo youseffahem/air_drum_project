@@ -197,3 +197,47 @@ Signed: PENDING
    - a person-played soak;
    - the developer-played fast-hit measurement.
 5. Once ds-v1.0 exists, run `scripts/invariant_replay.py` on it (participant replay set).
+
+## Post-owner-commit verification — 2026-09-27 (during authorized Phase 18)
+
+Run on the owner commit `6730b81b261658784a33812b551acdf043a60be8`, clean tree, before any Phase 18
+file existed in the repository. The executor is recorded in each run's `execution.json` (command-line
+arguments).
+
+1. **Gate verifier.** Command:
+   `scripts/verify_phase17.py --require-clean --output experiments/phase-18/dependencies`.
+   - Time: 2026-09-27 06:45:33 → 07:42:22 +03:00.
+   - **All 13 commands passed:** pytest **1,441 passed, 1 skipped** (538.7 s), ruff, seven import
+     contracts, schemas, environment smoke, diff check, test-matrix freshness, the Phase 16 frozen
+     regression, raw parity, the invariant replay, the failure-injection campaign, the DEGRADED
+     experiment and the re-acquisition sweep.
+   - Untracked whitespace problems 0; `source_unchanged = true`; `git_dirty_final = false`.
+   - Evidence: `experiments/phase-18/dependencies/20260927-0645-p17-gate-verification/`.
+2. **Live soak.** Command: `scripts/soak_test.py --minutes 60`, run on its own after the verifier.
+   - Time: 2026-09-27 07:42 → 08:43:04 +03:00; clean tree, `source_unchanged = true`,
+     `git_dirty_final = false`.
+   - 60.1 min, 108,357 frames at 30.17 delivered FPS.
+   - **No crash; 0 invariant violations.**
+   - Handles rose 494 → 1,113 during the first 5 min (start-up), then stayed at 1,103–1,117.
+   - Private memory +6.4 MiB (median of the first vs the last 10 min).
+   - Start-up fallback C-GRU → B (`total processing p95 exceeds configured budget`), as in the
+     dirty-tree soak.
+   - Evidence: `experiments/phase-18/dependencies/20260927-0742-soak-60min/`.
+3. **Difference from the dirty-tree soak.** Capture drops, stalls and audio underruns were higher
+   than in the dirty-tree soak of 2026-09-27 01:50: **303 drops / 19 stalls / 20 underruns**, against
+   1 / 3 / 0.
+   - They are spread over the whole hour: the 34 `SD-CAP-002` events fall between minutes 0.0 and
+     58.7.
+   - Six of them fall in the first 10 minutes. During those minutes the agent ran lint and unit tests
+     for about 10 s and edited scratch files; the soak had no other known concurrent load after that.
+   - The cause is not identified. Time of day, lighting and background OS activity differ between
+     the two runs. This is recorded as run-to-run variability of the unattended soak, not as a code
+     regression: the crash and invariant criteria hold.
+
+What this closes:
+
+- **Closed:** Phase 17's executable post-owner-commit condition (clean-tree verifier and soak). I-11
+  can now cite clean runs.
+- **Still open:** the person-dependent tests (§7), the participant replay set and the reviewer
+  signature. Phase 17 has no PASS; the owner authorized Phase 18 with the gate unsigned, as in earlier
+  phases.

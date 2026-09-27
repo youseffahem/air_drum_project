@@ -106,6 +106,12 @@ T = {
     "lab_gen": "labels/test_label_generator.py",
     "scripts16": "scripts/test_phase16.py",
     "timing": "timing/test_timing_records.py",
+    "p18_stats": "live_eval/test_live_eval_stats.py",
+    "p18_prereg": "live_eval/test_live_eval_prereg.py",
+    "p18_methods": "live_eval/test_live_eval_methods.py",
+    "p18_live": "live_eval/test_live_eval_protocol.py",
+    "p18_offline": "live_eval/test_live_eval_offline.py",
+    "p18_scripts": "scripts/test_phase18_scripts.py",
 }
 
 
@@ -119,19 +125,26 @@ MAP: dict[str, dict] = {
         "tests": t("app", "parity", "sys_app", "inv_replay"),
         "other": "architecture review (Phase 01)",
     },
-    "REQ-002": {"tests": [], "other": "research measurement, Phase 18 external timing (PENDING)"},
+    "REQ-002": {
+        "tests": t("p18_methods", "p18_live", "p18_stats"),
+        "other": "external timing machinery (M1/M2/M3, live protocol) on SYNTHETIC recordings; live "
+        "measurement with people PENDING (18)",
+    },
     "REQ-003": {"tests": [], "other": "review: protocol difficulty (06), demo framing (22)"},
     "REQ-004": {
         "tests": t("app", "calib_app", "ui_guide", "sys_app"),
         "other": "live system test with a person PENDING (C-05-1)",
     },
-    "REQ-005": {"tests": t("eval"), "other": "measurement: harness (09), final (18) PENDING"},
+    "REQ-005": {
+        "tests": t("eval", "p18_offline", "p18_stats"),
+        "other": "harness (09) + Phase 18 confirmatory layer; participant measurement PENDING",
+    },
     "REQ-006": {"tests": t("sys_app"), "other": "review + usability demonstration PENDING (C-05-1)"},
     "REQ-007": {"tests": t("stick_est"), "other": "system test with real sticks PENDING (person)"},
     "REQ-008": {"tests": t("arch"), "other": "review (out-of-scope register)"},
-    "REQ-009": {"tests": t("stick_est"), "other": "benchmark (03) and marker labelling review (18)"},
+    "REQ-009": {"tests": t("stick_est"), "other": "benchmark (03); Phase 18: no marker condition used"},
     "REQ-010": {"tests": t("hands_lm", "stick_est", "trk"), "other": "tracking latency measured (03)"},
-    "REQ-011": {"tests": t("geo_zones", "app"), "other": "revisit in Phase 18 (review)"},
+    "REQ-011": {"tests": t("geo_zones", "app"), "other": "revisit PENDING participant evidence (18)"},
     "REQ-012": {
         "tests": t("app", "fi_track", "inv"),
         "other": "live protocol with a person PENDING; fast-hit limit machinery SYNTHETIC",
@@ -157,11 +170,11 @@ MAP: dict[str, dict] = {
     "REQ-025": {"tests": [], "other": "distance benchmark PENDING (person)"},
     "REQ-026": {"tests": t("cap_roi"), "other": "review (ROI definition)"},
     "REQ-027": {
-        "tests": t("fi_vision"),
+        "tests": t("fi_vision", "p18_offline"),
         "other": "lighting replay perturbation (17, development); multi-lighting sessions (06/18) PENDING",
     },
     "REQ-028": {
-        "tests": t("fi_track", "fi_vision"),
+        "tests": t("fi_track", "fi_vision", "p18_offline"),
         "other": "occlusion / background injection (17); dataset variation (06/18) PENDING",
     },
     "REQ-029": {
@@ -181,7 +194,10 @@ MAP: dict[str, dict] = {
     "REQ-037": {"tests": t("geo_int"), "other": ""},
     "REQ-038": {"tests": t("geo_int", "lab_gen"), "other": ""},
     "REQ-039": {"tests": t("geo_imp"), "other": ""},
-    "REQ-040": {"tests": t("eval"), "other": "threshold/horizon sweeps (09/10/18) PENDING participant data"},
+    "REQ-040": {
+        "tests": t("eval", "p18_offline", "p18_scripts"),
+        "other": "sweeps (09/10) + Phase 18 declared curve sweep; participant data PENDING",
+    },
     "REQ-041": {"tests": t("tmp_mt"), "other": "per-task participant metrics PENDING"},
     "REQ-042": {"tests": t("tmp_adapter", "geo_int", "parity"), "other": ""},
     "REQ-043": {"tests": t("pred", "gbdt"), "other": "review (baselines exist)"},
@@ -189,7 +205,10 @@ MAP: dict[str, dict] = {
         "tests": t("tmp_models", "tmp_ext", "gbdt"),
         "other": "selection measurement PENDING participant data",
     },
-    "REQ-045": {"tests": t("eval"), "other": "measurement (18) PENDING"},
+    "REQ-045": {
+        "tests": t("eval", "p18_offline", "p18_scripts"),
+        "other": "README 10 metrics + Spearman, causal-target ADE/FDE, strata; participant data PENDING",
+    },
     "REQ-046": {"tests": [], "other": "review: recording manifest (0 participants, PENDING)"},
     "REQ-047": {"tests": t("data_proto"), "other": "review"},
     "REQ-048": {"tests": t("data_proto", "lab_rules"), "other": "QC coverage on participant data PENDING"},
@@ -198,8 +217,14 @@ MAP: dict[str, dict] = {
         "tests": t("sys_app", "inv_replay"),
         "other": "soak (17, development); demo rehearsal (22) PENDING",
     },
-    "REQ-050b": {"tests": [], "other": "measurement (18) PENDING"},
-    "REQ-050c": {"tests": [], "other": "measurement + claims audit (18/21)"},
+    "REQ-050b": {
+        "tests": t("p18_stats", "p18_offline"),
+        "other": "declared H1a/H2/H3 rules tested; participant measurement (18) PENDING",
+    },
+    "REQ-050c": {
+        "tests": t("p18_stats", "p18_methods", "p18_prereg"),
+        "other": "pre-registered rules + external methods; measurement and claims audit (18/21) PENDING",
+    },
     "REQ-051": {"tests": t("hands_id"), "other": "review (single LEFT/RIGHT identity)"},
     "REQ-052": {"tests": t("sys_offline"), "other": "packaged bundle offline check (23)"},
     "REQ-053": {"tests": t("audio_bank"), "other": ""},
@@ -223,7 +248,10 @@ MAP: dict[str, dict] = {
         ),
         "other": "system-level TEST-CAUSAL-1 re-run (17, development)",
     },
-    "REQ-060c": {"tests": [], "other": "claims audit (18/21)"},
+    "REQ-060c": {
+        "tests": t("p18_methods"),
+        "other": "sound-before-impact only from external measurement (none yet); claims audit (18/21)",
+    },
     "REQ-060d": {"tests": [], "other": "review (00 policy, 21)"},
     "REQ-101": {"tests": t("cap_src", "cap_hw", "fi_cap"), "other": ""},
     "REQ-102": {"tests": t("cap_roi"), "other": ""},
@@ -247,7 +275,7 @@ MAP: dict[str, dict] = {
         "tests": t("audio_sched", "audio_mix", "fi_mdl"),
         "other": "output-latency measurement PENDING (04)",
     },
-    "REQ-117": {"tests": [], "other": "research measurement (10/18)"},
+    "REQ-117": {"tests": t("p18_stats", "p18_offline"), "other": "research measurement (10/18) PENDING"},
     "REQ-201": {"tests": [], "other": "review (out-of-scope register)"},
     "REQ-202": {"tests": [], "other": "review (out-of-scope register)"},
     "REQ-203": {"tests": [], "other": "review (out-of-scope register)"},
@@ -258,7 +286,7 @@ MAP: dict[str, dict] = {
     "REQ-208": {"tests": [], "other": "review (out-of-scope register)"},
     "REQ-209": {"tests": t("sys_offline"), "other": "review + offline test"},
     "REQ-210": {"tests": t("stick_est"), "other": "review (markerless primary)"},
-    "REQ-211": {"tests": t("stick_est"), "other": "review (marker results labelled)"},
+    "REQ-211": {"tests": t("stick_est"), "other": "review (marker results labelled); none in Phase 18"},
     "REQ-301": {"tests": [], "other": "integrity checklist / claims audit"},
     "REQ-302": {
         "tests": t(
@@ -273,7 +301,10 @@ MAP: dict[str, dict] = {
         "other": "physical injection with a person PENDING",
     },
     "REQ-306": {"tests": [], "other": "ablation measurement (19)"},
-    "REQ-307": {"tests": [], "other": "pre-registered comparison (18)"},
+    "REQ-307": {
+        "tests": t("p18_prereg", "p18_scripts", "p18_stats"),
+        "other": "pre-registered comparison: machinery + SYNTHETIC rehearsal; participant run PENDING",
+    },
     "REQ-308": {"tests": t("schemas", "scripts16"), "other": "reproducibility policy review"},
     "REQ-309": {"tests": [], "other": "review (21); Phase 17 failure catalogue feeds it"},
     "REQ-310": {"tests": [], "other": "review (15/22)"},

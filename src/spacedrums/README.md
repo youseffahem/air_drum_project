@@ -1,5 +1,12 @@
 # spacedrums
 
+Phase 18 adds `live_eval` (ADR-0042): the confirmatory analysis layer over the frozen `eval` harness
+(participant bootstrap, pre-registered decision rules, strata, sensitivity S1, TEST-CAUSAL-1 on evaluated
+arms), the pre-registration hash record / frozen-inputs locks / execute-once ledger, and the live-experiment
+tooling (Williams arm orders, live protocol and arm switcher, `LiveSessionMetadata`, external-recording sync,
+M1 / M2 / M3 timing methods). Everything is rehearsed on SYNTHETIC data only; participant and live-person
+evidence remain PENDING.
+
 Phase 17 adds `app.invariants` (runtime safety-invariant monitor I1–I6; `commit.invariants` holds the
 I1/I3/I4 core), `app.health` (`HealthStatus {camera, tracking, model, audio}`), `app.errors` (message
 catalogue, structured event log, crash reports) and `app.faults` (fault injection, test builds only),
@@ -37,3 +44,4 @@ Layout and the allowed-dependency layers: `docs/architecture/architecture.md` se
 | `features` | IMPLEMENTED development feature pipeline; participant statistics pending | 08 |
 | `eval`, `models.gbdt` | IMPLEMENTED development harness/model; participant results pending | 09 |
 | `calib` | IMPLEMENTED development machinery (wizard, calib-v1 I/O, triggers, calibrated config; ADR-0037); live evidence PENDING | 14 |
+| `live_eval` | IMPLEMENTED development machinery (confirmatory analysis, pre-registration locks, live protocol, external timing methods; ADR-0042); rehearsed on SYNTHETIC data only | 18 |

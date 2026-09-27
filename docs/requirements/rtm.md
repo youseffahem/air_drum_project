@@ -25,6 +25,30 @@ Requirement → test mapping: [`../testing/test-matrix.md`](../testing/test-matr
 run ids: [`../gates/phase-17-gate.md`](../gates/phase-17-gate.md). Physical (person-dependent)
 injection, the second-person test, the person-played soak and the participant replay set remain PENDING.
 
+Phase 18 evidence pointer (2026-09-27; statuses unchanged):
+
+- **Requirements:** owns REQ-002, REQ-005, REQ-009, REQ-011, REQ-013, REQ-040, REQ-045, REQ-050b,
+  REQ-050c, REQ-060c, REQ-117, REQ-211 and REQ-307; contributes to REQ-027 and REQ-028.
+- **What addresses them:**
+  - the declared and hashed pre-registration
+    (`../experiments/phase-18-prereg.md`: hypotheses H1a–H4 with failure readings, statistics,
+    exclusions, live design, method acceptance rules);
+  - the frozen-inputs locks and execute-once ledger;
+  - the `spacedrums.live_eval` analysis layer over the frozen Phase 09 harness;
+  - the live protocol with Williams counterbalancing, blinding and `LiveSessionMetadata`;
+  - the M1 / M2 / M3 external timing methods;
+  - the SYNTHETIC rehearsal chains.
+- **Per requirement:**
+  - REQ-009 / REQ-211: no marker condition exists (limitation T16).
+  - REQ-011: per-hand strata are declared (the basis for the review); no hand–zone restriction
+    was introduced.
+  - REQ-013: speed-tercile strata are declared; the maximum hit rate stays PENDING.
+  - REQ-027 / REQ-028: lighting and distance strata are declared, reported where a stratum has
+    at least two levels.
+- **Evidence and run ids:** [`../gates/phase-18-gate.md`](../gates/phase-18-gate.md).
+- **Still PENDING:** the offline confirmatory run (no `ds-v1.0`), every live session with a person
+  (ethics Open Question), the external-method pad / video pilots and any effective-latency claim.
+
 **Phase:** 00 — Task 00.1 · **Status:** PLANNED (this document; no requirement is yet IMPLEMENTED / MEASURED / VALIDATED). *P06 evidence pointers added 2026-09-22 (gate `phase-06-gate.md`, review pending): rows stay PLANNED until a gate record is signed.*
 **Source of truth:** [`../../project-discovery.md`](../../project-discovery.md) (Q1–Q60, Confirmed Core Architecture, Core Research Direction, Important Scope Rules, Current Project Philosophy).
 **Roadmap:** [`../../phases/README.md`](../../phases/README.md).

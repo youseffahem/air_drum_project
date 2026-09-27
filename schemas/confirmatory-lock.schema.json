@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/confirmatory-lock.schema.json",
+  "title": "ConfirmatoryLock",
+  "description": "Phase 18 frozen-inputs lock (docs/experiments/phase-18-prereg.md section 0). The pre-registration fixes rules and names upstream values as symbols; a lock supplies those values with provenance, is validated (spacedrums.live_eval.prereg.lock_errors: schema, PENDING placeholders, arm / budget / method consistency) and its canonical-JSON SHA-256 is appended to docs/experiments/phase-18-prereg.hashes.json before the experiment it governs. lock_kind offline governs Experiment 1 (held-out test participants, run once); lock_kind live governs Experiment 2. evidence SYNTHETIC_REHEARSAL marks a development lock built on the SYNTHETIC kinematic fixture: machinery only, never evidence, never archived in the tracked record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "lock_kind", "evidence", "created_at", "created_by", "git_sha", "git_dirty", "prereg", "notes"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "lock_kind": {"type": "string", "enum": ["offline", "live"]},
+    "evidence": {
+      "type": "string",
+      "enum": ["PARTICIPANT", "SYNTHETIC_REHEARSAL"],
+      "description": "PARTICIPANT locks govern the confirmatory experiments; SYNTHETIC_REHEARSAL locks exercise the runners on generated data only."
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string", "minLength": 1},
+    "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "git_dirty": {"type": "boolean"},
+    "prereg": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "version", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "version": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "notes": {"type": "string"},
+    "offline": {"$ref": "#/$defs/offline"},
+    "live": {"$ref": "#/$defs/live"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"lock_kind": {"const": "offline"}}},
+      "then": {"required": ["offline"], "not": {"required": ["live"]}}
+    },
+    {
+      "if": {"properties": {"lock_kind": {"const": "live"}}},
+      "then": {"required": ["live"], "not": {"required": ["offline"]}}
+    },
+    {
+      "if": {"properties": {"evidence": {"const": "PARTICIPANT"}}},
+      "then": {"properties": {"git_dirty": {"const": false}}}
+    }
+  ],
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "decided_by", "date"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1, "description": "ADR, run id or report that produced the value"},
+        "decided_by": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "rationale": {"type": "string"}
+      }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tti_commit_s", "p_commit", "n_confirm_frames", "v_min", "refractory_zone_s"],
+      "properties": {
+        "tti_commit_s": {"type": "number", "exclusiveMinimum": 0},
+        "p_commit": {"type": "number", "minimum": 0, "maximum": 1},
+        "n_confirm_frames": {"type": "integer", "minimum": 0},
+        "v_min": {"type": "number", "minimum": 0},
+        "refractory_zone_s": {"type": "number", "minimum": 0}
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path", "manifest_sha256", "fold"],
+      "properties": {
+        "kind": {"type": "string", "enum": ["gbdt", "temporal", "temporal-mt"]},
+        "path": {"type": "string", "minLength": 1},
+        "manifest_sha256": {"$ref": "#/$defs/digest"},
+        "export_sha256": {"$ref": "#/$defs/digest"},
+        "norm_stats_path": {"type": "string", "minLength": 1},
+        "norm_stats_sha256": {"$ref": "#/$defs/digest"},
+        "fold": {"type": "integer", "minimum": 0},
+        "mode": {"type": "string", "enum": ["direct", "trajectory"]},
+        "window_n": {"type": "integer", "minimum": 1},
+        "aux_gate": {"type": ["object", "null"]}
+      }
+    },
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["arm_id", "role", "replay_arm", "controls", "rule", "model", "operating_point"],
+      "properties": {
+        "arm_id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$"},
+        "role": {"type": "string", "enum": ["reference", "baseline", "primary", "secondary"]},
+        "replay_arm": {
+          "type": "string",
+          "enum": ["A", "B", "MODEL:C-GBDT", "MODEL:C-GRU", "MODEL:C-TCN", "MODEL:C-MT", "MODEL:C-TT"]
+        },
+        "controls": {"$ref": "#/$defs/controls"},
+        "rule": {"type": ["object", "null"], "description": "RuleSettings overrides for replay arm B (motion_model, K, ...)"},
+        "model": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/model"}]},
+        "operating_point": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["feasible", "selection_path", "selection_sha256", "validation"],
+          "properties": {
+            "feasible": {"type": "boolean"},
+            "selection_path": {"type": "string", "minLength": 1},
+            "selection_sha256": {"$ref": "#/$defs/digest"},
+            "validation": {"type": "object", "description": "validation-fold metrics at the selected point (appendix T9)"}
+          }
+        },
+        "inference_latency": {"type": ["object", "null"]}
+      }
+    },
+    "offline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset", "harness", "sources", "matching", "delay", "budgets", "acoustic", "arms", "b_primary", "c_primary",
+        "curves", "statistics"
+      ],
+      "properties": {
+        "dataset": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version", "kind", "manifest_sha256", "labels_version", "split_sha256", "test_participants", "p_test",
+            "sessions"
+          ],
+          "properties": {
+            "version": {"type": "string", "minLength": 1},
+            "kind": {"type": "string", "enum": ["PARTICIPANT", "SELFTEST"]},
+            "manifest_path": {"type": "string"},
+            "manifest_sha256": {"type": "string", "minLength": 1},
+            "labels_version": {"type": "string", "minLength": 1},
+            "split_path": {"type": "string"},
+            "split_sha256": {"type": "string", "minLength": 1},
+            "test_participants": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+            "p_test": {"type": "integer", "minimum": 1},
+            "sessions": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["session_id", "participant_id"],
+                "properties": {
+                  "session_id": {"type": "string", "minLength": 1},
+                  "participant_id": {"type": "string", "minLength": 1},
+                  "lighting_id": {"type": ["string", "null"]},
+                  "distance_mark": {"type": ["string", "null"]}
+                }
+              }
+            },
+            "fixture": {"type": "object", "description": "SYNTHETIC_REHEARSAL only: how to regenerate the SYNTHETIC kinematic fixture"}
+          }
+        },
+        "harness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "source_sha256"],
+          "properties": {
+            "version": {"type": "string", "minLength": 1},
+            "source_sha256": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/digest"}}
+          }
+        },
+        "sources": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"$ref": "#/$defs/digest"},
+          "description": "digest of every pipeline source the replay imports (eval, live_eval, geometry, commit, prediction, models, features)"
+        },
+        "matching": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rule", "w_primary_s", "provenance"],
+          "properties": {
+            "rule": {"const": "ADR-0023"},
+            "w_primary_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 0.25},
+            "provenance": {"$ref": "#/$defs/provenance"}
+          }
+        },
+        "delay": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary_s", "appendix_s", "provenance"],
+          "properties": {
+            "primary_s": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number", "minimum": 0}},
+            "appendix_s": {"const": 0},
+            "provenance": {"$ref": "#/$defs/provenance"}
+          }
+        },
+        "budgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fp_budget_per_min", "fn_ceiling", "delta_audio_s", "delta_te_s", "delta_lead_s", "cpu_p95_ms", "provenance"
+          ],
+          "properties": {
+            "fp_budget_per_min": {"type": "number", "minimum": 0},
+            "fn_ceiling": {"type": "number", "minimum": 0, "maximum": 1},
+            "delta_audio_s": {"type": "number", "exclusiveMinimum": 0},
+            "delta_te_s": {"type": "number", "exclusiveMinimum": 0},
+            "delta_lead_s": {"type": "number", "exclusiveMinimum": 0},
+            "cpu_p95_ms": {"type": "number", "exclusiveMinimum": 0},
+            "provenance": {"$ref": "#/$defs/provenance"}
+          }
+        },
+        "acoustic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "s_phys_s", "source"],
+          "properties": {
+            "status": {"type": "string", "enum": ["MEASURED", "NOT_MEASURED"]},
+            "s_phys_s": {"type": ["number", "null"], "minimum": 0},
+            "source": {"type": "string", "minLength": 1}
+          }
+        },
+        "arms": {"type": "array", "minItems": 3, "items": {"$ref": "#/$defs/arm"}},
+        "b_primary": {"type": "string", "minLength": 1},
+        "c_primary": {"type": "string", "minLength": 1},
+        "curves": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tau_commit_s", "p_commit"],
+          "properties": {
+            "tau_commit_s": {"type": "array", "minItems": 1, "items": {"type": "number", "exclusiveMinimum": 0}},
+            "p_commit": {"type": "array", "minItems": 1, "items": {"type": "number", "minimum": 0, "maximum": 1}}
+          }
+        },
+        "statistics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repeats", "seed", "level"],
+          "properties": {
+            "repeats": {"const": 10000},
+            "seed": {"const": 18},
+            "level": {"const": 0.95}
+          }
+        }
+      }
+    },
+    "live": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config_path", "config_sha256", "arms", "design", "protocol", "methods", "primary_method", "questionnaire_included"],
+      "properties": {
+        "config_path": {"type": "string", "minLength": 1},
+        "config_sha256": {"$ref": "#/$defs/digest"},
+        "model": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/model"}]},
+        "arms": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "minLength": 1},
+          "description": "live arm label (A, B, C) -> offline arm id"
+        },
+        "design": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rule", "sequences"],
+          "properties": {
+            "rule": {"const": "Williams-3"},
+            "sequences": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "items": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "string", "enum": ["A", "B", "C"]}}
+            }
+          }
+        },
+        "protocol": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocol_id", "version", "duration_scale"],
+          "properties": {
+            "protocol_id": {"type": "string", "minLength": 1},
+            "version": {"type": "string", "minLength": 1},
+            "duration_scale": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "methods": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["M1", "M2", "M3"],
+          "properties": {
+            "M1": {"$ref": "#/$defs/method"},
+            "M2": {"$ref": "#/$defs/method"},
+            "M3": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "output_latency_run_id"],
+              "properties": {
+                "status": {"const": "ESTIMATE_ONLY"},
+                "output_latency_run_id": {"type": ["string", "null"]}
+              }
+            }
+          }
+        },
+        "primary_method": {"type": ["string", "null"], "enum": ["M1", "M2", null]},
+        "questionnaire_included": {"type": "boolean"}
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "u_s", "report"],
+      "properties": {
+        "status": {"type": "string", "enum": ["GO", "NO_GO"]},
+        "u_s": {"type": ["number", "null"], "minimum": 0},
+        "report": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

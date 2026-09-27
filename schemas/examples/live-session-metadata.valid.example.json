@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "session_id": "synthetic-p18-live-example",
+  "session_kind": "SYNTHETIC",
+  "participant_id": "SYNTHETIC",
+  "consent_status": "NOT_REQUIRED",
+  "consent_record_id": null,
+  "base_metadata": {"path": "metadata.json", "sha256": null},
+  "evidence_label": "SYNTHETIC (generated observations; never evidence)",
+  "prereg": {
+    "path": "docs/experiments/phase-18-prereg.md",
+    "version": 1,
+    "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "lock": null,
+  "live_protocol": {
+    "protocol_id": "spacedrums-live-protocol",
+    "version": "0.1-draft",
+    "arm_order": ["B", "C", "A"],
+    "sequence_index": 1,
+    "participant_index": 2,
+    "design": "Williams-3",
+    "duration_scale": 0.1,
+    "pad_zone_id": "snare"
+  },
+  "arm_blocks": [
+    {
+      "block_id": "b0", "arm": "A", "kind": "FAMILIARISATION", "segment_ids": ["b0_familiarise"], "analysed": false,
+      "t_start": 100.0, "t_end": 103.0, "status": "COMPLETED",
+      "switches": [{"block_id": "b0", "arm_label": "A", "from_arm": "A", "to_arm": "A", "t_mono": 100.0, "frame_id": 0}],
+      "commits_by_arm": {"A": {"sounding": 2, "shadow": 0}, "B": {"sounding": 0, "shadow": 2}}, "fallback_events": []
+    },
+    {
+      "block_id": "b1", "arm": "B", "kind": "AIR", "segment_ids": ["b1_single_snare", "b1_fake_snare"], "analysed": true,
+      "t_start": 103.0, "t_end": 110.0, "status": "COMPLETED",
+      "switches": [{"block_id": "b1", "arm_label": "B", "from_arm": "A", "to_arm": "B", "t_mono": 103.0, "frame_id": 90}],
+      "commits_by_arm": {"B": {"sounding": 5, "shadow": 0}, "A": {"sounding": 0, "shadow": 5}}, "fallback_events": []
+    },
+    {
+      "block_id": "b2", "arm": "C", "kind": "AIR", "segment_ids": ["b2_single_snare", "b2_fake_snare"], "analysed": true,
+      "t_start": 110.0, "t_end": 117.0, "status": "COMPLETED",
+      "switches": [{"block_id": "b2", "arm_label": "C", "from_arm": "B", "to_arm": "C-GRU", "t_mono": 110.0, "frame_id": 300}],
+      "commits_by_arm": {"C-GRU": {"sounding": 4, "shadow": 0}}, "fallback_events": []
+    },
+    {
+      "block_id": "b3", "arm": "A", "kind": "AIR", "segment_ids": ["b3_single_snare", "b3_fake_snare"], "analysed": true,
+      "t_start": 117.0, "t_end": 124.0, "status": "COMPLETED",
+      "switches": [{"block_id": "b3", "arm_label": "A", "from_arm": "C-GRU", "to_arm": "A", "t_mono": 117.0, "frame_id": 510}],
+      "commits_by_arm": {"A": {"sounding": 5, "shadow": 0}}, "fallback_events": []
+    }
+  ],
+  "external_methods": [
+    {
+      "method": "M1", "status": "PENDING", "validation_ref": "docs/reports/phase-18-external-methods.md", "u_s": null,
+      "recordings": [{
+        "path": "m1_synthetic.wav",
+        "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "kind": "AUDIO", "rate": 48000, "device": "SYNTHETIC generator (no microphone)",
+        "t_mono_first_sample": 99.0, "synthetic": true
+      }],
+      "sync": {"status": "OK", "reason": null, "n_matched": 16, "map": {"offset_s": 99.0, "drift": 0.0, "n": 16, "residual_rms_s": 0.0, "residual_max_s": 0.0}}
+    },
+    {"method": "M2", "status": "NOT_USED", "validation_ref": null, "u_s": null, "recordings": [], "sync": null},
+    {"method": "M3", "status": "ESTIMATE_ONLY", "validation_ref": null, "u_s": null, "recordings": [], "sync": null}
+  ],
+  "sync_markers": [
+    {"marker_id": "live-sync-001", "kind": "CLICK", "t_mono": 100.5, "source": "SYNTHETIC", "note": "SYNTHETIC example"}
+  ],
+  "calibration": {"calibration_status": "UNCALIBRATED", "calibration_id": null, "calibration_hash": null},
+  "blinding": {
+    "participant_view": "BLINDED",
+    "overlay_mode": "off",
+    "note": "zones and cues only; arm names on the operator console"
+  },
+  "questionnaire": {"included": null, "ref": null},
+  "overlap_with_dataset": "NOT_APPLICABLE",
+  "notes": "SYNTHETIC schema example: every value is illustrative; never evidence"
+}
