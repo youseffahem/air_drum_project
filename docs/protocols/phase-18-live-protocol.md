@@ -19,10 +19,10 @@ Person-dependent steps are marked **PERSON**.
 | 1 | Ethics question answered; consent form CF-v0.1 plus the live addendum approved | `docs/ethics/ethics-approval-note.md` | **Open Question** |
 | 2 | Pre-registration approved by the owner and the supervisor (by hash) | `docs/experiments/phase-18-prereg.hashes.json` → `approvals` | PENDING |
 | 3 | Shipped model and live config frozen; live model hash equals the offline lock's `C` | live lock `live.config_sha256`, `live.model` | PENDING (no shipped model; ADR-0030) |
-| 4 | Developer pilot of M1 / M2 done; `methods.json` decides GO / NO-GO | `docs/reports/phase-18-external-methods.md` | M1 click part only (see report); pad and M2 PENDING |
+| 4 | Developer pilot of M1 / M2 done; `methods.json` decides GO / NO-GO | `docs/reports/phase-18-external-methods.md` | M1 is the primary method (decision E1): the click part failed on the built-in microphone; the external-microphone click check and the pad pilot are PENDING; M2 only if M1 fails |
 | 5 | Live lock archived (config, model, arm mapping, Williams sequences, methods, questionnaire decision) | `confirmatory_lock.py archive` | PENDING |
 | 6 | Calibration wizard (Phase 14) works live for the operator | `docs/user/calibration.md` | PENDING (Phase 14 live calibration) |
-| 7 | Live B runs at the offline lock's `b_primary` (ADR-0036 amendment), and a model-fallback policy is declared | ADR-0036 amendment; live lock | PENDING (live report §3, findings 1 and 4) |
+| 7 | Live B runs at the offline lock's `b_primary` with per-arm commit settings (ADR-0036 amendment of 2026-09-27); fallback policy C1 (sticky fallback kept, loss accepted) | ADR-0036 amendment; live lock | amendment decided; implementation and re-verification PENDING |
 
 ## 2. Equipment (record what is actually used in `LiveSessionMetadata.external_methods`)
 
@@ -30,9 +30,9 @@ Person-dependent steps are marked **PERSON**.
 |---|---|---|
 | HW-01 laptop, integrated webcam, speakers | every session | yes (HW-01) |
 | Two ordinary drumsticks | every session | Open Question (hardware inventory) |
-| Practice pad | M1 PAD blocks | **no** (Open Question) |
-| Microphone near pad and speaker (the built-in array only if the click check passes at the position used) | M1 | built-in array only; external mic **no** |
-| Phone with high-frame-rate video (≥ 200 FPS) and an LED or flash reference | M2 | **no** |
+| Practice pad | M1 PAD blocks (primary method, decision E1) | **no**; to be acquired |
+| Microphone near pad and speaker: an external microphone without processing (the built-in array failed the click check) | M1 (decision E1) | external mic **no**; to be acquired |
+| Phone with high-frame-rate video (≥ 200 FPS) and an LED or flash reference | M2, only if M1 fails its declared pilot (decision E1) | **no** |
 | Metronome cue (the protocol's on-screen tempo) | TEMPO segments | software |
 
 ## 3. Session flow (operator script)
@@ -64,10 +64,10 @@ Person-dependent steps are marked **PERSON**.
    - If a model fallback message appears, note the time: it is logged, and the block continues
      as-treated (pre-registration §7.2, item 4).
    - A fallback disables the model **for the rest of the session**, even when it happens while C
-     only runs in shadow. The live config has `automatic_recovery: false`, so every later switch to
-     C is refused ("model unavailable; restart after correcting the recorded fault"). The C blocks
-     then sound with the previous arm, and C gets no data. What the operator does then is an Open
-     Question for the owner (§6).
+     only runs in shadow. No recovery mode exists (the config schema fixes `automatic_recovery` to
+     `false`), so every later switch to C is refused ("model unavailable; restart after correcting
+     the recorded fault"). The C blocks then sound with the previous arm, and C gets no data. Under
+     owner decision C1 the operator continues the session; nothing is restarted or re-run (§6).
 6. **PAD blocks** (M1). Single hits on the pad, about one per second, one block per arm in the
    same order.
 7. **Questionnaire** (only if the owner decided to include it, pre-registration §1):
@@ -107,13 +107,13 @@ length.
   segment. Takes are kept and flagged, never deleted.
 - A model fallback: continue. The fallback arm sounds for the **rest of the session**, not only the
   block: later switches to C are refused. This is reported.
+  - Triggers (ADR-0036): inference p95 above 10 ms or total processing p95 above 33.3 ms over the
+    last 30 model frames, a capture-cadence mismatch, or a model load or inference exception.
   - The SYNTHETIC rehearsal inside the final verification showed it:
     `experiments/phase-18/20260927-1258-p18-gate-verification/20260927-1323-live-rehearsal/`.
     The shadow C-GRU's inference p95 exceeded the 10 ms budget over 30 frames at session time
     140.2 s, while B was sounding, and both later C blocks were refused.
-  - **Open Question (owner, before the live lock).** Choose between:
-    - a model warm-up with a health check before each C block;
-    - restarting the application and re-running the missing C blocks (a protocol amendment);
-    - a recovery policy in the live config;
-    - accepting the loss (the participant then leaves the paired C analysis, pre-registration
-      §7.2, item 5).
+  - **Owner decision C1 (2026-09-27).** The sticky fallback is kept and the loss accepted: continue
+    the session, let the remaining C blocks sound with the previous arm (attributed as-treated), and
+    record the fallback. Nothing is restarted, re-run or recovered. A participant without valid C
+    strikes leaves the paired C analysis (pre-registration §7.2, item 5).

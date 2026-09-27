@@ -7,7 +7,7 @@
 | Submitter | Claude Code agent acting for the project owner |
 | Reviewer(s) | Project owner, and the supervisor (the gate procedure recommends supervisor sign-off for the Phase 18 pre-registration) — PENDING |
 | Review date | PENDING |
-| Code state | start `6730b81b261658784a33812b551acdf043a60be8`, clean; final verification on the same HEAD, **dirty** (Phase 18 changes uncommitted) |
+| Code state | start `6730b81b261658784a33812b551acdf043a60be8`, clean; final verification on the same HEAD, **dirty** (Phase 18 changes uncommitted at the time). Owner commit `c2b6191d8683bfbd2ead5559f6735a40ebccc967` followed (2026-09-27 13:39:24 +03:00); its 499 source-audited files are byte-identical to the verified tree. The clean re-run on it is PENDING. |
 | **Verdict** | **PENDING reviewer. Submitter proposes FAIL for the full phase.** Criterion 1 is MET: the pre-registration was declared and hashed before any Phase 18 runner touched data; owner / supervisor approval is PENDING. Criterion 2 is NOT MET: `ds-v1.0` does not exist, so the offline confirmatory run has not happened. Criteria 3 and 5 are PARTIAL: M1 is documented as failed on the built-in microphone; the pad and video pilots, every live session with a person, participant regeneration and the second-person check are PENDING. Criterion 4 is MET only in the PENDING form it allows: there is no effective-latency number. All machinery is implemented, tested and rehearsed end to end on SYNTHETIC data only; the final verification passed all 16 commands on the dirty tree. |
 
 ## Execution environment
@@ -60,22 +60,47 @@ What this does and does not close:
 
 1. **Matching reference.** The frozen harness pairs on `t_commit` (ADR-0023), which caps every
    matched lead at `W` and turns a commit more than `W` early into FP + FN. README §10.1 describes
-   pairing on `t_impact_pred`. S1 is pre-declared as a sensitivity; the owner chooses the primary.
-   (Offline report §3; ADR-0042 D2; T2.)
+   pairing on `t_impact_pred`. S1 is pre-declared as a sensitivity. **Decided A1:** ADR-0023 stays
+   primary. (Offline report §3; ADR-0042 D2; T2.)
 2. **Held-out participant count.** P_test = 2–3 makes every participant interval [min, max] of the
-   participant values. (T1.)
+   participant values. **Decided D1:** the rule and the planned count are kept. (T1.)
 3. **Frozen geometry.** A sample exactly on a zone boundary opens an entry episode without a
    candidate. (T20.)
-4. **Live B inherits the model's horizon** (K = 1: 33 ms). An ADR-0036 amendment is needed before
+4. **Live B inherits the model's horizon** (K = 1: 33 ms). Also, every live arm shares the one
+   `commit` block (`tti_commit_s`, `p_commit`, `n_confirm_frames`): `app/pipeline.py` builds one
+   `CommitSettings` for all arms. Live B and C therefore cannot each run at their own locked commit
+   settings, and a changed `n_confirm_frames` would also delay A. **Decided B:** ADR-0036 amended
+   (live B at the offline-locked settings, per-arm commit settings); implementation PENDING before
    the live lock. (Live report §3; T18.)
 5. **One-frame arm-switch lag**, handled as-treated. (T19.)
-6. **M1 is NO_GO on the built-in microphone.** An external microphone is needed. (External-methods
-   report; T11.)
-7. **One model fallback removes C from the rest of the session.** The rule is an inference p95
-   above 10 ms over 30 frames, with `automatic_recovery: false`, and it also fires in shadow. The
-   runner then refuses every later switch to C. Seen in the verification's live rehearsal and not
-   in the first one. A live policy is needed before the live lock. (Live report §3; T21; live
-   protocol §6.)
+6. **M1 is NO_GO on the built-in microphone.** An external microphone is needed. **Decided E1:** M1
+   stays primary; M2 only if M1 fails its pilot. (External-methods report; T11.)
+7. **One model fallback removes C from the rest of the session** (ADR-0036 sticky fallback). It is
+   triggered by any of:
+   - model inference p95 (both hands summed per frame) above `budget_s` = 10 ms over the last 30
+     model frames;
+   - total processing p95 above `processing_budget_s` = 33.3 ms over the same window;
+   - a capture-cadence mismatch with the model's `dt_step`;
+   - a model load or inference exception.
+
+   It also fires while C runs in shadow. No recovery mode exists (the config schema fixes
+   `automatic_recovery` to `false`), so the runner refuses every later switch to C. Seen in the
+   verification's live rehearsal and not in the first one. **Decided C1:** the fallback is kept and
+   the loss of C data accepted. (Live report §3; T21; live protocol §6.)
+
+## Owner decisions — 2026-09-27
+
+Recorded as documentation only. The pre-registration text is unchanged (version 1,
+`sha256:e901f280…793ba0`); none of these decisions needs a new version; version 1 is **not**
+approved yet.
+
+| Id | Decision | What it means | Still pending |
+|---|---|---|---|
+| A1 | ADR-0023 commit-time matching stays the primary confirmatory rule; README §10.1 stays sensitivity S1 | no rule change; ADR-0023 records the difference (clarification); leads stay bounded by `W` | the offline lock (`W` and the other upstream values) |
+| B | ADR-0036 amended: live arm B uses the offline-locked B settings (`b_primary`), with per-arm commit settings in the live pipeline; the shared-setting deviation was not chosen | no pre-registration change; the values come from the offline lock after `ds-v1.0` | implementation, tests, a live-lock consistency check, Phase 17 and 18 re-verification, all before the live lock |
+| C1 | The sticky fallback is kept; a participant or session may lose its C data after a fallback | no recovery mode, no budget change; pre-registration §7.2 items 4–5 apply | nothing to implement; losses are reported per session |
+| D1 | P07-SPLIT-1 and the planned 10–12 participants are kept | 2–3 held out; the per-participant reading of §6 applies | `ds-v1.0` (recruitment needs the ethics answer) |
+| E1 | M1 (pad + external microphone) is equipped and evaluated as the primary timing method; M2 only if M1 fails its declared pilot; §8 thresholds and the estimator unchanged | no pre-registration change | external microphone without processing and practice pad; M1 part (i) re-run; developer pad pilot; GO / NO-GO |
 
 ## 1. Artefacts produced
 
@@ -177,7 +202,7 @@ The Phase 17 dependency re-run measurements are recorded in `phase-17-gate.md`.
 | I-8 | Participant-level split confirmed for ML results | N/A for participants | No participant ML result exists. The rehearsal used the P07 participant-level split on SYNTHETIC identities (3 held out, 5 folds). |
 | I-9 | Scope respected (out-of-scope register) | YES | no ablation (Phase 19); no model, threshold, harness, `app` or `ui` change; Phase 19 not started |
 | I-10 | Status vocabulary correct | YES | Phase document and gate PENDING; RTM statuses unchanged (evidence pointers only); hypotheses PENDING |
-| I-11 | Reproducibility fields complete | **NO** | Provenance, source audits and executor fields are complete, but every Phase 18 run used a dirty tree. The owner commit and `verify_phase18.py --require-clean` are required. |
+| I-11 | Reproducibility fields complete | **NO** | Provenance, source audits and executor fields are complete, but every Phase 18 run used a dirty tree. The owner commit exists (`c2b6191`); `verify_phase18.py --require-clean` on it is still required. |
 | I-12 | Limitations stated | YES | `phase-18-limitations.md`; every report lists what was not shown |
 
 ## 6. Deviations from the phase document
@@ -186,7 +211,7 @@ The Phase 17 dependency re-run measurements are recorded in `phase-17-gate.md`.
 |---|---|---|
 | Recommended model (GPT-6 Astra / Extra High) not used; Claude Opus 5.5 executed the phase | the executing agent is Claude Code | none on evidence; recorded in every `execution.json` |
 | Two-stage pre-registration: rules and symbols now, values in frozen-inputs locks later (ADR-0042 D1) | W, `Δ_proc`, the budgets, the operating points, the shipped model and `ds-v1.0` are all PENDING; declaring rules now keeps them ahead of any data | every lock must be archived after the latest approved version; the runners enforce this |
-| Primary matching stays ADR-0023 (`t_commit`); README §10.1 (`t_impact_pred`) is the pre-declared sensitivity S1 (ADR-0042 D2) | the frozen harness implements ADR-0023, and the discrepancy was unrecorded | Open Question for the owner before the offline lock; this also bounds the Phase 10–12 leads (T2) |
+| Primary matching stays ADR-0023 (`t_commit`); README §10.1 (`t_impact_pred`) is the pre-declared sensitivity S1 (ADR-0042 D2) | the frozen harness implements ADR-0023, and the discrepancy was unrecorded | decided A1 (owner, 2026-09-27): ADR-0023 stays primary; this also bounds the Phase 10–12 leads (T2) |
 | `LiveSessionMetadata` extends `SessionMetadata` by composition (`live-session.json` references `metadata.json` by SHA-256) rather than by new fields (ADR-0042 D5) | the Phase 06 schema is closed (`additionalProperties: false`) | none on the Phase 06 tools |
 | External sync uses the system's own drum sounds against the software audio-event train (M1) and flashes (M2), not a separate clap (ADR-0042 D7) | the sounds are already in every recording and identify each strike | none |
 | New import layer `spacedrums.live_eval` beside `app` (ADR-0042 D4) | analysis and live protocol above the frozen harness; `spacedrums.eval` stays unchanged | architecture contracts updated and tested |
@@ -198,23 +223,27 @@ The Phase 17 dependency re-run measurements are recorded in `phase-17-gate.md`.
 
 | Item | Marker | Resolving phase |
 |---|---|---|
-| Owner / supervisor approval of pre-registration version 1, or amendments as new versions first | Pending | 18 re-gate |
-| Matching reference: keep ADR-0023 primary, or make README §10.1 primary (ADR-0042 D2) | Open Question | 18, before the offline lock |
-| `ds-v1.0` held-out participants; participant count and held-out size (P ≥ 12 gives 3 held out) | Pending / Open Question | 06–07, then 18 |
+| Owner / supervisor approval of pre-registration version 1. Decisions A1, B, C1, D1 and E1 need no new version; their answers go in the approval note | Pending | 18 re-gate |
+| Matching reference (ADR-0042 D2): decided A1, ADR-0023 primary and README §10.1 as S1 | Decided 2026-09-27 | — |
+| `ds-v1.0` held-out participants; participant count and held-out size. P07-SPLIT-1 (ADR-0021): P = 8–11 → 2 held out, 12–19 → 3, ≥ 20 → round(0.2 P). With ≤ 3 held out, every interval is [min, max] of the participant values (pre-registration §6). Rule and planned 10–12 kept (decision D1) | Pending (`ds-v1.0`) | 06–07, then 18 |
 | `W_PRIMARY_S`, `DELTA_PROC_LIVE_S` (live-stroke delay) | Pending Benchmark | 16 / 18 |
 | Owner FP budget (ADR-0025), operating points (ADR-0024), shipped model (ADR-0030) | Pending Architecture Decision | 18, before the offline lock |
 | `δ_audio`, `δ_lead`; Phase 07 acoustic spread `s_phys` | Open Question / Pending Benchmark | owner; 07 |
 | Phase 04 output latency (M3's DAC term) | Pending Benchmark | 04 / 18 |
 | Ethics answer; signed live consent (CF-LIVE-v0.1 draft) | Open Question | 00 / 18, before any live session |
-| External microphone; M1 part (i) re-run; developer pad pilot (≥ 30 strikes); M1 thresholds and sound-onset estimator | Pending Benchmark / Open Question | 18 |
-| M2 (≥ 200 FPS camera, LED reference) | Pending Benchmark (optional) | 18 |
-| Live B at its locked operating point: ADR-0036 amendment (T18) | Pending Architecture Decision | 18, before the live lock |
-| Live model-fallback policy: warm-up and health check, restart and re-run, a recovery setting, or accepting the loss (finding 7; T21) | Pending Architecture Decision | 18, before the live lock |
+| M1 as the primary timing method (decision E1): external microphone without processing and practice pad; M1 part (i) re-run; developer pad pilot (≥ 30 strikes); thresholds and estimator kept as declared | Pending Benchmark | 18 |
+| M2 (≥ 200 FPS camera, LED reference): only if M1 fails its declared pilot (decision E1) | Pending Benchmark (conditional) | 18 |
+| Live B at the offline-locked `b_primary` settings with per-arm commit settings (ADR-0036 amendment, decided 2026-09-27): implementation, tests, live-lock consistency check, Phase 17 and 18 re-verification (finding 4; T18) | Pending (implementation) | 18, before the live lock |
+| Live model-fallback policy (finding 7; T21): decided C1, the sticky fallback is kept and a loss of C data accepted (pre-registration §7.2, items 4–5); no recovery mode, no budget change | Decided 2026-09-27 | — |
 | Include the questionnaire (Experiment 3); number of live participants and overlap with dataset participants | Open Question | 18, before the first live session |
 | Frozen-geometry boundary edge case (T20) | Open Question | owner; a later phase |
 | Whether anticipatory sound changes user motion | To Be Experimentally Determined | 18 (live) |
 | Second-person regeneration check | Pending | 18 re-gate |
 | Participant replay set for the invariants (from Phase 17) | Pending | after `ds-v1.0` |
+| From Phase 17: `g_max_frames` 3 / `age_max_s` 0.5 confirmation on participant data (ADR-0041, owner-decided deviation) | To Be Experimentally Determined | 18 re-gate, after `ds-v1.0` |
+| From Phase 17: DEGRADED commits on participant data (ADR-0039, kept off) | Pending | 18 re-gate, after `ds-v1.0` |
+| From Phase 17: arm B post-re-acquisition warm-up (F-10, F19) | To Be Experimentally Determined | 18 re-gate, after `ds-v1.0` |
+| From Phase 17: developer-played maximum separable hit rate (REQ-013) | Pending | 17 re-gate / 18 |
 
 ## 8. Conditions
 
@@ -232,34 +261,28 @@ Signed: PENDING
 
 1. **Review.** The pre-registration, ADR-0042, the six reports, the live protocol, the
    questionnaire and the consent addendum.
-2. **Decide the Open Questions in §7** that the pre-registration or the locks need:
-   - the matching reference;
-   - the questionnaire;
-   - the M1 thresholds and estimator;
-   - the ADR-0036 amendment for live B;
-   - the live fallback policy (finding 7);
-   - the participant numbers.
-
-   If a rule changes, archive a new version first:
-   `python scripts/prereg_archive.py archive --note "<why this version>"`.
-   Then approve the latest version:
-   `python scripts/prereg_archive.py approve --by "<name>" --date YYYY-MM-DD`
+2. **Decisions.** A1, B, C1, D1 and E1 were recorded on 2026-09-27 ("Owner decisions" above). None
+   changes the pre-registration text, so no new version is needed. Still open: the questionnaire
+   and the live participant count (both before the first live session). Approve version 1 when
+   ready, with the answers in the note:
+   `python scripts/prereg_archive.py approve --by "<name>" --date YYYY-MM-DD --note "<answers>"`
    (the approver runs this, never the agent).
-3. **Commit** the Phase 18 changes. Commit, tag and push are owner-controlled; the agent made none.
+3. **Commit** the Phase 18 changes: done by the owner (`c2b6191`, 2026-09-27 13:39:24 +03:00). Commit,
+   tag and push stay owner-controlled; the agent made none.
 4. **Clean re-run.** On the committed tree, run
    `python scripts/verify_phase18.py --require-clean --executor-model "<actual>" --executor-effort "<actual>"`
    (26.5 min on the dirty tree on HW-01).
 5. **Equipment and person steps** (external-methods report §3):
    1. an external microphone without processing, then M1 part (i);
    2. the developer pad pilot, then `--decide`;
-   3. optionally M2;
+   3. M2 only if M1 fails its declared pilot (decision E1);
    4. the Phase 04 output-latency loopback.
 6. **Experiment 1**, once `ds-v1.0` and the upstream decisions exist:
    `confirmatory_lock.py template`, then `validate`, then `archive`, on a clean tree; then
    `run_offline_confirmatory.py --lock …` **once**; then `regenerate_phase18.py`, and a second person
    repeats it.
-7. **Experiment 2**, after the ethics answer, consent, the ADR-0036 amendment, the fallback policy
-   and the live lock:
+7. **Experiment 2**, after the ethics answer, consent, the implemented and re-verified ADR-0036
+   amendment, the M1 equipment and pilot, and the live lock:
    `run_live_session.py`, then `external_sync.py`, then `analyze_live.py`, per participant.
 8. **Next phase.** Per the phase document, a PASS leads to Phases 19 and 20. The agent has not
    started either.

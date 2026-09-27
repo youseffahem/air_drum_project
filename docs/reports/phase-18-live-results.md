@@ -65,26 +65,34 @@ Design: pre-registration §9 (Williams order, blinding, as-treated attribution).
    - With the development model (K = 1), live B extrapolates only 33 ms ahead, while the Phase 05
      prototype B uses K = 6.
    - In the rehearsal, B committed on 2 of 30 strikes.
-   - A live comparison would pit C against a handicapped B. Before any live lock, the live
-     configuration must run B at its locked operating point (motion model, K, τ, p): an ADR-0036
-     amendment and an owner decision. Nothing was changed in Phase 18.
+   - All live arms also share one `commit` block. `DecisionPipeline` builds one `CommitSettings` for
+     every arm (`pipeline.py:210–228`), and the config schema has no per-arm commit block. Live B
+     and C therefore cannot each run at their own locked `tti_commit_s`, `p_commit` and
+     `n_confirm_frames`; `n_confirm_frames` also applies to A's reactive candidates.
+   - A live comparison would pit C against a handicapped B. The owner amended ADR-0036 on
+     2026-09-27: live B will run at the offline-locked `b_primary` settings (motion model, K, τ, p,
+     confirmation frames), with per-arm commit settings in the live pipeline. The values come from
+     the offline lock; the implementation is PENDING and must be re-verified before any live lock.
+     No code was changed.
 2. **One-frame switch lag.** A block's first frame is decided by the previous arm; the switch takes
    effect on the next frame. One A sound fell inside PAD block p2. As-treated attribution (by the
    commit's `arm`) counts it correctly, and the switch frame is recorded per block.
 3. **M1 on HW-01's built-in microphone is NO_GO**
    ([`phase-18-external-methods.md`](phase-18-external-methods.md)). The live PAD blocks need an
-   external microphone.
+   external microphone; M1 stays the primary method (decision E1).
 4. **One model fallback removes C from the rest of the session.**
-   - The live config's fallback rule (`anticipator.fallback`: inference p95 budget 10 ms over
-     30 frames, `automatic_recovery: false`) applies while C runs in shadow too.
-   - Once it fires, the model stays disabled and the runner refuses every later switch to C.
+   - The sticky fallback (ADR-0036; `anticipator.fallback` in the live config) fires on any of:
+     model inference p95 above 10 ms over the last 30 model frames; total processing p95 above
+     33.3 ms over the same window; a capture-cadence mismatch with the model's `dt_step`; a model
+     load or inference exception. It applies while C runs in shadow too.
+   - Once it fires, the model stays disabled for the session. No recovery mode exists (the config
+     schema fixes `automatic_recovery` to `false`), and the runner refuses every later switch to C.
    - The repeat rehearsal in the final verification hit this after 40 s of session time; the first
      rehearsal did not. It depends on wall-clock timing on HW-01, not on the data.
    - For a participant this would leave no C data: as-treated attribution stays correct, but the
      participant leaves the paired C analysis (pre-registration §7.2, item 5).
-   - The policy for live sessions (warm-up and health check, restart and re-run, a recovery setting,
-     or accepting the loss) is an owner decision before the live lock. Nothing was changed in
-     Phase 18.
+   - Owner decision C1 (2026-09-27): the sticky fallback is kept, and a participant or session may
+     lose its C data; no recovery mode and no budget change. Nothing was changed in Phase 18.
 
 ## 4. Behaviour to watch in real sessions (declared, exploratory)
 

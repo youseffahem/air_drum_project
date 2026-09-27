@@ -1,7 +1,8 @@
 # ADR-0042 — Phase 18 evaluation design: two-stage pre-registration, live protocol and timing methods
 
-Status: **IMPLEMENTED development machinery; owner review PENDING.** Decisions D2 (matching reference)
-and D7 (M1 thresholds) carry Open Questions for the owner. No participant result exists.
+Status: **IMPLEMENTED development machinery; owner review PENDING.** Owner decisions of 2026-09-27
+are recorded below (A1 in D2, D1 in D3, E1 in D7, B and C1 under Consequences); none changes the
+pre-registration text. No participant result exists.
 Date: 2026-09-27. Phase: 18 (Tasks 18.1–18.9). Related: ADR-0007, ADR-0012, ADR-0023, ADR-0024,
 ADR-0025, ADR-0027, ADR-0030, ADR-0036, ADR-0037; `docs/experiments/phase-18-prereg.md`.
 
@@ -47,8 +48,9 @@ fixed later. It must also keep the Phase 09 harness frozen.
   `W` early counts as FP + FN.
 - The primary analysis follows the frozen rule. S1 re-pairs on `t_ref` through the unchanged
   `evaluate_session` and recomputes leads from `t_commit`.
-- **Open Question (owner, before the offline lock):** keep ADR-0023 as primary, or amend ADR-0023
-  and the pre-registration to make §10.1 primary.
+- **Decided (owner, 2026-09-27, A1):** ADR-0023 stays the primary confirmatory rule, and README
+  §10.1 stays sensitivity S1. Neither rule changes; ADR-0023 now records the difference
+  (clarification of 2026-09-27).
 
 **D3. Decision rules on participant-bootstrap intervals.**
 
@@ -58,6 +60,8 @@ fixed later. It must also keep the Phase 09 harness frozen.
 - For P ≤ 3 the interval equals [min, max] of the participant values. Rule P07-SPLIT-1 gives
   P_test = 2–3 at the planned 10–12 participants, so the pre-registration states that the offline
   decisions then read "every held-out participant meets the criterion".
+- **Decided (owner, 2026-09-27, D1):** P07-SPLIT-1 and the planned 10–12 participants are kept, so
+  this per-participant reading applies to Experiment 1.
 
 **D4. `spacedrums.live_eval` package** (top layer, a sibling of `spacedrums.app` in `.importlinter`).
 
@@ -95,6 +99,9 @@ fixed later. It must also keep the Phase 09 harness frozen.
 - GO thresholds (candidates; the owner may amend them before the live lock): click
   |bias| ≤ 1 ms and e95 ≤ 2 ms over ≥ 30 pairs; pad pairing ≥ 90 % of ≥ 30 strikes;
   `U_M1 = sqrt(e95² + r_pad²) ≤ 5 ms`.
+- **Decided (owner, 2026-09-27, E1):** M1 is equipped and evaluated as the primary timing method,
+  with an external microphone and a practice pad. The thresholds and the estimator above stay as
+  declared. M2 is used only if M1 fails its declared pilot (pre-registration §8).
 
 **D8. TEST-CAUSAL-1 on the exact evaluated arms** (GARBAGE / REMOVED / SHIFTED).
 
@@ -112,16 +119,20 @@ fixed later. It must also keep the Phase 09 harness frozen.
   evidence.
 - The W-cap finding (D2) affects how Phase 10–12 leads are interpreted. It is reported in the
   limitations and carried to the owner.
-- **Live B needs its own operating point (open; owner).** The live rehearsal showed that
-  `DecisionPipeline` builds arm B from the model config's `anticipator` block (ADR-0036: "the same
-  configured K/step applies to B"). With the development model (K = 1), live B looks only 33 ms
-  ahead instead of its locked K. The live lock may not be archived until the live configuration runs
-  B at the offline lock's `b_primary` settings; that needs an ADR-0036 amendment.
+- **Live B needs its own operating point (decided 2026-09-27; implementation PENDING).** The live
+  rehearsal showed that `DecisionPipeline` builds arm B from the model config's `anticipator` block
+  (ADR-0036: "the same configured K/step applies to B"). With the development model (K = 1), live
+  B looks only 33 ms ahead instead of its locked K. All live arms also share one `commit` block, so
+  B and C cannot each run at their own locked commit settings. The owner amended ADR-0036: live B
+  will run at the offline lock's `b_primary` settings, with per-arm commit settings in the live
+  pipeline (the shared-setting deviation was not chosen). The live lock may not be archived before
+  this is implemented and re-verified.
 - **M1 on the built-in microphone is NO_GO** (click-pair check failed twice). An external
-  microphone is a precondition of the M1 pad pilot.
-- **Live fallback policy (open; owner).** The live config's model fallback (`automatic_recovery:
-  false`) also fires while C runs in shadow. It disables C for the rest of the session, so later C
-  blocks are refused. This happened in one of two SYNTHETIC live rehearsals. The live lock needs a
-  declared policy first: warm-up and health check, restart and re-run, a recovery setting, or
-  accepting the loss.
+  microphone is a precondition of the M1 pad pilot; M1 stays the primary method (E1, D7).
+- **Live fallback policy (decided 2026-09-27, C1).** The sticky model fallback (ADR-0036) also fires
+  while C runs in shadow. It disables C for the rest of the session, so later C blocks are refused;
+  no recovery mode exists (the config schema fixes `automatic_recovery` to `false`). This happened
+  in one of two SYNTHETIC live rehearsals. The owner kept the sticky fallback and accepted that a
+  participant or session may lose its C data; the pre-registration's as-treated attribution and H4
+  pairing rules (§7.2, items 4–5) cover it. No recovery mode and no budget change.
 - No threshold, model or harness change is made in Phase 18.

@@ -92,3 +92,27 @@ claim, recovery benchmark, calibration wizard or optimization is supplied here.
 C-MT and Phase 12 extensions require the pending adoption decision and their declared
 gates before live wiring. A cold export call can trip the candidate budget; the
 implementation records this instead of hiding warmup costs.
+
+## Amendment — 2026-09-27 (Phase 18 owner decision on live arm B)
+
+Status of this amendment: DECIDED by the owner; implementation PENDING. No code, configuration or
+schema has changed, and until the implementation exists the behaviour described above still
+applies.
+
+- **Live arm B settings.** In live experiment configurations, arm B runs at the offline-locked B
+  settings: the `b_primary` arm of the archived Phase 18 offline lock (motion model, K and step,
+  rule parameters, and commit thresholds). For those configurations this replaces "The same
+  configured K/step applies to B". No values are chosen here: they exist only after the offline
+  lock, which needs `ds-v1.0`.
+- **Per-arm commit settings.** The live pipeline gets one set of commit settings per arm (A at its
+  Phase 05 settings, B at the locked `b_primary` settings, C at its locked operating point) instead
+  of the single shared `commit` block. The alternative, one shared setting declared as a
+  deviation, was not chosen, so the Phase 18 pre-registration text needs no change for this
+  amendment.
+- **Unchanged.** The sticky fallback (owner decision C1, 2026-09-27: no recovery mode, no budget
+  change). Its target is still B, which then runs at its locked settings.
+- **Before the live lock.** Implementation in `app/pipeline.py` (B's rule settings and the
+  per-arm commit policies), the config schema and the live configuration; tests; a check at
+  live-lock time that live B and the per-arm commit settings equal the offline lock's arms
+  (`live_eval.prereg._live_errors` does not check this today); and re-running the Phase 17 and
+  Phase 18 verifications.

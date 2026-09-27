@@ -29,3 +29,17 @@ participant-data analysis task.
 This rule has been implemented and tested on synthetic/developer data. Its empirical choice
 and freeze are blocked by the absent reviewed `ds-v1.0` validation folds. Phase 07's synthetic
 interpolation error is not a substitute for participant label uncertainty.
+
+## Clarification — 2026-09-27 (Phase 18 owner decision A1)
+
+README §10.1 describes matching by a reference time `t_ref` (`t_impact_pred` for anticipatory
+sources, the detected `t_impact_est` for Baseline A). The harness implements this ADR's
+commit-time rule instead, and this ADR did not record the difference before Phase 18.
+
+The owner decided on 2026-09-27 (decision A1) that this ADR's commit-time matching stays the
+primary confirmatory rule. README §10.1 reference-time matching stays the pre-declared sensitivity
+S1 of the Phase 18 pre-registration (§4.2), computed without changing the harness
+(`spacedrums.live_eval.offline.reference_time_evaluation`). As declared there (§4.1), every
+matched lead is bounded by W, and a commit made more than W before the estimated impact counts as
+one false positive and one false negative. The matching rule, the W procedure and `W_PRIMARY_S`
+(still `None`) are unchanged.

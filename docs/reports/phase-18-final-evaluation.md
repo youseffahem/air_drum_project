@@ -33,7 +33,7 @@ rules and failure readings are fixed in pre-registration §3 and §6.
 | H2 | C's FP/min ≤ the budget | **PENDING** | as H1a | yes: same run (and S1) |
 | H3 | C's `TE_pred` MAE ≤ `δ_TE` | **PENDING** | as H1a, plus the owner's `δ_audio` and, for the physical bound, the Phase 07 acoustic spread | yes: same run |
 | H4 | externally measured action-to-sound latency C < A by more than the method uncertainty | **PENDING, no claim** | a GO external method (none: M1 NO_GO on the built-in microphone, M2 not piloted); ethics answer; live participants; live lock | yes: `20260927-1257-analyze-live` (one SYNTHETIC participant) |
-| H4-B | as H4, for B | **PENDING, no claim** | as H4, plus live B at its locked operating point (ADR-0042) | yes: same run |
+| H4-B | as H4, for B | **PENDING, no claim** | as H4, plus the implemented ADR-0036 amendment (live B at its locked settings) | yes: same run |
 
 The rehearsal outcomes stay in the experiment reports, where they are labelled SYNTHETIC. They
 say nothing about participants, the models or the research question, and this report does not
@@ -66,14 +66,17 @@ repeat them.
   chain exactly (offline report §2.1). This is machinery, not evidence.
 - **Seven findings for the owner:**
   1. ADR-0023 pairs on `t_commit`, which caps every matched lead at `W`. S1 is the pre-declared
-     sensitivity.
-  2. P_test = 2–3 makes every participant interval equal to [min, max] of the participant values.
+     sensitivity; the owner kept ADR-0023 primary (A1).
+  2. P_test = 2–3 makes every participant interval equal to [min, max] of the participant values;
+     the owner kept the rule and the planned count (D1).
   3. The frozen geometry has a boundary edge case (limitation T20).
-  4. Live B inherits the model's horizon, so it needs an ADR-0036 amendment before the live lock.
+  4. Live B inherits the model's horizon, and all live arms share one `commit` block. The owner
+     amended ADR-0036 (live B at the offline-locked settings, per-arm commit settings); the
+     implementation is PENDING before the live lock.
   5. The arm switch lags by one frame; attribution is as-treated.
-  6. M1 is NO_GO on the built-in microphone.
+  6. M1 is NO_GO on the built-in microphone; M1 with an external microphone stays primary (E1).
   7. One model fallback, even in shadow, removes C from the rest of a live session (limitation
-     T21). A live policy is needed before the live lock.
+     T21). The owner kept the fallback and accepted the loss (C1).
 
   The offline report §3 covers finding 1, the live report §3 findings 4 and 7, and the
   limitations the rest; the gate record numbers them the same way.
@@ -112,16 +115,16 @@ repeat them.
 
 ## 5. Path to a result (owner actions, in order)
 
-1. Review the pre-registration, decide its Open Questions (the matching reference, the
-   questionnaire, the M1 thresholds and sound-onset estimator), then approve the archived version
-   with `prereg_archive.py approve`. Any change first becomes a new archived version.
+1. Decisions A1, B, C1, D1 and E1 were recorded on 2026-09-27 (gate record, "Owner decisions");
+   none changes the pre-registration text. Approve version 1 with `prereg_archive.py approve`,
+   with the answers in the note. The questionnaire can stay open until the first live session.
 2. **Experiment 1** (after `ds-v1.0`, W, `Δ_proc`, the budgets, the operating points and the
    shipped model exist):
    1. `confirmatory_lock.py template`, then `validate`, then `archive`, on a clean tree;
    2. `run_offline_confirmatory.py --lock …`, run **once**;
    3. `regenerate_phase18.py`, then a second person repeats it.
-3. **Experiment 2** (after the ethics answer, signed consent, an external microphone, the ADR-0036
-   amendment for live B, a live fallback policy and the live lock):
+3. **Experiment 2** (after the ethics answer, signed consent, an external microphone and a practice
+   pad, the implemented and re-verified ADR-0036 amendment, and the live lock):
    1. M1 part (i) with the external microphone;
    2. the developer pad pilot and the M1 decision;
    3. live sessions with `run_live_session.py`;
