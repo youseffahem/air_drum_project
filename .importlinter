@@ -15,6 +15,7 @@ root_package = spacedrums
 name = Space Drums pipeline layers
 type = layers
 layers =
+    spacedrums.ablation
     spacedrums.app | spacedrums.live_eval
     spacedrums.ui | (spacedrums.eval) | (spacedrums.data) | (spacedrums.calib)
     spacedrums.commit | (spacedrums.audio)

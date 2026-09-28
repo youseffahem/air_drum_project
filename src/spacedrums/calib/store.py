@@ -193,7 +193,8 @@ def calibration_warnings(calib: Calibration) -> list[str]:
 def apply_calibration(cfg: Mapping[str, Any], calib: Calibration) -> dict[str, Any]:
     """Derived config: calibrated zones + per-hand L_prior + the ``calibration`` block (schema 1.7)."""
     doc = copy.deepcopy(dict(cfg))
-    doc["meta"] = {**doc["meta"], "schema_version": "1.7"}
+    version = max(doc["meta"]["schema_version"], "1.7", key=lambda v: tuple(map(int, v.split("."))))
+    doc["meta"] = {**doc["meta"], "schema_version": version}
     zones = calib.zones
     doc["zones"] = zones
     if "stick" in doc:

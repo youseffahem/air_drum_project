@@ -8,7 +8,6 @@ from _p10 import provenance, source_hashes, write_json
 
 from spacedrums.app.arms import build_model_arm
 from spacedrums.app.pipeline import HANDS, DecisionPipeline
-from spacedrums.commit import CommitSettings
 from spacedrums.contracts.schema import validate
 from spacedrums.eval.replay import DelayPolicy, replay
 from spacedrums.features.streaming import StreamingFeatures
@@ -115,8 +114,8 @@ def parity(cfg, frames, *, session_id, measured_delay=True, clock=now):
         tracks,
         arm="MODEL:" + str(pipe.model_label),
         registry=pipe.registry,
-        commit_settings=CommitSettings.from_config(cfg),
-        v_min=cfg["geometry"]["v_min"],
+        commit_settings=pipe.commit_settings_by_arm[pipe.model_label],
+        v_min=pipe.geometry_by_arm[pipe.model_label].v_min,
         session_id=session_id,
         model=model.adapter,
         feature_schema=model.stream.schema,

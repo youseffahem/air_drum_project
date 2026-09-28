@@ -144,7 +144,7 @@ def main() -> int:
             report(bool(errors(v, wrong)), f"{stem}: non-numeric t_capture rejected")
 
     # 4d (Phase 06/07): dataset and label documents.
-    for stem in DATASET_SCHEMAS + LABEL_SCHEMAS + LIVE_EVAL_SCHEMAS:
+    for stem in DATASET_SCHEMAS + LABEL_SCHEMAS + LIVE_EVAL_SCHEMAS + ["ablation-plan"]:
         v = validator_for(schemas[stem], registry)
         example = json.loads((EXAMPLES / f"{stem}.valid.example.json").read_text(encoding="utf-8"))
         errs = errors(v, example)

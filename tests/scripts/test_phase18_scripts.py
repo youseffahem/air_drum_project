@@ -61,6 +61,41 @@ def test_runner_refuses_before_reading_data(tmp_path):
     assert dirty.returncode == 2 and "--require-clean" in dirty.stderr
 
 
+@pytest.mark.parametrize(
+    "mutation", ["none", "config-change", "config-remove", "source-change", "source-add"]
+)
+def test_frozen_source_inventory_includes_config(scripts_on_path, tmp_path, monkeypatch, mutation):
+    """SYNTHETIC/DEV inventory: non-package pins and newly added source stay protected."""
+    module = importlib.import_module("run_offline_confirmatory")
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    config = "configs/prototype.candidate.yaml"
+    source = "src/spacedrums/commit/policy.py"
+    for relative in (config, source):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("# SYNTHETIC/DEV frozen inventory fixture\n", encoding="utf-8")
+    lock = {
+        "evidence": "SYNTHETIC/DEV",
+        "offline": {
+            "sources": {p: module.file_digest(tmp_path / p) for p in (config, source)},
+            "harness": {"source_sha256": {}},
+        },
+    }
+    expected = []
+    if mutation == "config-remove":
+        (tmp_path / config).unlink()
+        expected = [config]
+    elif mutation in ("config-change", "source-change"):
+        relative = config if mutation == "config-change" else source
+        (tmp_path / relative).write_text("# changed\n", encoding="utf-8")
+        expected = [relative]
+    elif mutation == "source-add":
+        relative = "src/spacedrums/commit/added.py"
+        (tmp_path / relative).write_text("# added\n", encoding="utf-8")
+        expected = [relative + " (added after the lock)"]
+    assert module.frozen_source_mismatches(lock) == expected
+
+
 def _session(arm_shift: float, participant: str, session: str):
     labels = [
         {

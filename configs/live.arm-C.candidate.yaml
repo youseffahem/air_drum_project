@@ -1,6 +1,6 @@
 # DEVELOPMENT fixture; all budgets are candidates, not accepted measurements.
 meta:
-  schema_version: '1.6'
+  schema_version: '1.9'
   created: '2026-09-26'
   phase: '13'
   description: 'DEVELOPMENT ONLY: synthetic-trained Phase 10 export; no shipped model
@@ -336,3 +336,57 @@ features:
   - TIME
   epsilon: 1.0e-06
   tts_clip_s: 2.0
+
+# ADR-0036 engineering candidates only; no offline lock or participant reference exists.
+live_arm_settings:
+  A:
+    commit:
+      commit_policy_id: commit-v1
+      tti_commit_s: 0.05
+      p_commit: 0.5
+      n_confirm_frames: 0
+      refractory_zone_s: 0.1
+      refractory_hand_s: 0.04
+      allow_degraded_commits: false
+      stale_prediction_tolerance_s: 0.02
+      max_dropped_since_last: 3
+    v_min: 0.15
+  B:
+    commit:
+      commit_policy_id: commit-v1
+      tti_commit_s: 0.05
+      p_commit: 0.5
+      n_confirm_frames: 0
+      refractory_zone_s: 0.1
+      refractory_hand_s: 0.04
+      allow_degraded_commits: false
+      stale_prediction_tolerance_s: 0.02
+      max_dropped_since_last: 3
+    v_min: 0.15
+    rule:
+      anticipator_id: rule-cv-v1
+      motion_model: CV
+      K: 6
+      dt_step: 0.0333333
+      n_min_frames: 2
+      v_min_predict: 0.2
+      a_max: 60.0
+      direction_window_frames: 3
+      speed_prob_lo: 0.2
+      speed_prob_hi: 1.5
+      combine: product
+      ca_acceleration_source: state_or_finite_difference
+      provisional: true
+      extra: {}
+  C:
+    commit:
+      commit_policy_id: commit-v1
+      tti_commit_s: 0.05
+      p_commit: 0.5
+      n_confirm_frames: 0
+      refractory_zone_s: 0.1
+      refractory_hand_s: 0.04
+      allow_degraded_commits: false
+      stale_prediction_tolerance_s: 0.02
+      max_dropped_since_last: 3
+    v_min: 0.15

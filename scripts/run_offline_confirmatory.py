@@ -73,7 +73,13 @@ def frozen_source_mismatches(lock: dict[str, Any]) -> list[str]:
     off = lock["offline"]
     expected = {**off["sources"], **off["harness"]["source_sha256"]}
     bad = [p for p, d in sorted(expected.items()) if not (ROOT / p).exists() or file_digest(ROOT / p) != d]
-    locked_pkgs = {Path(p).parts[2] for p in off["sources"]}
+    # The inventory also freezes configuration files. Only Python package paths
+    # participate in the scan for source files added after the lock.
+    locked_pkgs = {
+        parts[2]
+        for p in off["sources"]
+        if len(parts := Path(p).parts) >= 4 and parts[:2] == ("src", "spacedrums")
+    }
     current = {
         p.relative_to(ROOT).as_posix()
         for pkg in locked_pkgs

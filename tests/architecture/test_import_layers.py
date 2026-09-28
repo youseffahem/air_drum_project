@@ -22,6 +22,7 @@ SRC = ROOT / "src" / "spacedrums"
 # layer index per package: a module may import packages with index <= its own, except that
 # peers in the same layer may not import each other unless listed in SAME_LAYER_ALLOWED.
 LAYERS: dict[str, int] = {
+    "ablation": 11,
     "contracts": 0,
     "timing": 1,
     "config": 1,

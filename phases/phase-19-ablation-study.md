@@ -2,7 +2,9 @@
 
 ## Status
 
-Planned
+PREPARATION ONLY under the owner's 2026-09-27 scheduling exception. Phase 18 remains PENDING.
+See [preparation record](../docs/gates/phase-19-gate.md). Experimental execution and Phase 19
+completion are not authorized; the experimental acceptance criteria below remain unmet.
 
 ## Codex Model for This Phase
 

@@ -1,0 +1,588 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "evidence": {
+      "enum": [
+        "SYNTHETIC/DEV",
+        "PARTICIPANT"
+      ]
+    },
+    "frozen_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "folds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "seeds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "stride": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "w_s": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "delay_s": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "identities": {
+          "type": "integer",
+          "minimum": 5
+        },
+        "seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "identities",
+        "seconds",
+        "seed"
+      ]
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "object"
+        },
+        "training": {
+          "type": "object"
+        },
+        "gate": {
+          "type": "object"
+        },
+        "controls": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "tti_commit_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "p_commit": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "n_confirm_frames": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "v_min": {
+                "type": "number",
+                "minimum": 0
+              },
+              "refractory_zone_s": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "tti_commit_s",
+              "p_commit",
+              "n_confirm_frames",
+              "v_min",
+              "refractory_zone_s"
+            ]
+          }
+        }
+      },
+      "required": [
+        "model",
+        "training",
+        "gate",
+        "controls"
+      ]
+    },
+    "baseline_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tti_commit_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "p_commit": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "n_confirm_frames": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "v_min": {
+          "type": "number",
+          "minimum": 0
+        },
+        "refractory_zone_s": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "tti_commit_s",
+        "p_commit",
+        "n_confirm_frames",
+        "v_min",
+        "refractory_zone_s"
+      ]
+    },
+    "dev_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fp_budget_per_min": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fn_ceiling": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "fp_budget_per_min",
+        "fn_ceiling"
+      ]
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-VEL"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-ACC"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-AXIS"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-HAND"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-ZONE"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-CONF"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-NOTRAJ"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-REACT"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-RULE"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-INT"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-AUX"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-HIST-S"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "n": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "n"
+                ]
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-HIST-L"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "n": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "n"
+                ]
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-HOR-S"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "k": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "k"
+                ]
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-HOR-L"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "k": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "k"
+                ]
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-FPS"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "source_fps": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "target_fps": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "source_fps",
+                  "target_fps"
+                ]
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ablation_id": {
+                "const": "AB-TIP"
+              },
+              "changes": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "method": {
+                    "enum": [
+                      "GEOM",
+                      "AXIS_REFINED",
+                      "MARKER"
+                    ]
+                  }
+                },
+                "required": [
+                  "method"
+                ]
+              }
+            },
+            "required": [
+              "ablation_id",
+              "changes"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "evidence",
+    "frozen_reference",
+    "folds",
+    "seeds",
+    "stride",
+    "w_s",
+    "delay_s",
+    "fixture",
+    "reference",
+    "baseline_controls",
+    "dev_budget",
+    "variants"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/ablation-plan.schema.json",
+  "title": "Phase 19 preparation plan; participant execution is disabled"
+}

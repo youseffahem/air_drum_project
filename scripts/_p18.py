@@ -90,9 +90,12 @@ def execution(args: argparse.Namespace) -> dict[str, Any]:
 def pipeline_sources() -> dict[str, str]:
     """Digest of every pipeline source the replay imports (the lock freezes these)."""
     return {
-        p.relative_to(ROOT).as_posix(): file_digest(p)
-        for pkg in PIPELINE_PACKAGES
-        for p in sorted((ROOT / "src" / "spacedrums" / pkg).rglob("*.py"))
+        "configs/prototype.candidate.yaml": file_digest(RULE_CONFIG),
+        **{
+            p.relative_to(ROOT).as_posix(): file_digest(p)
+            for pkg in PIPELINE_PACKAGES
+            for p in sorted((ROOT / "src" / "spacedrums" / pkg).rglob("*.py"))
+        },
     }
 
 

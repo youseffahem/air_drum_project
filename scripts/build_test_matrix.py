@@ -300,7 +300,10 @@ MAP: dict[str, dict] = {
         "tests": t("fi_track", "fi_vision", "fi_cap", "fi_mdl", "inv"),
         "other": "physical injection with a person PENDING",
     },
-    "REQ-306": {"tests": [], "other": "ablation measurement (19)"},
+    "REQ-306": {
+        "tests": ["ablation/test_ablation.py", "ablation/test_retrack.py"],
+        "other": "SYNTHETIC/DEV preparation only; participant ablation measurement PENDING Phase 18 (19)",
+    },
     "REQ-307": {
         "tests": t("p18_prereg", "p18_scripts", "p18_stats"),
         "other": "pre-registered comparison: machinery + SYNTHETIC rehearsal; participant run PENDING",
