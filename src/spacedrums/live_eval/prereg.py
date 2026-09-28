@@ -242,6 +242,9 @@ def _live_errors(live: Mapping[str, Any]) -> list[str]:
         errs.append(f"primary_method must be {expected!r} (M1 if GO, else M2 if GO, else null)")
     if sorted(live["arms"]) != ["A", "B", "C"]:
         errs.append("live arms must map exactly A, B and C")
+    from .arm_settings import live_binding_errors
+
+    errs.extend(live_binding_errors(live))
     return errs
 
 
@@ -284,6 +287,20 @@ def archive_lock(
     record = read_record(record_path, document)
     if require_approval and not approved(record, check["version"]):
         raise PreregError("the latest pre-registration version carries no owner / supervisor approval")
+    if lock["lock_kind"] == "live":
+        parent = next(
+            (
+                e
+                for e in record["locks"]
+                if e["sha256"] == lock["live"]["offline_lock_sha256"]
+                and e["kind"] == "offline"
+                and e["evidence"] == lock["evidence"]
+                and e["prereg_version"] == check["version"]
+            ),
+            None,
+        )
+        if parent is None:
+            raise PreregError("live lock requires the archived offline lock for this preregistration")
     digest = lock_digest(lock)
     for entry in record["locks"]:
         if entry["sha256"] == digest:
@@ -331,6 +348,23 @@ def verify_lock(
             "ok": False,
             "reason": "the latest pre-registration version carries no owner / supervisor approval",
         }
+    if lock["lock_kind"] == "live":
+        parent = next(
+            (
+                e
+                for e in record["locks"]
+                if e["sha256"] == lock["live"]["offline_lock_sha256"]
+                and e["kind"] == "offline"
+                and e["evidence"] == lock["evidence"]
+                and e["prereg_version"] == check["version"]
+            ),
+            None,
+        )
+        if parent is None:
+            return {
+                "ok": False,
+                "reason": "live lock requires archived offline lock for this preregistration",
+            }
     return {"ok": True, "sha256": digest, "archived_at": entry["archived_at"], "prereg": check}
 
 

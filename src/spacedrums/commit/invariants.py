@@ -88,8 +88,9 @@ class _Pending:
 class CommitAuditor:
     """Per-session auditor of (tracks, commits) per frame. Frames must be fed in delivery order."""
 
-    def __init__(self, settings: CommitSettings, registry: ZoneRegistry) -> None:
+    def __init__(self, settings: CommitSettings, registry: ZoneRegistry, *, settings_by_arm=None) -> None:
         self.settings = settings
+        self.settings_by_arm = dict(settings_by_arm or {})
         self.registry = registry
         self.allowed = settings.allowed_statuses
         self.release_after_s = settings.stale_prediction_tolerance_s
@@ -98,6 +99,8 @@ class CommitAuditor:
         self._pending: list[_Pending] = []
         self._last_zone: dict[tuple[str, HandId, str], float] = {}
         self._last_hand: dict[tuple[str, HandId], float] = {}
+        self._zone_until = {}
+        self._hand_until = {}
         self._episode_commits: Counter[tuple[str, HandId, str, int]] = Counter()
         self.checks: Counter[str] = Counter()
         self.unattributed: Counter[str] = Counter()
@@ -169,10 +172,11 @@ class CommitAuditor:
             "hand_id": str(c.hand_id),
             "zone_id": c.zone_id,
         }
+        settings = self.settings_by_arm.get(c.arm, self.settings)
         self.checks["I1"] += 1
         if track is None or track.frame_id != c.frame_id:
             out.append(Violation("I1", frame_id, t_capture, "commit without the hand's TrackState", detail))
-        elif track.status not in self.allowed:
+        elif track.status not in settings.allowed_statuses:
             out.append(
                 Violation(
                     "I1",
@@ -196,7 +200,7 @@ class CommitAuditor:
                 for stream in streams:
                     out += self._attribute(stream, c.hand_id, c.zone_id, c.strike_id, frame_id, t_capture)
         else:
-            deadline = float(c.t_impact_target) + self.release_after_s
+            deadline = float(c.t_impact_target) + settings.stale_prediction_tolerance_s
             self._pending += [_Pending(s, c.hand_id, c.zone_id, c.strike_id, deadline) for s in streams]
         return out
 
@@ -204,10 +208,11 @@ class CommitAuditor:
         self, stream: str, c: CommittedStrike, frame_id: int, t_capture: float
     ) -> list[Violation]:
         out: list[Violation] = []
+        settings = self.settings_by_arm.get(c.arm, self.settings)
         kz, kh = (stream, c.hand_id, c.zone_id), (stream, c.hand_id)
         self.checks["I3"] += 1
         previous = self._last_zone.get(kz)
-        if previous is not None and c.t_commit - previous < self.settings.refractory_zone_s - EPS:
+        if previous is not None and c.t_commit < self._zone_until[kz] - EPS:
             out.append(
                 Violation(
                     "I3",
@@ -218,7 +223,7 @@ class CommitAuditor:
                 )
             )
         previous_hand = self._last_hand.get(kh)
-        if previous_hand is not None and c.t_commit - previous_hand < self.settings.refractory_hand_s - EPS:
+        if previous_hand is not None and c.t_commit < self._hand_until[kh] - EPS:
             out.append(
                 Violation(
                     "I3",
@@ -228,6 +233,8 @@ class CommitAuditor:
                     {"stream": stream, "strike_id": c.strike_id, "interval_s": c.t_commit - previous_hand},
                 )
             )
+        self._zone_until[kz] = max(self._zone_until.get(kz, 0), c.t_commit + settings.refractory_zone_s)
+        self._hand_until[kh] = max(self._hand_until.get(kh, 0), c.t_commit + settings.refractory_hand_s)
         self._last_zone[kz] = float(c.t_commit)
         self._last_hand[kh] = float(c.t_commit)
         return out

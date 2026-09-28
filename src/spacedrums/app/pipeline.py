@@ -161,10 +161,9 @@ class DecisionPipeline:
             if cfg["anticipator"]["type"] != "model":
                 raise ValueError("arms A and B require no model; C requires anticipator.type = model")
             # Baselines are kept warm for safe, immediate fallback.
-            self.arms = tuple(
-                dict.fromkeys((*self.arms, Arm.A, *([Arm.B] if cfg["anticipator"].get("rule") else [])))
-            )
-            if not cfg["anticipator"].get("rule"):
+            has_rule = bool(cfg["anticipator"].get("rule") or cfg.get("live_arm_settings", {}).get("B"))
+            self.arms = tuple(dict.fromkeys((*self.arms, Arm.A, *([Arm.B] if has_rule else []))))
+            if not has_rule:
                 self.arms = tuple(a for a in self.arms if a is not Arm.B)
             try:
                 self.model_arm = model_factory(cfg, clock=clock)
@@ -200,27 +199,53 @@ class DecisionPipeline:
                 "config has no geometry block (v_min); the app never guesses geometry thresholds"
             )
         self.geometry = GeometryEngine(registry, v_min=float(cfg["geometry"]["v_min"]), session_id=session_id)
+        explicit = cfg.get("live_arm_settings")
+        self.geometry_by_arm = {arm: self.geometry for arm in (Arm.A, *self.arms)}
+        if explicit is not None:
+            self.geometry_by_arm = {
+                arm: GeometryEngine(
+                    registry,
+                    v_min=float(explicit["C" if arm in MODEL_ARMS else str(arm)]["v_min"]),
+                    session_id=f"{session_id}-{arm}",
+                )
+                for arm in (Arm.A, *self.arms)
+            }
+            self.geometry = self.geometry_by_arm[Arm.A]
         rule_cfg = {**cfg, "anticipator": {**cfg["anticipator"], "type": "rule"}}
-        self.rule_settings = RuleSettings.from_config(rule_cfg) if Arm.B in self.arms else None
+        self.rule_settings = None
+        if Arm.B in self.arms:
+            self.rule_settings = (
+                RuleSettings(**explicit["B"]["rule"])
+                if explicit is not None
+                else RuleSettings.from_config(rule_cfg)
+            )
         self.anticipators = (
             {h: RuleBasedAnticipator(self.rule_settings, clock=clock) for h in HANDS}
             if self.rule_settings is not None
             else {}
         )
         self.commit_settings = CommitSettings.from_config(cfg)
+        self.commit_settings_by_arm = {
+            arm: (
+                CommitSettings.from_config(explicit["C" if arm in MODEL_ARMS else str(arm)])
+                if explicit is not None
+                else self.commit_settings
+            )
+            for arm in self.arms
+        }
         fps = (cfg.get("camera_profile") or {}).get("requested_fps")
         self.nominal_dt_s = 1.0 / float(fps) if fps else None  # Phase 17: stalls count as missing frames
         self.policies: dict[Arm, dict[HandId, PerHandCommitPolicy]] = {
             arm: {
                 h: PerHandCommitPolicy(
                     h,
-                    self.commit_settings,
+                    self.commit_settings_by_arm[arm],
                     registry,
                     arm=arm,
                     shadow=(arm is not self.active_arm),
                     gain_fn=self.gain_fn,
                     session_id=session_id,
-                    episode_fn=self.geometry.episode_id,
+                    episode_fn=self.geometry_by_arm[arm].episode_id,
                 )
                 for h in HANDS
             }
@@ -316,7 +341,8 @@ class DecisionPipeline:
             track = self.trackers[h].update(hand_obs, stick_obs, sample.t_capture)
             hands[h] = HandFrame(track=track)
             if track.reset_reason is not None:
-                self.geometry.reset_hand(h)
+                for geometry in dict.fromkeys(self.geometry_by_arm.values()):
+                    geometry.reset_hand(h)
                 for arm in self.arms:
                     self.policies[arm][h].reset(track.reset_reason)
                 if h in self.anticipators:
@@ -347,13 +373,24 @@ class DecisionPipeline:
                     status=track.status,
                     t_candidate=self.clock(),
                 )
+            for geometry in dict.fromkeys(self.geometry_by_arm.values()):
+                if geometry is self.geometry:
+                    continue
+                geometry.observe(
+                    frame_id=track.frame_id,
+                    t_capture=track.t_capture,
+                    hand_id=h,
+                    position=track.tip_filtered,
+                    status=track.status,
+                    t_candidate=self.clock(),
+                )
             if h in self.anticipators:
                 pred = self.anticipators[h].predict(self.trackers[h].history)
                 hf.prediction = pred
                 if pred is not None:
                     t_inference_done = pred.t_inference_done
                     assert track.tip_filtered is not None
-                    hf.rule = self.geometry.intersect_prediction(
+                    hf.rule = self.geometry_by_arm[Arm.B].intersect_prediction(
                         pred, current_position=track.tip_filtered, source=CandidateSource.RULE
                     )
             if self.model_arm is not None and not self.model_error:
@@ -374,7 +411,7 @@ class DecisionPipeline:
                     hf.model_prediction = pred
                     if pred is not None:
                         t_inference_done = pred.t_inference_done
-                        candidate = self.geometry.intersect_prediction(
+                        candidate = self.geometry_by_arm[self.model_label].intersect_prediction(
                             pred, current_position=track.tip_filtered, source=CandidateSource.MODEL
                         )
                         if candidate is not None:

@@ -1,0 +1,174 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "evidence": {
+      "const": "PARTICIPANT"
+    },
+    "dataset_version": {
+      "const": "ds-v1.0"
+    },
+    "plan_sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "w_s": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dataset_manifest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_labels": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cv_folds": {
+          "type": "string",
+          "minLength": 1
+        },
+        "test_roster": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_manifest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_export": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "configuration": {
+          "type": "string",
+          "minLength": 1
+        },
+        "offline_lock": {
+          "type": "string",
+          "minLength": 1
+        },
+        "processing_delay": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operating_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase18_prereg": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase18_prereg_record": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase18_gate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase18_gate_decision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference_results": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase19_prereg": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase19_prereg_record": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "dataset_manifest",
+        "reviewed_labels",
+        "cv_folds",
+        "test_roster",
+        "model_manifest",
+        "model_export",
+        "normalization",
+        "configuration",
+        "offline_lock",
+        "processing_delay",
+        "operating_rule",
+        "phase18_prereg",
+        "phase18_prereg_record",
+        "phase18_gate",
+        "phase18_gate_decision",
+        "reference_results",
+        "phase19_prereg",
+        "phase19_prereg_record"
+      ]
+    },
+    "files": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "participant_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "directory": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label_directory": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "session_id",
+          "participant_id",
+          "directory",
+          "label_directory"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "evidence",
+    "dataset_version",
+    "plan_sha256",
+    "w_s",
+    "artifacts",
+    "files",
+    "sessions"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/ablation-reference.schema.json",
+  "description": "Input descriptor for an actual owner-supplied frozen reference. No instance is supplied in preparation. Never an approval or execution permit."
+}

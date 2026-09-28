@@ -198,6 +198,10 @@ def template(kind: str) -> dict[str, Any]:
     else:
         method = {"status": P, "u_s": P, "report": "docs/reports/phase-18-external-methods.md"}
         base["live"] = {
+            "offline_lock_path": P,
+            "offline_lock_sha256": P,
+            "offline_config_path": P,
+            "offline_config_sha256": P,
             "config_path": P,
             "config_sha256": P,
             "model": model,

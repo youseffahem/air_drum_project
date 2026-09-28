@@ -247,8 +247,12 @@
     "live": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["config_path", "config_sha256", "arms", "design", "protocol", "methods", "primary_method", "questionnaire_included"],
+      "required": ["offline_lock_path", "offline_lock_sha256", "offline_config_path", "offline_config_sha256", "config_path", "config_sha256", "arms", "design", "protocol", "methods", "primary_method", "questionnaire_included"],
       "properties": {
+        "offline_lock_path": {"type": "string", "minLength": 1},
+        "offline_lock_sha256": {"$ref": "#/$defs/digest"},
+        "offline_config_path": {"type": "string", "minLength": 1},
+        "offline_config_sha256": {"$ref": "#/$defs/digest"},
         "config_path": {"type": "string", "minLength": 1},
         "config_sha256": {"$ref": "#/$defs/digest"},
         "model": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/model"}]},

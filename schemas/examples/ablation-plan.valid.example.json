@@ -1,0 +1,190 @@
+{
+  "schema_version": "1.0",
+  "evidence": "SYNTHETIC/DEV",
+  "frozen_reference": null,
+  "folds": [
+    0
+  ],
+  "seeds": [
+    19,
+    20
+  ],
+  "stride": 5,
+  "w_s": 0.05,
+  "delay_s": 0.03,
+  "fixture": {
+    "identities": 5,
+    "seconds": 8.0,
+    "seed": 1100
+  },
+  "reference": {
+    "model": {
+      "base": {
+        "family": "gru",
+        "features": 56,
+        "n": 8,
+        "k": 4,
+        "dt_step": 0.03333333333333333,
+        "hidden": 8,
+        "layers": 1,
+        "dropout": 0.0,
+        "kernel": 3,
+        "dilations": [
+          1,
+          2,
+          4
+        ],
+        "auxiliary": false
+      },
+      "heads": [
+        "trajectory",
+        "strike",
+        "tti",
+        "zone",
+        "position",
+        "intensity"
+      ],
+      "zone_ids": [
+        "hihat",
+        "snare",
+        "tom1",
+        "crash_ride"
+      ],
+      "tti_mode": "direct",
+      "tti_bins": 8,
+      "h_max_s": 0.3,
+      "head_hidden": 0
+    },
+    "training": {
+      "seed": 10,
+      "epochs": 2,
+      "patience": 2,
+      "batch_size": 64,
+      "learning_rate": 0.001,
+      "grad_clip": 1.0,
+      "loss": "huber",
+      "step_weighting": "uniform",
+      "velocity_weight": 0.0,
+      "lambda_aux": 0.0,
+      "positive_ratio": null,
+      "threads": 1
+    },
+    "gate": {
+      "use_p_aux": true,
+      "p_aux": 0.5,
+      "use_agreement": false,
+      "agreement_checks": [
+        "zone",
+        "tti",
+        "position"
+      ],
+      "tti_tolerance_s": 0.03,
+      "position_tolerance": 0.05,
+      "intensity_tolerance": 0.5,
+      "intensity_source": "head"
+    },
+    "controls": [
+      {
+        "tti_commit_s": 0.05,
+        "p_commit": 0.0,
+        "n_confirm_frames": 0,
+        "refractory_zone_s": 0.1,
+        "v_min": 0.15
+      }
+    ]
+  },
+  "baseline_controls": {
+    "tti_commit_s": 0.05,
+    "p_commit": 0.5,
+    "n_confirm_frames": 0,
+    "refractory_zone_s": 0.1,
+    "v_min": 0.15
+  },
+  "dev_budget": {
+    "fp_budget_per_min": 30.0,
+    "fn_ceiling": 0.9
+  },
+  "variants": [
+    {
+      "ablation_id": "AB-VEL",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-ACC",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-AXIS",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-HAND",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-ZONE",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-CONF",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-NOTRAJ",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-REACT",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-RULE",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-INT",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-AUX",
+      "changes": {}
+    },
+    {
+      "ablation_id": "AB-HIST-S",
+      "changes": {
+        "n": 4
+      }
+    },
+    {
+      "ablation_id": "AB-HIST-L",
+      "changes": {
+        "n": 12
+      }
+    },
+    {
+      "ablation_id": "AB-HOR-S",
+      "changes": {
+        "k": 2
+      }
+    },
+    {
+      "ablation_id": "AB-HOR-L",
+      "changes": {
+        "k": 6
+      }
+    },
+    {
+      "ablation_id": "AB-FPS",
+      "changes": {
+        "source_fps": 30,
+        "target_fps": 15
+      }
+    },
+    {
+      "ablation_id": "AB-TIP",
+      "changes": {
+        "method": "AXIS_REFINED"
+      }
+    }
+  ]
+}

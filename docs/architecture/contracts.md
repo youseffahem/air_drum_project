@@ -347,3 +347,12 @@ records, absent in 1.0 records (read as null). Writers emit 1.1. Config 1.4 → 
 rules are in ADR-0028 §2. The harness gained the `MODEL:C-MT` arm, a post-geometry candidate
 gate and the explicitly flagged `diagnostic_direct` mode for `DIRECT_HEAD` candidates; no enum,
 StrikeCandidate or CommittedStrike field changed.
+
+## Phase 19 preparation contract note (2026-09-27, ADR-0043)
+
+No causal record envelope or frozen Phase 09 matching rule changes. Config schema 1.9 adds
+complete optional per-arm live settings for ADR-0036. `confirmatory-lock`'s live branch
+requires its pinned offline parent and base config; archive/verify checks compare resolved
+settings and the preregistration binding. Separate `ablation-plan` and `ablation-reference`
+documents belong to the offline tooling layer. Their validation never constitutes approval
+or a participant gate. The only checked-in plan example is SYNTHETIC/DEV.

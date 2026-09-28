@@ -95,9 +95,11 @@ implementation records this instead of hiding warmup costs.
 
 ## Amendment — 2026-09-27 (Phase 18 owner decision on live arm B)
 
-Status of this amendment: DECIDED by the owner; implementation PENDING. No code, configuration or
-schema has changed, and until the implementation exists the behaviour described above still
-applies.
+Status of this amendment: DECIDED by the owner. Offline engineering implementation is provided
+in Phase 19 preparation (schema 1.9, independent B settings, per-arm policies and live-lock
+consistency checks). Verification is recorded in `docs/reports/phase-19-ablations.md`.
+Actual offline-locked values, recorded live verification and Phase 18 reviewer acceptance remain
+PENDING. The candidate configuration carries SYNTHETIC/DEV values, not a frozen live reference.
 
 - **Live arm B settings.** In live experiment configurations, arm B runs at the offline-locked B
   settings: the `b_primary` arm of the archived Phase 18 offline lock (motion model, K and step,
@@ -114,5 +116,5 @@ applies.
 - **Before the live lock.** Implementation in `app/pipeline.py` (B's rule settings and the
   per-arm commit policies), the config schema and the live configuration; tests; a check at
   live-lock time that live B and the per-arm commit settings equal the offline lock's arms
-  (`live_eval.prereg._live_errors` does not check this today); and re-running the Phase 17 and
+  (now enforced through `live_eval.prereg._live_errors`); and re-running the Phase 17 and
   Phase 18 verifications.

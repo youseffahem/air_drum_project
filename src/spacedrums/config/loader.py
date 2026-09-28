@@ -150,7 +150,7 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
     problems: list[str] = []
     ant = cfg.get("anticipator", {})
     if ant.get("type") == "model":
-        if cfg.get("meta", {}).get("schema_version") not in ("1.6", "1.7", "1.8"):
+        if cfg.get("meta", {}).get("schema_version") not in ("1.6", "1.7", "1.8", "1.9"):
             problems.append("live model config requires schema_version 1.6 or later")
         m = ant.get("model") or {}
         required = {"manifest_hash", "norm_stats_path", "N", "family", "cadence_window_frames",
@@ -255,6 +255,13 @@ def cross_field_checks(cfg: dict[str, Any]) -> list[str]:
             problems.append(f"gain curve {cid}: proxy_min must be < proxy_max")
         if curve.get("gain_max", 0) < curve.get("gain_min", 0):
             problems.append(f"gain curve {cid}: gain_min must be <= gain_max")
+    live = cfg.get("live_arm_settings")
+    if live is not None:
+        if version != "1.9":
+            problems.append("live_arm_settings requires meta.schema_version 1.9")
+        rule = live["B"]["rule"]
+        if rule["speed_prob_lo"] >= rule["speed_prob_hi"]:
+            problems.append("live arm B requires speed_prob_lo < speed_prob_hi")
     problems.extend(_calibration_checks(cfg, version))
     return problems
 

@@ -44,12 +44,13 @@ class InvariantMonitor:
         mode: str = "raise",
         audio_expected: bool = False,
         keep: int = 200,
+        settings_by_arm=None,
     ) -> None:
         if mode not in MODES:
             raise ValueError(f"mode must be one of {MODES}")
         self.mode = mode
         self.audio_expected = bool(audio_expected)
-        self.auditor = CommitAuditor(commit_settings, registry)
+        self.auditor = CommitAuditor(commit_settings, registry, settings_by_arm=settings_by_arm)
         self.keep = int(keep)
         self.counts: Counter[str] = Counter({k: 0 for k in INVARIANTS})
         self.checks: Counter[str] = Counter()
@@ -63,6 +64,7 @@ class InvariantMonitor:
     def for_pipeline(cls, pipeline, *, mode: str = "raise", keep: int = 200) -> InvariantMonitor:
         return cls(
             commit_settings=pipeline.commit_settings,
+            settings_by_arm=pipeline.commit_settings_by_arm,
             registry=pipeline.registry,
             mode=mode,
             audio_expected=pipeline.audio is not None,

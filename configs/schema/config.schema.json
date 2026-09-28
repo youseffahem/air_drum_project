@@ -7,6 +7,173 @@
   "additionalProperties": false,
   "required": ["meta", "camera_profile", "roi", "zones", "tracking", "anticipator", "commit", "audio", "debug"],
   "properties": {
+    "live_arm_settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "A": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "commit": {
+              "$ref": "#/properties/commit",
+              "not": {
+                "required": [
+                  "aux_heads"
+                ]
+              }
+            },
+            "v_min": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "commit",
+            "v_min"
+          ]
+        },
+        "B": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "commit": {
+              "$ref": "#/properties/commit",
+              "not": {
+                "required": [
+                  "aux_heads"
+                ]
+              }
+            },
+            "v_min": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rule": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "anticipator_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "motion_model": {
+                  "enum": [
+                    "CV",
+                    "CA"
+                  ]
+                },
+                "K": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "dt_step": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "n_min_frames": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "v_min_predict": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "a_max": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "exclusiveMinimum": 0
+                },
+                "direction_window_frames": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "speed_prob_lo": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "speed_prob_hi": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "combine": {
+                  "enum": [
+                    "product",
+                    "min"
+                  ]
+                },
+                "ca_acceleration_source": {
+                  "enum": [
+                    "state",
+                    "finite_difference",
+                    "state_or_finite_difference"
+                  ]
+                },
+                "provisional": {
+                  "type": "boolean"
+                },
+                "extra": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {},
+                  "required": []
+                }
+              },
+              "required": [
+                "anticipator_id",
+                "motion_model",
+                "K",
+                "dt_step",
+                "n_min_frames",
+                "v_min_predict",
+                "a_max",
+                "direction_window_frames",
+                "speed_prob_lo",
+                "speed_prob_hi",
+                "combine",
+                "ca_acceleration_source",
+                "provisional",
+                "extra"
+              ]
+            }
+          },
+          "required": [
+            "commit",
+            "v_min",
+            "rule"
+          ]
+        },
+        "C": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "commit": {
+              "$ref": "#/properties/commit",
+              "not": {
+                "required": [
+                  "aux_heads"
+                ]
+              }
+            },
+            "v_min": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "commit",
+            "v_min"
+          ]
+        }
+      },
+      "required": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
     "features": {
       "type": "object",
       "additionalProperties": false,
@@ -91,7 +258,7 @@
       "additionalProperties": false,
       "required": ["schema_version", "created", "phase", "description", "supersedes", "status"],
       "properties": {
-        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block), 1.6 (Phase 13, ADR-0036: live model arm), 1.7 (Phase 14, ADR-0037: calibration_path, derived calibration block, stick.geom.l_prior_by_hand) or 1.8 (Phase 17, ADR-0040: optional hands.identity.user_min_relative_area). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
+        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block), 1.6 (Phase 13, ADR-0036: live model arm), 1.7 (Phase 14, ADR-0037: calibration_path, derived calibration block, stick.geom.l_prior_by_hand) or 1.8 (Phase 17, ADR-0040: optional hands.identity.user_min_relative_area). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
         "created": { "type": "string", "format": "date" },
         "phase": { "type": "string", "pattern": "^[0-2][0-9]$" },
         "description": { "type": "string", "minLength": 1 },

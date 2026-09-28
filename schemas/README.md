@@ -23,3 +23,15 @@ Phase 08: `feature-schema-v1.json` is the generated **semantic descriptor**, not
 it defines each ordered fs-v1 feature and is tested against its generator. The unchanged
 `kinematic-features.schema.json` validates record envelopes. Config schema 1.4 adds the optional
 features block (ADR-0022). Normalization/sample formats are documented in the feature schema.
+
+Phase 19 preparation (ADR-0043): `ablation-plan` validates declared one-factor changes.
+Its example is SYNTHETIC/DEV. `ablation-reference` specifies the inventory of actual
+frozen participant inputs; no example reference is supplied. Its schema alone is insufficient:
+`ablation.guards.dependency_errors` verifies file digests, approval/gate bindings, reviewed
+CV sessions, W/delay and the frozen model/results. Experimental execution stays disabled.
+
+The live branch of `confirmatory-lock` now also requires `offline_lock_path`, its canonical
+`offline_lock_sha256`, and `offline_config_path`/byte digest. The base config must appear in
+the offline source freeze. Live settings must match resolved A/B/C settings, and the parent
+offline lock must already be archived under the same preregistration. Existing offline
+locks retain their schema. No existing approval/hash ledger is changed by this addition.
