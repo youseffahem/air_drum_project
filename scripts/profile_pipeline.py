@@ -168,6 +168,7 @@ def measure(args, session, repeat):
             for name in ("namedWindow", "imshow", "destroyAllWindows"):
                 stack.enter_context(patch.object(cv2, name, lambda *a, **kw: None))
             stack.enter_context(patch.object(cv2, "waitKey", lambda *a: -1))
+            stack.enter_context(patch.object(cv2, "pollKey", lambda: -1))
         with ResourceSampler() as sampler:
             result = app.run(app_args)
     rows = stages.rows

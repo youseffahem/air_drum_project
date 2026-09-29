@@ -63,6 +63,7 @@ from spacedrums.contracts import (
 )
 from spacedrums.geometry import ZoneRegistry
 from spacedrums.ui import (
+    Canvas,
     DashboardRecord,
     DashboardWorker,
     OverlayConfig,
@@ -134,11 +135,14 @@ def render(
     active_arm: Arm,
     style: OverlayStyle,
     status_lines: list[str] | None = None,
-    draw_hook: Callable[[np.ndarray, ZoneRegistry], None] | None = None,
+    draw_hook: Callable[[Canvas, ZoneRegistry], None] | None = None,
     overlay_config: OverlayConfig | None = None,
     runtime: RuntimeStats | None = None,
     analyses: dict[HandId, Any] | None = None,
+    mirror: bool = False,
 ) -> np.ndarray:
+    """Window image. ``mirror`` (live) mirrors only the camera image; overlays, protocol cues and
+    status text are drawn on it afterwards in display space, so text stays readable."""
     full = view_image if view_image is not None else np.zeros((roi.y1 + 8, roi.x1 + 8, 3), np.uint8)
     hands = {h: observations[h][0] for h in HANDS}
     sticks = {h: observations[h][1] for h in HANDS}
@@ -163,14 +167,15 @@ def render(
         tracks=tracks,
         records=records,
         registry=registry,
+        mirror=mirror,
     )
-    zone_img = img[roi.y : roi.y1, roi.x : roi.x1]
+    canvas = Canvas.for_display(img, mirror)
     if draw_hook is not None:  # Phase 06 guided-protocol cues (zone highlight, countdown) on the ROI
-        draw_hook(zone_img, registry)
-    img[roi.y : roi.y1, roi.x : roi.x1] = zone_img
+        draw_hook(canvas.roi(roi), registry)
+    status = canvas.upright(roi.x, roi.x1)
     y = 60
     for line in status_lines or []:  # protocol instructions (playability / induced-loss scripts)
-        cv2.putText(img, line, (roi.x + 6, roi.y + y), style.font, 0.6, (0, 255, 255), 2)
+        status.put_text(line, (roi.x + 6, roi.y + y), style.font, 0.6, (0, 255, 255), 2)
         y += 22
     return img
 
@@ -296,7 +301,7 @@ def run(
     status_lines: Callable[[], list[str]] | None = None,
     session_meta: dict[str, Any] | None = None,
     source_factory: SourceFactory | None = None,
-    draw_hook: Callable[[np.ndarray, ZoneRegistry], None] | None = None,
+    draw_hook: Callable[[Canvas, ZoneRegistry], None] | None = None,
     on_key: Callable[[str], None] | None = None,
     observation_hook: Callable[[FrameSample, Observations], Observations] | None = None,
     gain_scale: float = 1.0,
@@ -304,8 +309,9 @@ def run(
     """Run one session. ``on_frame`` (returns False to stop) and ``status_lines`` (overlay text) let the
     protocol scripts drive the loop without re-implementing it; ``session_meta`` is merged into
     session.json. Phase 06 additions: ``source_factory`` replaces :func:`iter_source` (a composed
-    SYNTHETIC protocol sequence), ``draw_hook`` draws cues on the ROI, ``on_key`` receives every
-    printable key the loop does not consume itself (``a`` / ``b`` / ``c`` / ``q``). Phase 17:
+    SYNTHETIC protocol sequence), ``draw_hook`` draws cues on the ROI ``Canvas`` (mirrored in live
+    windows; drawing through its methods keeps cues on the image and text readable), ``on_key``
+    receives every printable key the loop does not consume itself (``a`` / ``b`` / ``c`` / ``q``). Phase 17:
     ``observation_hook`` (test builds only: ``app.faults``) replaces perception output per frame
     (fault injection, the soak's scripted strokes); ``gain_scale`` attenuates played samples only."""
     if observation_hook is not None:
@@ -584,11 +590,12 @@ def run(
                         ui_drops=dashboard_subscription.dropped if dashboard_subscription else 0,
                     ),
                     perception.last_analyses if perception is not None else None,
+                    mirror=not replay_like,
                 )
                 cv2.imshow(WINDOW, img)
                 if dashboard is not None and dashboard.latest_image is not None:
                     cv2.imshow("Space Drums - dashboard", dashboard.latest_image)
-                key = cv2.waitKey(1) & 0xFF
+                key = cv2.pollKey() & 0xFF  # does not wait; waitKey(1) waits on the Windows timer (T2)
                 if key == ord("q"):
                     break
                 if key in (ord("a"), ord("b"), ord("c")):

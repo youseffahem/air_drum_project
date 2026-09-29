@@ -12,6 +12,8 @@ Three sub-commands:
             of FrameSample records with image_ref FILE) while the person swings a stick through
             the ROI, for one exposure setting and one named lighting condition.
             Output -> data/dev-captures/<name>/ (git-ignored, never a dataset recording).
+            Shows a live mirror preview with a readable guide (q stops early; --no-window
+            disables it). Saved PNGs and frames.jsonl retain the original camera coordinates.
 
   analyze   Computes, per recorded frame, a motion proxy (mean |frame difference| inside the ROI)
             and a blur proxy (mean Sobel gradient magnitude over the *moving* pixels of the ROI);
@@ -56,10 +58,12 @@ from spacedrums.capture import (  # noqa: E402
 from spacedrums.capture.backend import CameraOpenSpec  # noqa: E402
 from spacedrums.config import load_config  # noqa: E402
 from spacedrums.contracts import FrameSample, ImageRef, TimestampSource  # noqa: E402
+from spacedrums.ui import draw_guide  # noqa: E402
 
 DEFAULT_BASE = ROOT / "configs" / "example.candidate.yaml"
 DEFAULT_CAMERA = ROOT / "configs" / "camera" / "hw01-integrated-webcam.candidate.yaml"
 DEV_CAPTURES = ROOT / "data" / "dev-captures"
+WINDOW = "Space Drums - developer capture (q to stop)"
 
 
 def _cfg(args: argparse.Namespace, backend: str | None = None) -> Any:
@@ -186,20 +190,32 @@ def cmd_record(args: argparse.Namespace) -> int:
     }
     n = 0
     print(f"recording {args.seconds:.0f} s to {out_dir} - swing the stick through the box now")
-    with (out_dir / "frames.jsonl").open("w", encoding="utf-8") as fh:
-        t_end = timing.now() + args.seconds
-        while timing.now() < t_end:
-            f = src.next_frame(timeout=0.5)
-            if f is None:
-                continue
-            path = f"frame_{n:05d}.png"
-            cv2.imwrite(str(out_dir / path), f.image_ref.array)
-            rec = FrameSample(**{**f.__dict__, "image_ref": ImageRef.file(path, n, "FULL")})
-            fh.write(json.dumps(rec.to_dict()) + "\n")
-            n += 1
+    window = not args.synthetic and not args.no_window
+    try:
+        if window:
+            cv2.namedWindow(WINDOW, cv2.WINDOW_NORMAL)
+        with (out_dir / "frames.jsonl").open("w", encoding="utf-8") as fh:
+            t_end = timing.now() + args.seconds
+            while timing.now() < t_end:
+                f = src.next_frame(timeout=0.5)
+                if f is None:
+                    continue
+                path = f"frame_{n:05d}.png"
+                cv2.imwrite(str(out_dir / path), f.image_ref.array)
+                rec = FrameSample(**{**f.__dict__, "image_ref": ImageRef.file(path, n, "FULL")})
+                fh.write(json.dumps(rec.to_dict()) + "\n")
+                n += 1
+                if window:
+                    cv2.imshow(WINDOW, draw_guide(f.image_ref.array, src.roi, mirror=True))
+                    if cv2.pollKey() & 0xFF == ord("q"):
+                        break
+    finally:
+        src.stop()
+        if window:
+            cv2.destroyWindow(WINDOW)
+            cv2.waitKey(1)
     meta["frames"] = n
     meta["capture_stats"] = src.stats().to_dict()
-    src.stop()
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     print(f"recorded {n} frames; stats {meta['capture_stats']}")
     return 0
@@ -280,6 +296,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--exposure", default=None)
     r.add_argument("--lighting", required=True)
     r.add_argument("--seconds", type=float, default=6.0)
+    r.add_argument("--no-window", action="store_true", help="record without the live mirror preview")
     r.set_defaults(func=cmd_record)
     a = sub.add_parser("analyze")
     a.add_argument("--name", required=True)

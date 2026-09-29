@@ -1,6 +1,7 @@
 """Layer L7 tooling: stand-here guide (Phase 02), debug overlay (Phase 03 minimal; full dashboard Phase 15),
 zone display (Phase 04), calibration wizard views (Phase 14)."""
 
+from spacedrums.ui.canvas import Canvas
 from spacedrums.ui.dashboard import (
     DashboardModel,
     DashboardRecord,
@@ -24,10 +25,12 @@ from spacedrums.ui.overlay import (
     draw_stick,
     draw_track,
 )
+from spacedrums.ui.preview import mirror_preview
 from spacedrums.ui.wizard_views import WizardStyle, WizardView, draw_wizard
 from spacedrums.ui.zones import draw_zones
 
 __all__ = [
+    "Canvas",
     "DEFAULT_INSTRUCTION",
     "HAND_COLOR",
     "STATUS_COLOR",
@@ -53,5 +56,6 @@ __all__ = [
     "draw_wizard",
     "draw_zones",
     "guide_status_lines",
+    "mirror_preview",
     "timing_row",
 ]

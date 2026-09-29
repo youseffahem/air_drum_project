@@ -73,6 +73,7 @@ from spacedrums.geometry import Ellipse, ZoneRegistry  # noqa: E402
 from spacedrums.live_eval.metadata import LiveSessionMetadata  # noqa: E402
 from spacedrums.live_eval.prereg import verify_document  # noqa: E402
 from spacedrums.live_eval.protocol import ArmSwitcher, build_live_protocol  # noqa: E402
+from spacedrums.ui import Canvas  # noqa: E402
 
 
 def build_cli() -> argparse.ArgumentParser:
@@ -119,14 +120,14 @@ def _kind(args: argparse.Namespace) -> SessionKind:
 def blinded_draw(recorder: GuidedRecorder):
     """Participant view: every zone outlined, the cued zone highlighted; nothing about the arm."""
 
-    def draw(roi_image, registry: ZoneRegistry) -> None:
-        h, w = roi_image.shape[:2]
+    def draw(roi: Canvas, registry: ZoneRegistry) -> None:
+        h, w = roi.height, roi.width
         for zone in registry:
             if isinstance(zone.shape, Ellipse):
                 c = (round(zone.shape.center[0] * (w - 1)), round(zone.shape.center[1] * (h - 1)))
                 axes = (max(1, round(zone.shape.rx * w)), max(1, round(zone.shape.ry * h)))
-                cv2.ellipse(roi_image, c, axes, 0, 0, 360, (200, 200, 200), 1, cv2.LINE_AA)
-        recorder.draw_cues(roi_image, registry)
+                roi.ellipse(c, axes, 0, 0, 360, (200, 200, 200), 1, cv2.LINE_AA)
+        recorder.draw_cues(roi, registry)
 
     return draw
 

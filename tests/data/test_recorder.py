@@ -20,6 +20,7 @@ from spacedrums.data.recorder import (
     segment_frame_ranges,
 )
 from spacedrums.geometry import ZoneRegistry
+from spacedrums.ui import Canvas
 
 ZONES = [
     {
@@ -214,9 +215,9 @@ def test_draw_cues_marks_the_cued_zone_and_countdown():
     meta = _meta()
     rec = GuidedRecorder(_protocol(), meta, log=None)
     img = np.zeros((100, 100, 3), np.uint8)
-    rec.draw_cues(img, registry)  # before the first frame: nothing drawn
+    rec.draw_cues(Canvas(img), registry)  # before the first frame: nothing drawn
     assert not img.any()
     rec.on_frame(_Sample(10.0), _result())
-    rec.draw_cues(img, registry)
+    rec.draw_cues(Canvas(img), registry)
     assert img.any()
     assert any("A" in line for line in rec.status_lines())

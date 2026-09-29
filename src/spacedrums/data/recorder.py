@@ -29,7 +29,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import cv2
-import numpy as np
 
 from spacedrums.contracts import HandId, TrackStatus
 from spacedrums.data.metadata import SessionMetadata
@@ -271,12 +270,16 @@ class GuidedRecorder:
             )
         return lines
 
-    def draw_cues(self, roi_image: np.ndarray, registry: ZoneRegistry) -> None:
-        """Highlight the cued zones and draw the countdown bar on the ROI image (in place)."""
+    def draw_cues(self, canvas: Any, registry: ZoneRegistry) -> None:
+        """Highlight the cued zones and draw the countdown bar on the ROI (in place).
+
+        ``canvas`` is a ``spacedrums.ui.Canvas`` over the ROI, mirrored in live windows (duck-typed:
+        data never imports ui). Cues follow the zones; the countdown and metronome text are HUD
+        anchored to the ROI and stay upright."""
         spec = self.spec
         if spec is None or self.done:
             return
-        h, w = roi_image.shape[:2]
+        h, w = canvas.height, canvas.width
         for zid in spec.zone_ids:
             try:
                 zone = registry[zid]
@@ -285,8 +288,7 @@ class GuidedRecorder:
             if isinstance(zone.shape, Ellipse):
                 c = (round(zone.shape.center[0] * (w - 1)), round(zone.shape.center[1] * (h - 1)))
                 axes = (max(1, round(zone.shape.rx * w)) + 6, max(1, round(zone.shape.ry * h)) + 6)
-                cv2.ellipse(
-                    roi_image,
+                canvas.ellipse(
                     c,
                     axes,
                     math.degrees(zone.shape.angle_rad),
@@ -296,8 +298,7 @@ class GuidedRecorder:
                     4,
                     cv2.LINE_AA,
                 )
-                cv2.putText(
-                    roi_image,
+                canvas.put_text(
                     zone_name(zid),
                     (c[0] - 30, c[1] + 6),
                     cv2.FONT_HERSHEY_SIMPLEX,
@@ -306,13 +307,13 @@ class GuidedRecorder:
                     2,
                     cv2.LINE_AA,
                 )
+        hud = canvas.upright(0, w)
         if self.t_deadline is not None and self.last_t is not None and spec.duration_s > 0:
             frac = min(1.0, max(0.0, (self.t_deadline - self.last_t) / spec.duration_s))
-            cv2.rectangle(roi_image, (8, h - 14), (w - 8, h - 6), (60, 60, 60), -1)
-            cv2.rectangle(roi_image, (8, h - 14), (8 + int((w - 16) * frac), h - 6), (0, 200, 255), -1)
+            hud.rectangle((8, h - 14), (w - 8, h - 6), (60, 60, 60), -1)
+            hud.rectangle((8, h - 14), (8 + int((w - 16) * frac), h - 6), (0, 200, 255), -1)
         if spec.tempo_bpm:
-            cv2.putText(
-                roi_image,
+            hud.put_text(
                 f"metronome {spec.tempo_bpm} bpm",
                 (10, 24),
                 cv2.FONT_HERSHEY_SIMPLEX,
