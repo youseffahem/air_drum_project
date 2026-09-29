@@ -432,9 +432,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     roi,
                     to_view(wizard, status),
                     frame_size=tuple(cfg["camera_profile"]["resolution_px"]),
+                    mirror=not replay_like,
                 )
                 cv2.imshow(WINDOW, img)
-                key = cv2.waitKey(1) & 0xFF
+                key = cv2.pollKey() & 0xFF  # does not wait; waitKey(1) waits on the Windows timer (T2)
                 if key != 255:
                     message = handle_key(wizard, key, samples)
                     if message == "quit":

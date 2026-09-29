@@ -5,7 +5,9 @@ the stick search-region polygon, candidate pixels (sparse), the fitted axis with
 tip coloured **by method** (``GEOM`` red, ``AXIS_REFINED`` magenta, ``MARKER`` green — MARKER is
 additionally tagged *FALLBACK/BENCHMARK*, integrity I-7), the filtered tip and velocity vector, and
 the tracking status per hand. Pure drawing; reads records and the in-process ``StickAnalysis``.
-Coordinates go through the single ``norm_to_px`` helper (ADR-0005).
+Coordinates go through the single ``norm_to_px`` helper (ADR-0005). Drawing goes through a
+:class:`~spacedrums.ui.canvas.Canvas`, so a live window can mirror the camera image and still draw
+readable overlays on it (``draw_scientific_overlay(..., mirror=True)``).
 """
 
 from __future__ import annotations
@@ -28,6 +30,8 @@ from spacedrums.contracts import (
     TrackStatus,
     TrajectoryPrediction,
 )
+from spacedrums.ui.canvas import Canvas
+from spacedrums.ui.preview import mirror_preview
 from spacedrums.ui.theme import DEFAULT_THEME, arm_color
 
 HAND_COLOR = {HandId.LEFT: (0, 200, 255), HandId.RIGHT: (255, 120, 0)}  # BGR
@@ -160,15 +164,15 @@ def _pt(x: float, y: float, roi: Roi) -> tuple[int, int]:
     return int(round(px)), int(round(py))
 
 
-def draw_hand(img: np.ndarray, obs: HandObservation, roi: Roi, style: OverlayStyle) -> None:
+def draw_hand(img: np.ndarray | Canvas, obs: HandObservation, roi: Roi, style: OverlayStyle) -> None:
     if not obs.present or obs.landmarks is None or not style.show_landmarks:
         return
+    canvas = Canvas.of(img)
     col = HAND_COLOR[obs.hand_id]
     xs, ys = norm_to_px(np.array([p[0] for p in obs.landmarks]), np.array([p[1] for p in obs.landmarks]), roi)
     for x, y in zip(xs, ys, strict=True):
-        cv2.circle(img, (int(round(x)), int(round(y))), style.landmark_radius, col, -1)
-    cv2.putText(
-        img,
+        canvas.circle((int(round(x)), int(round(y))), style.landmark_radius, col, -1)
+    canvas.put_text(
         f"{obs.hand_id.value} {obs.handedness_score:.2f}",
         _pt(obs.bbox[0], obs.bbox[1], roi),
         style.font,
@@ -179,31 +183,31 @@ def draw_hand(img: np.ndarray, obs: HandObservation, roi: Roi, style: OverlaySty
 
 
 def draw_stick(
-    img: np.ndarray, analysis: Any, stick: StickObservation | None, roi: Roi, style: OverlayStyle
+    img: np.ndarray | Canvas, analysis: Any, stick: StickObservation | None, roi: Roi, style: OverlayStyle
 ) -> None:
     """``analysis`` is a ``spacedrums.stick.StickAnalysis`` (duck-typed: ui reads, never imports stick)."""
+    canvas = Canvas.of(img)
     rx, ry = roi.x, roi.y
     if analysis is not None:
         if style.show_region and analysis.region is not None and not analysis.region.empty:
             poly = (analysis.region.polygon_px + [rx, ry]).astype(np.int32)
-            cv2.polylines(img, [poly], True, (0, 255, 255), 1)
+            canvas.polylines([poly], True, (0, 255, 255), 1)
         if style.show_region and analysis.grip_px is not None:
             g = (int(analysis.grip_px[0] + rx), int(analysis.grip_px[1] + ry))
-            cv2.circle(img, g, 4, (255, 255, 0), -1)
+            canvas.circle(g, 4, (255, 255, 0), -1)
             if analysis.prior_dir_px is not None and analysis.region is not None:
                 d = np.asarray(analysis.prior_dir_px) * 0.5 * analysis.region.span_px
-                cv2.arrowedLine(img, g, (int(g[0] + d[0]), int(g[1] + d[1])), (255, 255, 0), 1, tipLength=0.3)
+                canvas.arrowed_line(g, (int(g[0] + d[0]), int(g[1] + d[1])), (255, 255, 0), 1, tip_length=0.3)
         if style.show_candidates and analysis.segment is not None and len(analysis.segment.candidate_px):
             for x, y in analysis.segment.candidate_px[:: style.candidate_stride]:
-                cv2.circle(img, (int(x + rx), int(y + ry)), 1, (255, 0, 255), -1)
+                canvas.circle((int(x + rx), int(y + ry)), 1, (255, 0, 255), -1)
         if style.show_axis and analysis.axis is not None:
             o = np.asarray(analysis.axis.origin_px) + [rx, ry]
             f = np.asarray(analysis.axis.support_far_px) + [rx, ry]
-            cv2.line(img, tuple(o.astype(int)), tuple(f.astype(int)), (0, 255, 0), style.axis_thickness)
+            canvas.line(tuple(o.astype(int)), tuple(f.astype(int)), (0, 255, 0), style.axis_thickness)
     elif stick is not None and stick.present and style.show_axis:
         # The in-process support pixels are not recorded, but the axis and tip are.
-        cv2.line(
-            img,
+        canvas.line(
             _pt(*stick.axis_origin, roi),
             _pt(*stick.tip, roi),
             (0, 255, 0),
@@ -212,15 +216,16 @@ def draw_stick(
         )
     if stick is not None and stick.present and style.show_tip:
         col = TIP_COLOR[stick.method_id]
-        cv2.circle(img, _pt(stick.tip[0], stick.tip[1], roi), style.tip_radius, col, 2)
+        canvas.circle(_pt(stick.tip[0], stick.tip[1], roi), style.tip_radius, col, 2)
         tag = f"{stick.method_id.value} {stick.tip_confidence:.2f}"
         if stick.method_id is TipMethod.MARKER:
             tag += " FALLBACK/BENCHMARK"
         p = _pt(stick.tip[0], stick.tip[1], roi)
-        cv2.putText(img, tag, (p[0] + 8, p[1] - 6), style.font, style.text_scale, col, 1)
+        canvas.put_text(tag, (p[0] + 8, p[1] - 6), style.font, style.text_scale, col, 1)
 
 
-def draw_track(img: np.ndarray, state: TrackState, roi: Roi, style: OverlayStyle, row: int) -> None:
+def draw_track(img: np.ndarray | Canvas, state: TrackState, roi: Roi, style: OverlayStyle, row: int) -> None:
+    canvas = Canvas.of(img)
     col = STATUS_COLOR[state.status]
     y = 20 + 18 * row
     txt = (
@@ -228,12 +233,13 @@ def draw_track(img: np.ndarray, state: TrackState, roi: Roi, style: OverlayStyle
     )
     if state.reset_reason is not None:
         txt += f" RESET:{state.reset_reason.value}"
-    if style.show_tracking_badge:
-        cv2.putText(img, txt, (roi.x + 6, roi.y + y), style.font, style.text_scale, col, 1)
+    if style.show_tracking_badge:  # status badge anchored to the ROI's left edge, not to a hand
+        badge = canvas.upright(roi.x, roi.x1)
+        badge.put_text(txt, (roi.x + 6, roi.y + y), style.font, style.text_scale, col, 1)
     if style.show_track and state.tip_filtered is not None:
         p = _pt(state.tip_filtered[0], state.tip_filtered[1], roi)
         if style.show_filtered_tip:
-            cv2.drawMarker(img, p, col, cv2.MARKER_CROSS, 12, 2)
+            canvas.marker(p, col, cv2.MARKER_CROSS, 12, 2)
         if style.show_velocity and state.tip_velocity is not None:
             vx, vy = state.tip_velocity
             q = _pt(
@@ -241,11 +247,11 @@ def draw_track(img: np.ndarray, state: TrackState, roi: Roi, style: OverlayStyle
                 state.tip_filtered[1] + vy * style.velocity_scale_s,
                 roi,
             )
-            cv2.arrowedLine(img, p, q, col, 2, tipLength=0.25)
+            canvas.arrowed_line(p, q, col, 2, tip_length=0.25)
 
 
 def draw_debug_overlay(
-    full: np.ndarray,
+    full: np.ndarray | Canvas,
     roi: Roi,
     hands: dict[HandId, HandObservation] | None = None,
     analyses: dict[HandId, Any] | None = None,
@@ -255,30 +261,32 @@ def draw_debug_overlay(
     style: OverlayStyle | None = None,
     copy: bool = True,
 ) -> np.ndarray:
+    """A :class:`Canvas` (such as the live mirror view) is drawn on in place."""
     style = style or DEFAULT_STYLE
-    img = full.copy() if copy else full
+    canvas = full if isinstance(full, Canvas) else Canvas(full.copy() if copy else full)
     if style.show_roi:
-        cv2.rectangle(img, (roi.x, roi.y), (roi.x1, roi.y1), (200, 200, 200), 1)
+        canvas.rectangle((roi.x, roi.y), (roi.x1, roi.y1), (200, 200, 200), 1)
     for hid in (HandId.LEFT, HandId.RIGHT):
         if hands and hid in hands:
-            draw_hand(img, hands[hid], roi, style)
-        draw_stick(img, (analyses or {}).get(hid), (sticks or {}).get(hid), roi, style)
+            draw_hand(canvas, hands[hid], roi, style)
+        draw_stick(canvas, (analyses or {}).get(hid), (sticks or {}).get(hid), roi, style)
     for row, hid in enumerate((HandId.LEFT, HandId.RIGHT)):
         if tracks and hid in tracks:
-            draw_track(img, tracks[hid], roi, style, row)
+            draw_track(canvas, tracks[hid], roi, style, row)
     if title:
-        cv2.putText(img, title, (8, full.shape[0] - 10), style.font, 0.5, (255, 255, 255), 1)
-    return img
+        cv2.putText(canvas.image, title, (8, canvas.height - 10), style.font, 0.5, (255, 255, 255), 1)
+    return canvas.image
 
 
 def _bar(
-    image: np.ndarray, origin: tuple[int, int], value: float, color: tuple[int, int, int], label: str
+    canvas: Canvas, origin: tuple[int, int], value: float, color: tuple[int, int, int], label: str
 ) -> None:
     x, y = origin
     bounded = max(0.0, min(1.0, float(value)))
-    cv2.rectangle(image, (x, y), (x + 92, y + 10), (80, 80, 84), 1)
-    cv2.rectangle(image, (x + 1, y + 1), (x + 1 + round(90 * bounded), y + 9), color, -1)
-    cv2.putText(image, label, (x, y - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.34, color, 1, cv2.LINE_AA)
+    bar = canvas.upright(x, x + 93)  # follows its candidate; fills left to right
+    bar.rectangle((x, y), (x + 92, y + 10), (80, 80, 84), 1)
+    bar.rectangle((x + 1, y + 1), (x + 1 + round(90 * bounded), y + 9), color, -1)
+    bar.put_text(label, (x, y - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.34, color, 1, cv2.LINE_AA)
 
 
 def draw_scientific_overlay(
@@ -292,8 +300,13 @@ def draw_scientific_overlay(
     tracks: dict[HandId, TrackState] | None = None,
     records: OverlayRecords | None = None,
     registry: Any = None,
+    mirror: bool = False,
 ) -> np.ndarray:
-    """Render all scientific/debug quantities without mutating the input frame."""
+    """Render all scientific/debug quantities without mutating the input frame.
+
+    ``mirror`` (live windows) mirrors only the camera image, then draws the overlays on it in
+    display space: shapes at their mirrored positions, text readable. Inputs keep camera coordinates.
+    """
     cfg = config or OverlayConfig()
     records = records or OverlayRecords()
     style = OverlayStyle(
@@ -308,7 +321,8 @@ def draw_scientific_overlay(
         show_tracking_badge=cfg.tracking_badge,
         show_roi=cfg.roi,
     )
-    image = full.copy()
+    image = mirror_preview(full) if mirror else full.copy()
+    canvas = Canvas.for_display(image, mirror)
     if any(
         (
             cfg.landmarks,
@@ -322,30 +336,30 @@ def draw_scientific_overlay(
             cfg.roi,
         )
     ):
-        image = draw_debug_overlay(
-            image,
+        draw_debug_overlay(
+            canvas,
             roi,
             hands=hands,
             analyses=analyses,
             sticks=sticks,
             tracks=tracks,
             style=style,
-            copy=False,
         )
     if cfg.zones and registry is not None:
         from spacedrums.ui.zones import draw_zones
 
-        draw_zones(image[roi.y : roi.y1, roi.x : roi.x1], registry, inplace=True)
+        draw_zones(canvas.roi(roi), registry)
     for arm, prediction in records.predictions:
         if not cfg.trajectories:
             break
         color = arm_color(arm)
         points = [_pt(x, y, roi) for x, y in prediction.positions]
         if len(points) > 1:
-            cv2.polylines(image, [np.asarray(points, np.int32)], False, color, 2, cv2.LINE_AA)
+            canvas.polylines([np.asarray(points, np.int32)], False, color, 2, cv2.LINE_AA)
         for point in points:
-            cv2.circle(image, point, 2, color, -1)
+            canvas.circle(point, 2, color, -1)
     candidate_by_id = {c.candidate_id: c for c in records.candidates}
+    details_hud = canvas.upright(roi.x, roi.x1)
     y_text = roi.y + 72
     for candidate in records.candidates:
         point = _pt(*candidate.impact_position, roi)
@@ -353,13 +367,12 @@ def draw_scientific_overlay(
             "A" if str(candidate.source) == "REACTIVE" else "B" if str(candidate.source) == "RULE" else "C"
         )
         if cfg.crossing:
-            cv2.drawMarker(image, point, color, cv2.MARKER_TILTED_CROSS, 16, 2, cv2.LINE_AA)
+            canvas.marker(point, color, cv2.MARKER_TILTED_CROSS, 16, 2, cv2.LINE_AA)
         if cfg.zone_highlight and registry is not None:
             zone = registry[candidate.zone_id]
             # A compact halo communicates the predicted target without redrawing a drum kit.
-            cv2.circle(image, point, 21, color, 2, cv2.LINE_AA)
-            cv2.putText(
-                image,
+            canvas.circle(point, 21, color, 2, cv2.LINE_AA)
+            canvas.put_text(
                 zone.name,
                 (point[0] + 8, point[1] + 18),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -374,8 +387,7 @@ def draw_scientific_overlay(
         if cfg.probability and candidate.strike_probability is not None:
             details.append(f"p={candidate.strike_probability:.2f}")
         if details:
-            cv2.putText(
-                image,
+            details_hud.put_text(
                 f"{candidate.hand_id} {candidate.zone_id} " + " ".join(details),
                 (roi.x + 6, y_text),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -387,7 +399,7 @@ def draw_scientific_overlay(
             y_text += 17
         if cfg.intensity:
             _bar(
-                image,
+                canvas,
                 (point[0] + 10, point[1] + 28),
                 candidate.intensity_proxy,
                 color,
@@ -401,9 +413,8 @@ def draw_scientific_overlay(
             point = _pt(*candidate.impact_position, roi)
             reason = str(decision.get("decision", "UNKNOWN"))
             if reason != "COMMITTED":
-                cv2.circle(image, point, 7, DEFAULT_THEME.error, 1, cv2.LINE_AA)
-                cv2.putText(
-                    image,
+                canvas.circle(point, 7, DEFAULT_THEME.error, 1, cv2.LINE_AA)
+                canvas.put_text(
                     reason.removeprefix("REJECT_"),
                     (point[0] + 8, point[1] - 8),
                     cv2.FONT_HERSHEY_SIMPLEX,
@@ -416,9 +427,8 @@ def draw_scientific_overlay(
         candidate = candidate_by_id.get(commit.candidate_id)
         if candidate is not None and cfg.decisions:
             point = _pt(*candidate.impact_position, roi)
-            cv2.circle(image, point, 25, DEFAULT_THEME.ok, 3, cv2.LINE_AA)
-            cv2.putText(
-                image,
+            canvas.circle(point, 25, DEFAULT_THEME.ok, 3, cv2.LINE_AA)
+            canvas.put_text(
                 "COMMIT",
                 (point[0] - 24, point[1] - 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -434,9 +444,8 @@ def draw_scientific_overlay(
                 continue
             point = _pt(float(position[0]), float(position[1]), roi)
             status = label.get("match_status", "GT")
-            cv2.drawMarker(image, point, DEFAULT_THEME.ground_truth, cv2.MARKER_STAR, 24, 2, cv2.LINE_AA)
-            cv2.putText(
-                image,
+            canvas.marker(point, DEFAULT_THEME.ground_truth, cv2.MARKER_STAR, 24, 2, cv2.LINE_AA)
+            canvas.put_text(
                 f"GT {label.get('zone_id') or '-'} {status}",
                 (point[0] + 9, point[1] - 9),
                 cv2.FONT_HERSHEY_SIMPLEX,

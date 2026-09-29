@@ -4,17 +4,20 @@ Pure drawing from a plain :class:`WizardView`. ``spacedrums.app.calibrate`` buil
 wizard's view model; the UI never imports ``spacedrums.calib`` (sibling L7 packages are independent,
 architecture.md section 2.2). Coordinates follow ADR-0005 (ROI-normalized, y down); the zone overlay
 reuses the Phase 04 ``draw_zones`` and the stand-here box/band reuse the Phase 02 ``draw_guide``.
+Scene drawing goes through a :class:`~spacedrums.ui.canvas.Canvas` (``mirror`` for live windows);
+the header, footer and progress bar are screen HUD and keep screen coordinates.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import cv2
 import numpy as np
 
 from spacedrums.capture.roi import Roi
 from spacedrums.geometry import Ellipse, ZoneRegistry
+from spacedrums.ui.canvas import Canvas
 from spacedrums.ui.guide import DEFAULT_INSTRUCTION, GuideStyle, draw_guide
 from spacedrums.ui.zones import draw_zones
 
@@ -58,17 +61,16 @@ def _px(p: tuple[float, float], roi: Roi) -> tuple[int, int]:
 
 
 def _highlight(
-    img: np.ndarray, roi: Roi, registry: ZoneRegistry, zone_id: str, color: tuple[int, int, int]
+    canvas: Canvas, roi: Roi, registry: ZoneRegistry, zone_id: str, color: tuple[int, int, int]
 ) -> None:
     try:
         zone = registry[zone_id]
     except KeyError:
         return
-    overlay = img.copy()
+    overlay = replace(canvas, image=canvas.image.copy())
     if isinstance(zone.shape, Ellipse):
         axes = (max(1, round(zone.shape.rx * roi.w)), max(1, round(zone.shape.ry * roi.h)))
-        cv2.ellipse(
-            overlay,
+        overlay.ellipse(
             _px(zone.shape.center, roi),
             axes,
             float(np.degrees(zone.shape.angle_rad)),
@@ -80,8 +82,8 @@ def _highlight(
         )
     else:
         pts = np.asarray([_px(p, roi) for p in zone.shape.points], np.int32)
-        cv2.fillPoly(overlay, [pts], color, cv2.LINE_AA)
-    cv2.addWeighted(overlay, 0.35, img, 0.65, 0, dst=img)
+        overlay.fill_poly([pts], color, cv2.LINE_AA)
+    cv2.addWeighted(overlay.image, 0.35, canvas.image, 0.65, 0, dst=canvas.image)
 
 
 def _panel(
@@ -111,9 +113,11 @@ def draw_wizard(
     *,
     style: WizardStyle | None = None,
     frame_size: tuple[int, int] | None = None,
+    mirror: bool = False,
 ) -> np.ndarray:
     """Draw one wizard frame: stand-here box (+ band), zones (+ cue highlight), reach envelope,
-    header with step/instructions, progress bar and key hints. Never mutates ``frame``."""
+    header with step/instructions, progress bar and key hints. Never mutates ``frame``.
+    ``mirror`` (live windows) mirrors only the camera image and keeps all text readable."""
     style = style or DEFAULT_STYLE
     if frame is None:
         w, h = frame_size or (roi.x1 + roi.x, roi.y1 + roi.y)
@@ -124,17 +128,18 @@ def draw_wizard(
         band=view.band,
         instruction="",
         style=GuideStyle(dim_alpha=0.45 if view.band is not None else 0.25),
+        mirror=mirror,
     )
+    canvas = Canvas.for_display(img, mirror)
     if view.registry is not None:
-        crop = img[roi.y : roi.y1, roi.x : roi.x1]
-        img[roi.y : roi.y1, roi.x : roi.x1] = draw_zones(crop, view.registry)
+        draw_zones(canvas.roi(roi), view.registry)
         if view.highlight_zone:
-            _highlight(img, roi, view.registry, view.highlight_zone, style.highlight_color)
+            _highlight(canvas, roi, view.registry, view.highlight_zone, style.highlight_color)
     if view.envelope is not None:
         x0, y0, x1, y1 = view.envelope
-        cv2.rectangle(img, _px((x0, y0), roi), _px((x1, y1), roi), style.envelope_color, 2, cv2.LINE_AA)
-        cv2.putText(
-            img, "reach envelope", _px((x0, y0), roi), style.font, 0.45, style.envelope_color, 1, cv2.LINE_AA
+        canvas.rectangle(_px((x0, y0), roi), _px((x1, y1), roi), style.envelope_color, 2, cv2.LINE_AA)
+        canvas.put_text(
+            "reach envelope", _px((x0, y0), roi), style.font, 0.45, style.envelope_color, 1, cv2.LINE_AA
         )
     color = style.text_color if view.ok is None else (style.ok_color if view.ok else style.fail_color)
     header = [

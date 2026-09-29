@@ -2,8 +2,10 @@
 
 Runs ``LiveFrameSource`` with the camera config, draws the guide (ROI box, hands band,
 instruction, capture-stats line with drops always visible) and shows it in an OpenCV window for
-``--duration`` seconds (press q to quit early). ``--screenshot`` saves the last rendered frame
-(evidence for the gate record). ``--no-window`` renders without a window (headless screenshot).
+``--duration`` seconds (press q to quit early). The live window mirrors only the camera image and
+draws the guide on it with readable text. ``--screenshot`` saves the last frame's guide in the
+original camera orientation (evidence for the gate record). ``--no-window`` renders without a
+window (headless screenshot).
 
 Usage:
     python scripts/show_guide.py --duration 15 --screenshot docs/figures/phase-02/guide-hw01.png
@@ -86,10 +88,11 @@ def main(argv: list[str] | None = None) -> int:
                     break
                 continue
             lines = guide_status_lines(src.stats(), mode)
-            last = draw_guide(f.image_ref.array, src.roi, band=band, status_lines=lines)
+            last = (f.image_ref.array, lines)
             if not args.no_window:
-                cv2.imshow(WINDOW, last)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                cv2.imshow(WINDOW, draw_guide(f.image_ref.array, src.roi, band=band, status_lines=lines,
+                                              mirror=True))
+                if cv2.pollKey() & 0xFF == ord("q"):
                     break
         stats = src.stats()
     finally:
@@ -99,8 +102,9 @@ def main(argv: list[str] | None = None) -> int:
             cv2.waitKey(1)
     print(f"capture stats: {stats}")
     if args.screenshot is not None and last is not None:
+        frame, lines = last
         args.screenshot.parent.mkdir(parents=True, exist_ok=True)
-        cv2.imwrite(str(args.screenshot), last)
+        cv2.imwrite(str(args.screenshot), draw_guide(frame, src.roi, band=band, status_lines=lines))
         print(f"screenshot written: {args.screenshot}")
     return 0
 

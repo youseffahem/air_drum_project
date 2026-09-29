@@ -6,7 +6,9 @@ unmistakable, and the instruction text. Pure drawing on a copy (or in place when
 detection, no tracking, no zones (Phase 04 adds zone drawing).
 
 Coordinates: the band is given in ROI-normalized units and converted with the single
-``norm_to_px`` helper (ADR-0005), so the overlay is a first consumer of that mapping.
+``norm_to_px`` helper (ADR-0005), so the overlay is a first consumer of that mapping. ``mirror``
+(live windows) mirrors only the camera image; the box, band and text are then drawn on it in display
+space through a :class:`~spacedrums.ui.canvas.Canvas`, so the text stays readable.
 """
 
 from __future__ import annotations
@@ -18,6 +20,8 @@ import cv2
 import numpy as np
 
 from spacedrums.capture.roi import Roi, norm_to_px_point
+from spacedrums.ui.canvas import Canvas
+from spacedrums.ui.preview import mirror_preview
 
 DEFAULT_INSTRUCTION = "Stand so both hands and sticks stay inside the box"
 
@@ -50,6 +54,7 @@ def draw_guide(
     style: GuideStyle = DEFAULT_STYLE,
     status_lines: tuple[str, ...] | list[str] = (),
     inplace: bool = False,
+    mirror: bool = False,
 ) -> np.ndarray:
     """Return the frame with the guide drawn. ``band`` is ``(y0, y1)`` in ROI-normalized y (down)."""
     if frame.ndim != 3 or frame.shape[2] != 3:
@@ -57,11 +62,15 @@ def draw_guide(
     h, w = frame.shape[:2]
     if not roi.fits(w, h):
         raise ValueError(f"ROI {roi.as_tuple()} does not fit a {w}x{h} frame")
-    out = frame if inplace else frame.copy()
+    if mirror and inplace:
+        raise ValueError("a mirrored guide is drawn on a new display image, never in place")
+    out = mirror_preview(frame) if mirror else (frame if inplace else frame.copy())
+    canvas = Canvas.for_display(out, mirror)
+    roi_cols = canvas.span(roi.x, roi.x1)
 
     if style.dim_alpha > 0:
         dark = (out.astype(np.float32) * (1.0 - style.dim_alpha)).astype(np.uint8)
-        dark[roi.y:roi.y1, roi.x:roi.x1] = out[roi.y:roi.y1, roi.x:roi.x1]
+        dark[roi.y:roi.y1, roi_cols] = out[roi.y:roi.y1, roi_cols]
         out[:] = dark
 
     if band is not None:
@@ -71,17 +80,17 @@ def draw_guide(
         _, py0 = norm_to_px_point(0.0, y0, roi)
         _, py1 = norm_to_px_point(0.0, y1, roi)
         py0i, py1i = int(round(py0)), int(round(py1))
-        overlay = out[py0i:py1i, roi.x:roi.x1].copy()
+        overlay = out[py0i:py1i, roi_cols].copy()
         overlay[:] = (
             overlay.astype(np.float32) * (1 - style.band_alpha)
             + np.array(style.band_color, dtype=np.float32) * style.band_alpha
         ).astype(np.uint8)
-        out[py0i:py1i, roi.x:roi.x1] = overlay
-        cv2.putText(out, "hands here", (roi.x + 8, max(py0i - 6, 12)), style.font, 0.55,
-                    style.band_color, 1, cv2.LINE_AA)
+        out[py0i:py1i, roi_cols] = overlay
+        canvas.upright(roi.x, roi.x1).put_text("hands here", (roi.x + 8, max(py0i - 6, 12)),
+                                               style.font, 0.55, style.band_color, 1, cv2.LINE_AA)
 
-    cv2.rectangle(out, (roi.x, roi.y), (roi.x1 - 1, roi.y1 - 1), style.box_color,
-                  style.box_thickness)
+    canvas.rectangle((roi.x, roi.y), (roi.x1 - 1, roi.y1 - 1), style.box_color,
+                     style.box_thickness)
 
     y_text = 28
     main_lines = [(line, style.text_scale, style.text_thickness)
