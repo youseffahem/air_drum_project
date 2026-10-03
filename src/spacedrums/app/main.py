@@ -46,6 +46,7 @@ from spacedrums.app.audio_out import AudioOutput, OutputLatency
 from spacedrums.app.errors import EventLog, ReportedError, user_text, write_crash_report
 from spacedrums.app.health import HealthMonitor, HealthSettings, Level
 from spacedrums.app.invariants import InvariantMonitor
+from spacedrums.app.loss_diagnosis import RuntimeDiagnostics
 from spacedrums.app.pipeline import HANDS, DecisionPipeline, FrameResult
 from spacedrums.app.recorder import SessionRecorder
 from spacedrums.app.session_summary import summarise_session
@@ -102,6 +103,11 @@ class Perception:
         self.landmarker = HandLandmarker(HandLandmarkerSettings.from_config(cfg))
         self.stick_settings = StickSettings.from_config(cfg)
         self.estimator = make_tip_estimator(self.stick_settings.method_id, self.stick_settings)
+        if cfg.get("product", {}).get("enabled", False):
+            from spacedrums.stick.visible import VisibleEndpointEstimator, VisibleSettings
+
+            settings = VisibleSettings(**cfg["product"].get("endpoint", {}))
+            self.estimator = VisibleEndpointEstimator(self.stick_settings, settings)
         self.last_hands: HandsResult | None = None
         self.last_analyses: dict[HandId, Any] = {}
 
@@ -283,6 +289,7 @@ def iter_source(
         except Exception:  # noqa: BLE001 - stats are best-effort provenance, never block the stop
             pass
         live.stop()
+        live_meta["queue"] = live.queue_report()  # consumer-side depth at delivery (diagnostics)
 
     return gen_live(), stop_live, live_meta, None
 
@@ -324,6 +331,8 @@ def run(
     cv2.setNumThreads(opencv_threads)
     calibrated = load_calibrated_config(*args.config, calibration=getattr(args, "calibration", None))
     cfg = calibrated.config
+    if cfg.get("product", {}).get("enabled", False):
+        raise ValueError("Product mode needs automatic calibration: run python -m spacedrums.app.play")
     calib_fields = calibrated.session_fields()
     detail = (
         f" {calib_fields['calibration_id']} ({calib_fields['calibration_hash']})"
@@ -398,6 +407,13 @@ def run(
         None if invariant_mode == "off" else InvariantMonitor.for_pipeline(pipeline, mode=invariant_mode)
     )
     health = HealthMonitor(HealthSettings.from_config(cfg.data), events=events)
+    # Diagnostics only (live responsiveness, 2026-10-02): why tracks were lost, frame freshness and
+    # hand-model cost; written to counters["diagnostics"], never a decision input.
+    diagnostics = RuntimeDiagnostics(
+        c_valid=pipeline.tracker_settings.machine.c_valid,
+        max_gap_s=pipeline.tracker_settings.max_frame_gap_s,
+        live=not args.synthetic and args.source == "live",
+    )
     reported: set[str] = set()
     previous_status: dict[HandId, str] = {}
 
@@ -503,6 +519,7 @@ def run(
                         events.emit("SD-INV-001", detail=violation.to_dict())
             processing_s = timing.now() - t0
             per_frame_s.append(processing_s)
+            diagnostics.observe(sample, obs, result, perception, t_start=t0)
             audio_stats = audio.stats() if audio is not None else {}
             audio_underruns = int((audio_stats.get("mixer") or {}).get("underruns", 0))
             status = health.observe_frame(
@@ -516,7 +533,14 @@ def run(
             announce(status)
             for h, hf in result.hands.items():  # re-acquisition after a loss (INFO event)
                 if previous_status.get(h) in ("INVALID", "STALE") and hf.track.status == "VALID":
-                    events.emit("SD-TRK-002", detail={"hand_id": str(h), "frame_id": sample.frame_id})
+                    events.emit(
+                        "SD-TRK-002",
+                        detail={
+                            "hand_id": str(h),
+                            "frame_id": sample.frame_id,
+                            "loss_cause": diagnostics.reacquired_cause(h),
+                        },
+                    )
                 previous_status[h] = str(hf.track.status)
             capture_drops_total += sample.dropped_since_last
             capture_stats = source_meta.get("capture_stats") or {}
@@ -633,6 +657,7 @@ def run(
     counters = pipeline.counters()
     counters["runtime_threads"] = {"opencv": cv2.getNumThreads()}
     counters["invariants"] = monitor.finish() if monitor is not None else {"mode": "off"}
+    counters["diagnostics"] = diagnostics.summary(source_meta)
     counters["health"] = {
         "final": health.status.to_dict() if health.status is not None else None,
         "transitions": health.transitions,

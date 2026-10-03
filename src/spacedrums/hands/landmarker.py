@@ -73,8 +73,11 @@ class HandLandmarkerSettings:
     swap_handedness: bool = False
     identity: IdentitySettings = IdentitySettings()
     grip: GripSettings = GripSettings()
+    delegate: str = "CPU"
 
     def __post_init__(self) -> None:
+        if self.delegate not in ("CPU", "GPU"):
+            raise ValueError("delegate must be CPU or GPU")
         if self.running_mode not in ("VIDEO", "IMAGE"):
             raise ValueError(f"running_mode must be VIDEO or IMAGE, got {self.running_mode!r}")
         if self.num_hands < 1:
@@ -105,6 +108,7 @@ class HandLandmarkerSettings:
             swap_handedness=bool(h["swap_handedness"]),
             identity=IdentitySettings.from_config(h),
             grip=GripSettings.from_config(h),
+            delegate=str(h.get("delegate", "CPU")),
         )
 
 
@@ -143,7 +147,8 @@ class MediaPipeHandLandmarkerBackend:
         self._vision = vision
         mode = vision.RunningMode.VIDEO if settings.running_mode == "VIDEO" else vision.RunningMode.IMAGE
         options = vision.HandLandmarkerOptions(
-            base_options=BaseOptions(model_asset_path=str(asset.path)),
+            base_options=BaseOptions(model_asset_path=str(asset.path),
+                                     delegate=getattr(BaseOptions.Delegate, settings.delegate)),
             running_mode=mode,
             num_hands=settings.num_hands,
             min_hand_detection_confidence=settings.min_hand_detection_confidence,
@@ -153,6 +158,8 @@ class MediaPipeHandLandmarkerBackend:
         self._landmarker = vision.HandLandmarker.create_from_options(options)
         self._video = settings.running_mode == "VIDEO"
         self.backend_id = f"{DETECTOR_FAMILY}@{mp.__version__}"
+        if settings.delegate != "CPU":
+            self.backend_id += f":{settings.delegate}"
         self.library_version = str(mp.__version__)
 
     def detect(self, image_rgb: np.ndarray, timestamp_ms: int) -> list[RawDetection]:

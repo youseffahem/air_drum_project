@@ -18,7 +18,7 @@
     "zone_layout_id": "mvp4",
     "v_min": 0.15,
     "interpolation": "QUADRATIC",
-    "config_hash": "sha256:c0341a9f284892ba25dabe90b1043e53d9c65168606af89c91c0173f111fdde8",
+    "config_hash": "sha256:53248432521ae2bd54a5dea12aa8555484845093b54787caf0b342e340c06b64",
     "git_sha": "0000000000000000000000000000000000000000",
     "generator": {
       "tool": "spacedrums.data.labels.generate",
@@ -26,7 +26,7 @@
     },
     "reference_track_ref": "tracks_reference.jsonl",
     "causal_track_ref": "tracks_causal.jsonl",
-    "session_metadata_sha256": "sha256:c76b4e363455fe2fe612dc71fbfebf663c9512bfe1ee855999a2f7b53d9644d7",
+    "session_metadata_sha256": "sha256:f1f03b183eef8b0e0170cc8d2ad9b82803ab05fac75b55d8fae04a6b25c77611",
     "labels_hash": "sha256:084a58389df137fa4218d23eb03531528a6dec7d97162691924db69b5c3997e3"
   },
   "inputs": {
@@ -37,22 +37,22 @@
     "streams": [
       {
         "path": "records/StickObservation.jsonl",
-        "sha256": "sha256:4412271279f58e178f4105606cff870c7366a08a042c42b849e0637d10b728f6",
+        "sha256": "sha256:aa955884768baf9b39b1439f764d5d67c85d985036d45ada738fd7992e31cbc8",
         "records": 234
       },
       {
         "path": "records/TrackState.jsonl",
-        "sha256": "sha256:ac10eed849bd92585ac8bf48fbdc2e566d4bf84aea76fcf7dad4f07ccff95cec",
+        "sha256": "sha256:0427ee0dca13303dcabce9de11ec44d9bd5318ec9505145da75391b02fbe2c9a",
         "records": 234
       },
       {
         "path": "records/StrikeCandidate.jsonl",
-        "sha256": "sha256:6d3789d9491217ee2d02c6e597ceb2f41ffa4cac081009a35d7fbef944beea61",
+        "sha256": "sha256:7d42c89a030769690bb213c9ca1f21f61d5779fe81b9362aa32b6eaf7a9aa917",
         "records": 9
       },
       {
         "path": "records/CommittedStrike.jsonl",
-        "sha256": "sha256:fea09f51b3fad95c8bf3d354553b88406f9ec70d0aa27e2dda796fc1394aca59",
+        "sha256": "sha256:8df4a03d5c6465295458daa99dff55b543672075940e02d2c259219fd04b988b",
         "records": 2
       }
     ]
@@ -83,19 +83,19 @@
     {
       "path": "labels.jsonl",
       "bytes": 17651,
-      "sha256": "sha256:4bfd7423614c27f70608f98979dac7ca8f80b2121874c8ef04c3c3ac65e8103f",
+      "sha256": "sha256:a39878fcd9671e8e404620ecc30554d3b1008795cd91880d8acb1affe49e5a21",
       "causal": false
     },
     {
       "path": "tracks_causal.jsonl",
       "bytes": 140408,
-      "sha256": "sha256:ac10eed849bd92585ac8bf48fbdc2e566d4bf84aea76fcf7dad4f07ccff95cec",
+      "sha256": "sha256:0427ee0dca13303dcabce9de11ec44d9bd5318ec9505145da75391b02fbe2c9a",
       "causal": true
     },
     {
       "path": "tracks_reference.jsonl",
       "bytes": 51911,
-      "sha256": "sha256:dbb03b2d7a903761c77cb927ea72983bdc377935b7be26cc406d9cef9ddbe461",
+      "sha256": "sha256:dfadaaf51973ce61087f72c56a46ce2c3435ac92834320fd079f43692b05ffbe",
       "causal": false
     }
   ],
@@ -126,5 +126,5 @@
   },
   "notes": "",
   "label": "TEST / DEVELOPMENT ONLY - SYNTHETIC and/or DEV CAPTURE labels; never participant evidence",
-  "set_hash": "sha256:615797037953fbc55564143eef71dcd16e729fe62586362eb3c5ecf20eb93e51"
+  "set_hash": "sha256:890ecfffa82d90cfa9495ffd8ef4a18b400c7367e1f58a2e3883389ce49bda24"
 }

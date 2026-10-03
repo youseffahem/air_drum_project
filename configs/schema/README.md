@@ -11,3 +11,13 @@ The block is refused under older version declarations. The shared top-level sett
 remain the legacy path when the block is absent. Nested `aux_heads` are refused because
 the current live adapter supports Phase 10 GRU/TCN trajectories only. Calibration retains
 the newer schema version. Actual experimental values must match the archived offline lock.
+
+Schema 1.10 (ADR-0044, 2026-10-02 live responsiveness): optional `stick.segment.contrast_target_range`
+and `contrast_max_gain` (contrast-adaptive Canny thresholds). Absent or null keeps the fixed
+thresholds with byte-identical output; no loader version gate (like the 1.8 identity key).
+
+Schema 1.11 (ADR-0045): optional `product` (`enabled`, `pose_asset_id`) and
+`hands.delegate` (`CPU` or `GPU`). The default remains CPU. Unsupported delegates
+fail explicitly. The product entry point performs automatic calibration before
+constructing the sounding pipeline; legacy `app.main` refuses product configs.
+See `configs/product.candidate.yaml`, merged after `prototype.candidate.yaml`.

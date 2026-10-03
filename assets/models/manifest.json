@@ -11,6 +11,15 @@
       "bytes": 7819105,
       "pinned_with_mediapipe": "1.0.1",
       "note": "Downloaded once (docs/environment.md section 7). spacedrums.hands re-checks this hash at load."
+    },
+    "mediapipe-pose-landmarker-full-float16-v1": {
+      "asset_id": "mediapipe-pose-landmarker-full-float16-v1",
+      "file": "pose_landmarker_full.task",
+      "url": "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+      "sha256": "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1",
+      "bytes": 9398198,
+      "licence": "Apache-2.0 (MediaPipe model card, Google LLC)",
+      "purpose": "Standing reference only; full variant candidate, not a strike model."
     }
   }
 }

@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "provenance": "SYNTHETIC",
+  "state": "STAND",
+  "participant_evidence": false,
+  "settings": {
+    "min_width_px": 72.0,
+    "min_height_px": 42.0,
+    "horizontal_gap_px": 32.0,
+    "vertical_gap_px": 32.0,
+    "margin_px": 10.0,
+    "min_strokes": 4,
+    "min_confidence": 0.65,
+    "min_travel": 0.04,
+    "max_gap_s": 0.11
+  },
+  "body": null,
+  "roi_size": [
+    560,
+    440
+  ],
+  "measured_reach_envelope": null,
+  "fit": null,
+  "strokes": [],
+  "validation_strokes": [],
+  "validation": {
+    "crash_ride": {
+      "hits": 0,
+      "wrong_zone": 0,
+      "strokes": 0
+    },
+    "hihat": {
+      "hits": 0,
+      "wrong_zone": 0,
+      "strokes": 0
+    },
+    "snare": {
+      "hits": 0,
+      "wrong_zone": 0,
+      "strokes": 0
+    },
+    "tom1": {
+      "hits": 0,
+      "wrong_zone": 0,
+      "strokes": 0
+    }
+  },
+  "validation_coverage": {
+    "crash_ride": [
+      0,
+      0
+    ],
+    "hihat": [
+      0,
+      0
+    ],
+    "snare": [
+      0,
+      0
+    ],
+    "tom1": [
+      0,
+      0
+    ]
+  },
+  "unmatched_validation_hits": [],
+  "failures": [],
+  "elapsed_s": null,
+  "limitation": "Compares measured motion with commits; independent hit truth is unavailable."
+}

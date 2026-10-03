@@ -253,3 +253,31 @@ Every Phase 18 script records who runs it: pass `--executor-model "<model>" --ex
   - `analyze_live.py --session <dir> ...` gives M3, M1, H4 and live FP / FN.
 - `verify_phase18.py [--require-clean]` runs the executable gate checks (16 commands: repository
   checks, pre-registration hash, SYNTHETIC rehearsal chains).
+
+## Live responsiveness diagnosis (2026-10-02, ADR-0044)
+
+`diagnose_responsiveness.py` (helper `_resp.py`) finds where the live loop loses tracking, frames and
+strikes. It writes one row per delivered frame, with:
+- stage times (MediaPipe call, identity, stick sub-stages, tracking, geometry, commit, audio, render);
+- queue depth and frame age;
+- hands, identity, stick and tracker state, the reset cause (`app.loss_diagnosis`);
+- the search region's ROI clipping (`region_clip`) and the grip's knuckle-row baseline
+  (`grip_baseline`), added for the 2026-10-03 strike-reliability investigation;
+- candidates, commit gate decisions and commits.
+
+Subcommands:
+- `replay --input <capture or session dir> ...` keeps the recorded timestamps, so its decisions are
+  deterministic.
+- `paced --input ... --repeats 3 [--render none|headless|window]` pushes the recorded frames through
+  the live capture thread and queue in real time. Run paced commands serially, with nothing else
+  running.
+- `pool` and `compare` build pooled tables and paired tip-shift comparisons.
+- `synthetic` is the self-test.
+
+`--config` layers config files, so a candidate override goes last. `--patch identity-elapsed-gate`
+is a report-only research variant. Evidence for the 2026-10-02 investigation is in
+`experiments/pre-participant/20261002-responsiveness/`; the record is
+`docs/perf/live-responsiveness.md`. The strike-reliability investigation (missed and false strikes) re-runs
+arm A's geometry and commit decisions from these rows with its evidence-local re-simulator; its evidence is
+in `experiments/pre-participant/20261002-strike-reliability/` and its record is
+`docs/perf/strike-reliability.md`.

@@ -1,0 +1,5 @@
+{
+  "schema_version": "1.0", "frame_id": 0, "t_capture": 1.0, "hand_id": "RIGHT",
+  "kind": "MEASURED", "reason": "SYNTHETIC", "tip": [0.2, 0.3], "origin": [0.2, 0.6],
+  "confidence": 0.9, "support_px": 132.0
+}

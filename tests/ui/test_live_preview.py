@@ -286,6 +286,14 @@ def test_calibration_window_mirrors_only_live_display(monkeypatch, tmp_path, pre
         iter([(data.sample, data.view, None)]), lambda: None, {"source": source}, None,
     ))
     calls = spy(monkeypatch, calibrate, "draw_wizard")
+    key_mirror = []
+    handle_key = calibrate.handle_key
+
+    def keys(*args, **kwargs):
+        key_mirror.append(kwargs.get("mirror", False))
+        return handle_key(*args, **kwargs)
+
+    monkeypatch.setattr(calibrate, "handle_key", keys)
     args = calibrate.build_parser().parse_args([
         "--source", source, "--user-tag", "synthetic-preview", "--no-audio",
         "--output", str(tmp_path / "synthetic-preview.calib.yaml"), "--max-frames", "1",
@@ -293,5 +301,6 @@ def test_calibration_window_mirrors_only_live_display(monkeypatch, tmp_path, pre
     calibrate.run(args)
     assert seen and len(calls) == len(data.displayed) == 1
     assert calls[0][0] is (source == "live")
+    assert key_mirror == [calls[0][0]]  # zone nudge keys act in the space the window shows
     np.testing.assert_array_equal(data.displayed[0], calls[0][1])
     np.testing.assert_array_equal(data.frame, before)

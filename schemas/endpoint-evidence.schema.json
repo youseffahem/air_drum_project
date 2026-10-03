@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/endpoint-evidence.schema.json",
+  "title": "EndpointEvidence",
+  "description": "ADR-0045 current-image endpoint evidence. MEASURED is an image observation, not independent ground truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "frame_id", "t_capture", "hand_id", "kind", "reason", "tip", "origin", "confidence", "support_px"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "frame_id": {"type": "integer", "minimum": 0},
+    "t_capture": {"type": "number"},
+    "hand_id": {"enum": ["LEFT", "RIGHT"]},
+    "kind": {"enum": ["MEASURED", "UNCERTAIN", "MISSING"]},
+    "reason": {"type": "string", "minLength": 1},
+    "tip": {"$ref": "common.schema.json#/$defs/point2_or_null"},
+    "origin": {"$ref": "common.schema.json#/$defs/point2_or_null"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "support_px": {"type": "number", "minimum": 0}
+  },
+  "if": {"properties": {"kind": {"const": "MEASURED"}}},
+  "then": {"properties": {"tip": {"type": "array"}, "origin": {"type": "array"}}}
+}

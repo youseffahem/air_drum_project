@@ -356,3 +356,36 @@ requires its pinned offline parent and base config; archive/verify checks compar
 settings and the preregistration binding. Separate `ablation-plan` and `ablation-reference`
 documents belong to the offline tooling layer. Their validation never constitutes approval
 or a participant gate. The only checked-in plan example is SYNTHETIC/DEV.
+
+## Live responsiveness contract note (2026-10-02, ADR-0044)
+
+No record, enum or envelope changes. `ResetReason` is unchanged. The diagnostic `LossCause`
+(`spacedrums.app.loss_diagnosis`) names *why* a reset happened, and appears only in the app summary
+(`counters.diagnostics`) and in the free-form `detail` of `SD-TRK-002` events (`loss_cause`); it is
+not a contract field. Config schema **1.10** adds the optional `stick.segment.contrast_target_range` /
+`contrast_max_gain` (absent or null = the Phase 03 fixed Canny thresholds, byte-identical output).
+`camera_profile.queue.max_frames: 1` was already a schema-valid value.
+
+## Standing product contracts (2026-10-03, ADR-0045)
+
+Config **1.11** adds `product` and `hands.delegate`. The product path requires Arm A
+and current `EndpointEvidence` matching each `StickObservation`. Historical record
+schemas, enum values, research-arm geometry and configs retain their semantics.
+`AXIS_REFINED` in product mode is the connected visible support endpoint with no
+GEOM fallback. The evidence companion is authoritative about measured/uncertain/
+missing state; legacy AXIS_REFINED alone does not certify a visible endpoint.
+
+`EndpointEvidence` 1.0 (`endpoint-evidence.schema.json`) is additive. MEASURED
+denotes an image-supported observation, never independent ground truth. Calibration
+and product decisions refuse missing/mismatched evidence. Predicted gap positions
+remain DEGRADED and cannot sound. Product position output is the identity filter of
+accepted visible endpoints; Kalman state is retained only for explicitly DEGRADED
+bridges. This avoids phase lag at the strike surface. The tracker ID records the mode.
+
+`ProductCalibration` 1.0 (`product-calibration.schema.json`) stores the standing
+reference, settings, measured strokes, fit and a separate verification stage.
+It admits only SYNTHETIC/DEVELOPER_REPLAY/DEVELOPER_LIVE provenance. It cannot load
+as calib-v1, bypass calibration on restart, or authorize participant collection.
+Product replay and live use the same decision/calibration code. The new app keeps
+timestamped evidence and commits; optional full-frame recording can be replayed by
+the existing ReplayFrameSource. Audio and committed-strike contracts are unchanged.
