@@ -10,6 +10,14 @@ built from the overlays in the benchmark report, not assumed here.
 
 A learned segmentation model is *not* implemented: it is the optional second candidate of the phase
 document, opened only if the classical pipeline fails the benchmark (Open Question).
+
+Contrast-adaptive thresholds (ADR-0044, config schema 1.10, optional): in a dark or low-contrast
+search region the stick's edges stay below the fixed Canny thresholds and no axis is found. With
+``contrast_target_range`` set, both thresholds are divided by ``min(contrast_max_gain, target / span)``,
+where ``span`` is the p2-p98 grey range of the (blurred) region. Canny compares gradient magnitudes,
+which scale linearly with contrast, so this equals stretching the region's contrast by that gain,
+without touching the pixels. Per frame and deterministic; a region whose span already reaches the
+target (gain 1) gives byte-identical output, and so does any config without the key.
 """
 
 from __future__ import annotations
@@ -34,6 +42,8 @@ class SegmentSettings:
     min_elongation: float = 2.0  # sqrt(lambda1 / lambda2) of the component pixel PCA (dev sweep: 2.0 > 3.0)
     angle_tol_rad: float = 0.7  # |component axis angle - prior angle| (mod pi)
     max_components: int = 4  # keep the N most elongated qualifying components
+    contrast_target_range: float | None = None  # None: fixed thresholds (ADR-0044, schema 1.10)
+    contrast_max_gain: float = 1.0  # upper bound of the threshold divisor
 
     def __post_init__(self) -> None:
         for name in ("blur_ksize", "close_ksize"):
@@ -46,6 +56,10 @@ class SegmentSettings:
             raise ValueError("min_component_px, min_elongation and max_components must be >= 1")
         if not (0 < self.angle_tol_rad <= math.pi / 2):
             raise ValueError("angle_tol_rad must lie in (0, pi/2]")
+        if self.contrast_target_range is not None and not self.contrast_target_range > 0:
+            raise ValueError("contrast_target_range must be > 0 (or None)")
+        if not self.contrast_max_gain >= 1.0:
+            raise ValueError("contrast_max_gain must be >= 1")
 
     @classmethod
     def from_config(cls, stick_cfg: dict[str, Any]) -> SegmentSettings:
@@ -54,7 +68,10 @@ class SegmentSettings:
                    canny_high=float(g["canny_high"]),
                    close_ksize=int(g["close_ksize"]), min_component_px=int(g["min_component_px"]),
                    min_elongation=float(g["min_elongation"]), angle_tol_rad=float(g["angle_tol_rad"]),
-                   max_components=int(g["max_components"]))
+                   max_components=int(g["max_components"]),
+                   contrast_target_range=(None if g.get("contrast_target_range") is None
+                                          else float(g["contrast_target_range"])),
+                   contrast_max_gain=float(g.get("contrast_max_gain", 1.0)))
 
 
 @dataclass(frozen=True)
@@ -73,6 +90,7 @@ class SegmentResult:
     components: tuple[ComponentInfo, ...] = ()
     n_edge_px: int = 0
     mask: np.ndarray | None = field(default=None, repr=False)  # kept-candidate mask (roi_h, roi_w) bool
+    contrast_gain: float = 1.0  # Canny threshold divisor used for this region (1 = fixed thresholds)
 
     @property
     def n_kept(self) -> int:
@@ -100,6 +118,30 @@ def component_pca(xs: np.ndarray, ys: np.ndarray) -> tuple[float, float]:
     return float(math.sqrt(lam1 / lam2)), float(angle)
 
 
+def intensity_span(values: np.ndarray) -> float:
+    """p98 - p2 of uint8 grey values (histogram quantiles: the lowest level whose cumulative share
+    reaches 2 % / 98 %), floored at 1 grey level."""
+    counts = np.bincount(np.asarray(values, dtype=np.uint8).ravel(), minlength=256)
+    cdf = np.cumsum(counts)
+    n = int(cdf[-1])
+    if n == 0:
+        return 1.0
+    lo = int(np.searchsorted(cdf, 0.02 * n))
+    hi = int(np.searchsorted(cdf, 0.98 * n))
+    return float(max(1, hi - lo))
+
+
+def contrast_gain(crop: np.ndarray, mask: np.ndarray, settings: SegmentSettings) -> float:
+    """Canny threshold divisor for one (blurred) search-region crop; 1.0 = fixed thresholds."""
+    if settings.contrast_target_range is None:
+        return 1.0
+    values = crop[mask]
+    if values.size == 0:
+        return 1.0
+    gain = settings.contrast_target_range / intensity_span(values)
+    return float(min(settings.contrast_max_gain, max(1.0, gain)))
+
+
 def segment_stick(gray_roi: np.ndarray, region: SearchRegion, settings: SegmentSettings) -> SegmentResult:
     """Candidate stick pixels inside ``region`` of the grayscale ROI crop (uint8, (h, w))."""
     h, w = gray_roi.shape[:2]
@@ -111,8 +153,13 @@ def segment_stick(gray_roi: np.ndarray, region: SearchRegion, settings: SegmentS
     crop = gray_roi[y0:y1, x0:x1]
     if settings.blur_ksize > 1:
         crop = cv2.GaussianBlur(crop, (settings.blur_ksize, settings.blur_ksize), 0)
-    edges = cv2.Canny(crop, settings.canny_low, settings.canny_high)
-    edges[~region.mask[y0:y1, x0:x1]] = 0
+    region_mask = region.mask[y0:y1, x0:x1]
+    gain = contrast_gain(crop, region_mask, settings)
+    low, high = settings.canny_low, settings.canny_high
+    if gain > 1.0:
+        low, high = low / gain, high / gain
+    edges = cv2.Canny(crop, low, high)
+    edges[~region_mask] = 0
     n_edge = int(np.count_nonzero(edges))
     if settings.close_ksize > 1:
         k = cv2.getStructuringElement(cv2.MORPH_RECT, (settings.close_ksize, settings.close_ksize))
@@ -157,7 +204,9 @@ def segment_stick(gray_roi: np.ndarray, region: SearchRegion, settings: SegmentS
         pts = np.stack([xs + x0, ys + y0], axis=1).astype(float)
     else:
         pts = np.zeros((0, 2))
-    return SegmentResult(candidate_px=pts, components=tuple(infos), n_edge_px=n_edge, mask=mask)
+    return SegmentResult(candidate_px=pts, components=tuple(infos), n_edge_px=n_edge, mask=mask,
+                         contrast_gain=gain)
 
 
-__all__ = ["ComponentInfo", "SegmentResult", "SegmentSettings", "component_pca", "segment_stick"]
+__all__ = ["ComponentInfo", "SegmentResult", "SegmentSettings", "component_pca", "contrast_gain",
+           "intensity_span", "segment_stick"]

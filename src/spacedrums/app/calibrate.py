@@ -223,8 +223,12 @@ def to_view(wizard: CalibrationWizard, status: list[str]) -> WizardView:
     )
 
 
-def handle_key(wizard: CalibrationWizard, key: int, samples: list[str] | None) -> str | None:
-    """Apply one key press; returns 'quit' or a message for the status line."""
+def handle_key(
+    wizard: CalibrationWizard, key: int, samples: list[str] | None, *, mirror: bool = False
+) -> str | None:
+    """Apply one key press; returns 'quit' or a message for the status line. ``mirror``: the window
+    shows the mirrored camera image (live), so j / l still move the zone left / right on screen;
+    nudges stay in camera coordinates."""
     ch = chr(key) if 0 <= key < 128 else ""
     try:
         if ch == "q":
@@ -243,7 +247,8 @@ def handle_key(wizard: CalibrationWizard, key: int, samples: list[str] | None) -
             wizard.skip_validation()
         elif wizard.step is Step.ZONE_PLACEMENT and wizard.stage is Stage.REVIEW:
             d = wizard.settings.nudge_step
-            moves = {"i": (0.0, -d), "k": (0.0, d), "j": (-d, 0.0), "l": (d, 0.0)}
+            right = -d if mirror else d  # camera dx that moves the zone right on screen
+            moves = {"i": (0.0, -d), "k": (0.0, d), "j": (-right, 0.0), "l": (right, 0.0)}
             if ch == "n":
                 return f"selected {wizard.select_next_zone()}"
             if ch in moves:
@@ -378,6 +383,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         perception = WizardPerception(cfg)
     roi = Roi.from_rect(cfg["roi"]["px"])
     replay_like = args.synthetic or args.source == "replay"
+    mirror = not replay_like  # live windows mirror the camera image; key nudges follow the window
     # without a window there are no key presses: headless runs are unattended
     auto = args.auto or args.synthetic or args.source == "replay" or args.no_window
     skip = args.skip_validation or kind is ProvenanceKind.DEVELOPER_REPLAY
@@ -432,12 +438,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     roi,
                     to_view(wizard, status),
                     frame_size=tuple(cfg["camera_profile"]["resolution_px"]),
-                    mirror=not replay_like,
+                    mirror=mirror,
                 )
                 cv2.imshow(WINDOW, img)
                 key = cv2.pollKey() & 0xFF  # does not wait; waitKey(1) waits on the Windows timer (T2)
                 if key != 255:
-                    message = handle_key(wizard, key, samples)
+                    message = handle_key(wizard, key, samples, mirror=mirror)
                     if message == "quit":
                         break
                     status = [message] if message else status

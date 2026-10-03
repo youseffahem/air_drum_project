@@ -7,6 +7,10 @@ tooling (Williams arm orders, live protocol and arm switcher, `LiveSessionMetada
 M1 / M2 / M3 timing methods). Everything is rehearsed on SYNTHETIC data only; participant and live-person
 evidence remain PENDING.
 
+Live responsiveness (2026-10-02, ADR-0044) adds `app.loss_diagnosis`: a diagnostic cause for every
+tracking reset and re-acquisition (`counters.diagnostics`, `SD-TRK-002` detail), live frame freshness
+(capture-queue depth at delivery) and hand-model time by previously tracked hands. Diagnostics only.
+
 Phase 17 adds `app.invariants` (runtime safety-invariant monitor I1–I6; `commit.invariants` holds the
 I1/I3/I4 core), `app.health` (`HealthStatus {camera, tracking, model, audio}`), `app.errors` (message
 catalogue, structured event log, crash reports) and `app.faults` (fault injection, test builds only),

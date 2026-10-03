@@ -66,6 +66,7 @@ class TrackerSettings:
     # Derived, not a new tunable: (g_max_frames + 1.5) nominal frame periods, i.e. more than g_max
     # frames missing at the requested rate. Not part of ``tracker_id`` (derived from g_max + fps).
     max_frame_gap_s: float | None = None
+    measured_output: bool = False  # product: identity position filter on accepted visible endpoints
 
     def __post_init__(self) -> None:
         if self.history_n < 1:
@@ -87,7 +88,8 @@ class TrackerSettings:
                    angle_alpha=float(params.get("angle_alpha", 0.6)),
                    angle_beta=float(params.get("angle_beta", 0.3)),
                    causal_tolerance=float(params.get("causal_tolerance", 1e-6)),
-                   max_frame_gap_s=(machine.g_max_frames + 1.5) / float(fps) if fps else None)
+                   max_frame_gap_s=(machine.g_max_frames + 1.5) / float(fps) if fps else None,
+                   measured_output=bool(cfg.get("product", {}).get("enabled", False)))
 
     def full_id(self) -> str:
         m = self.machine
@@ -95,7 +97,8 @@ class TrackerSettings:
                      if k not in ("bridge_decay", "acquire_on_degraded", "angle_alpha", "angle_beta",
                                   "causal_tolerance"))
         return (f"{self.tracker_id}:{self.filter_type}{(':' + p) if p else ''}:cv{m.c_valid:.2f}"
-                f":cm{m.c_min:.2f}:g{m.g_max_frames}:age{m.age_max_s:.2f}:N{self.history_n}")
+                f":cm{m.c_min:.2f}:g{m.g_max_frames}:age{m.age_max_s:.2f}:N{self.history_n}"
+                f"{':visible-position' if self.measured_output else ''}")
 
 
 class CausalTracker:
@@ -186,6 +189,16 @@ class CausalTracker:
             angle, omega = self.angle.step(z_angle, dt if dt > 0 else 1e-6, conf if has_obs else 1.0)
 
         live = dec.status in (TrackStatus.VALID, TrackStatus.DEGRADED)
+        if self.settings.measured_output and has_obs and dec.status is TrackStatus.VALID:
+            # Endpoint extraction already rejects temporal outliers. Retain current observed
+            # position without Kalman position lag; predicted gaps remain DEGRADED.
+            pos = stick_obs.tip
+            old = self._history[-1] if self._history else None
+            if old is not None and old.status is TrackStatus.VALID and dt > 0:
+                vel = tuple((a-b)/dt for a, b in zip(pos, old.tip_filtered, strict=True))
+            else:
+                vel = (0.0, 0.0)
+            acc = None
         state = TrackState(
             frame_id=hand_obs.frame_id, t_capture=t_capture, hand_id=self.hand_id, status=dec.status,
             tracker_id=self.tracker_id, tip_method=stick_obs.method_id,

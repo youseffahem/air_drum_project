@@ -21,7 +21,7 @@ ambiguous identity can only be DEGRADED downstream.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 import cv2
@@ -181,7 +181,8 @@ class StickAnalysis:
     notes: tuple[str, ...] = field(default_factory=tuple)
 
 
-def analyse(view: FrameView, obs: HandObservation, settings: StickSettings, l_px: float) -> StickAnalysis:
+def analyse(view: FrameView, obs: HandObservation, settings: StickSettings, l_px: float,
+            *, axis_hint_px: tuple[float, float] | None = None) -> StickAnalysis:
     roi = Roi.from_rect(view.sample.roi_px)
     grip = grip_reference(obs, settings.grip, roi_aspect=roi.aspect)
     if grip is None:
@@ -189,6 +190,12 @@ def analyse(view: FrameView, obs: HandObservation, settings: StickSettings, l_px
     grip_px = to_roi_px(grip.point, roi)
     if grip.direction is None:
         return StickAnalysis(roi, grip, None, None, None, grip_px, None, l_px, ("degenerate_grip_direction",))
+    if axis_hint_px is not None:
+        # Product refinement supplies an axis fitted from this same image. Keep
+        # the landmark grip anchor; only turn the search toward visible support.
+        hint = np.asarray(axis_hint_px, dtype=float)
+        grip = replace(grip, direction=unit_px_to_norm(hint, roi),
+                       angle_rad=float(np.arctan2(hint[1], hint[0])))
     d = vec_norm_to_px(grip.direction, roi)
     d /= float(np.hypot(d[0], d[1]))
     prior = (float(d[0]), float(d[1]))

@@ -30,6 +30,9 @@ class BoundedFrameQueue(Generic[T]):
         self.delivered = 0
         self.dropped = 0
         self._pending_drops = 0
+        # Observability only (live responsiveness, 2026-10-02): queue length at the last delivery,
+        # the delivered item included. 1 = it was the newest frame; >= 2 = a newer one was waiting.
+        self.last_depth_at_get: int | None = None
 
     # -- producer side ---------------------------------------------------------------------
     def put(self, item: T) -> int:
@@ -58,6 +61,7 @@ class BoundedFrameQueue(Generic[T]):
                 self._not_empty.wait(timeout)
             if not self._items:
                 return None
+            self.last_depth_at_get = len(self._items)
             item = self._items.popleft()
             since = self._pending_drops
             self._pending_drops = 0

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacedrums.local/schemas/product-calibration.schema.json",
+  "title": "ProductCalibration",
+  "description": "ADR-0045 developer-only automatic calibration report. Never a participant calibration or independent hit ground truth. No saved-calibration bypass exists.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "provenance", "participant_evidence", "state", "settings", "body", "roi_size", "measured_reach_envelope", "fit", "strokes", "validation_strokes", "validation", "validation_coverage", "unmatched_validation_hits", "failures", "elapsed_s", "limitation"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "provenance": {"enum": ["SYNTHETIC", "DEVELOPER_LIVE", "DEVELOPER_REPLAY"]},
+    "participant_evidence": {"const": false},
+    "state": {"enum": ["STAND", "REACH", "VERIFY", "READY", "RETRY"]},
+    "settings": {"type": "object"},
+    "body": {"type": ["object", "null"]},
+    "roi_size": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+    "measured_reach_envelope": {"type": ["array", "null"]},
+    "fit": {"type": ["object", "null"]},
+    "strokes": {"type": "array"},
+    "validation_strokes": {"type": "array"},
+    "validation": {"type": "object"},
+    "validation_coverage": {"type": "object"},
+    "unmatched_validation_hits": {"type": "array"},
+    "failures": {"type": "array", "items": {"type": "string"}},
+    "elapsed_s": {"type": ["number", "null"], "minimum": 0},
+    "limitation": {"type": "string"}
+  },
+  "if": {"properties": {"state": {"const": "READY"}}},
+  "then": {"properties": {"fit": {"type": "object", "required": ["passed", "zones"], "properties": {"passed": {"const": true}, "zones": {"type": "array", "minItems": 4, "maxItems": 4}}}}}
+}

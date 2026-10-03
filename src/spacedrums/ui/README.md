@@ -23,6 +23,10 @@ orientation; `mirror=False` is the pixel-identical camera canvas. The developer 
 shows the mirror preview by default; `record --no-window` disables it. Synthetic exposure recordings
 remain headless.
 
+Keys act in the space the window shows: the calibration wizard's `j` / `l` move the selected zone
+left / right on screen in the mirrored live window too (`handle_key(..., mirror=True)` reverses the
+camera x step); the stored nudges stay in camera coordinates.
+
 Per-frame window loops read keys with `cv2.pollKey()`, which does not wait. In the live app on HW-01
 `cv2.waitKey(1)` took 2.0 ms per frame at the median against 0.4 ms for `pollKey` (T2 old/new
 development runs, 2026-09-28); in a tight loop it waits up to a 15.6 ms Windows timer tick. The

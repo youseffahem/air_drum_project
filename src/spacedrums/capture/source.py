@@ -32,7 +32,7 @@ No frame interpolation, upsampling or resampling happens anywhere in this module
 from __future__ import annotations
 
 import threading
-from collections import deque
+from collections import Counter, deque
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any
@@ -128,6 +128,7 @@ class LiveFrameSource:
         nominal = 1.0 / settings.nominal_fps if settings.nominal_fps else None
         self._stall = StallDetector(nominal, settings.stall_factor) if nominal else None
         self._recent_t_capture: deque[float] = deque(maxlen=900)
+        self._depth_at_get: Counter[int] = Counter()  # consumer thread only (queue_report)
         # counters (guarded by _lock)
         self._duplicates = 0
         self._stalled = 0
@@ -274,6 +275,8 @@ class LiveFrameSource:
                 raise RuntimeError("capture thread failed") from self._error
             return None
         pending, since = got
+        if self._queue.last_depth_at_get is not None:
+            self._depth_at_get[self._queue.last_depth_at_get] += 1
         assert self._frame_size is not None and self._roi is not None
         frame_id = self._next_frame_id
         self._next_frame_id += 1
@@ -326,6 +329,20 @@ class LiveFrameSource:
             duplicates=dup, fps_measured=fps, interval_p50=p50, interval_p99=p99,
             clamped_timestamps=clamped,
         )
+
+    def queue_report(self) -> dict[str, Any]:
+        """Queue depth the consumer saw at each delivery (call from the consumer thread or after stop).
+
+        Depth 1: the delivered frame was the newest one available. Depth >= 2: a newer frame was
+        already waiting, so an older frame was processed (a *late* delivery; it is not a drop).
+        """
+        depths = dict(sorted(self._depth_at_get.items()))
+        return {
+            "max_frames": self._queue.max_frames,
+            "delivered": sum(depths.values()),
+            "depth_at_get": {str(k): v for k, v in depths.items()},
+            "late_deliveries": sum(v for k, v in depths.items() if k >= 2),
+        }
 
     def timestamp_report(self) -> dict[str, Any]:
         """Which policy actually applied, mapper residuals, thread CPU usage."""

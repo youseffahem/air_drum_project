@@ -42,10 +42,12 @@ from spacedrums.contracts import (
     StickObservation,
     StrikeCandidate,
     TimingRecord,
+    TipMethod,
     TrackState,
     TrajectoryPrediction,
 )
 from spacedrums.geometry import GeometryEngine, ZoneRegistry
+from spacedrums.geometry.strokes import MeasuredStrokeGeometry, StrokeSettings
 from spacedrums.prediction import RuleBasedAnticipator, RuleSettings
 from spacedrums.prediction.budget_monitor import BudgetMonitor, CadenceMonitor
 from spacedrums.prediction.fallback import FallbackEvent, fallback_target
@@ -198,7 +200,14 @@ class DecisionPipeline:
             raise ValueError(
                 "config has no geometry block (v_min); the app never guesses geometry thresholds"
             )
-        self.geometry = GeometryEngine(registry, v_min=float(cfg["geometry"]["v_min"]), session_id=session_id)
+        product = cfg.get("product", {}).get("enabled", False)
+        self.product = product
+        if product and self.arms != (Arm.A,):
+            raise ValueError("product geometry currently supports measured Arm A only")
+        engine = MeasuredStrokeGeometry if product else GeometryEngine
+        options = {"settings": StrokeSettings(**cfg["product"].get("stroke", {}))} if product else {}
+        self.geometry = engine(registry, v_min=float(cfg["geometry"]["v_min"]),
+                               session_id=session_id, **options)
         explicit = cfg.get("live_arm_settings")
         self.geometry_by_arm = {arm: self.geometry for arm in (Arm.A, *self.arms)}
         if explicit is not None:
@@ -313,8 +322,28 @@ class DecisionPipeline:
         t_now: float | None = None,
         processing_started: float | None = None,
         replay_measured: bool = False,
+        endpoint_evidence: Mapping | None = None,
     ) -> FrameResult:
         start = self.clock() if processing_started is None else processing_started
+        if self.product:
+            if endpoint_evidence is None:
+                raise ValueError("product decisions require current EndpointEvidence")
+            accepted = {}
+            for h in HANDS:
+                hand, stick = observations[h]
+                e = endpoint_evidence[h]
+                if (e.frame_id, e.t_capture, e.hand_id) != (sample.frame_id, sample.t_capture, h):
+                    raise ValueError("endpoint evidence must belong to this hand and current frame")
+                if e.kind == "MEASURED":
+                    if (not stick.present or stick.method_id is not TipMethod.AXIS_REFINED
+                            or stick.tip != e.tip or stick.axis_origin != e.origin
+                            or stick.tip_confidence != e.confidence):
+                        raise ValueError("measured evidence must match the visible endpoint observation")
+                else:
+                    stick = StickObservation.absent(sample.frame_id, sample.t_capture, h,
+                                                    TipMethod.AXIS_REFINED)
+                accepted[h] = (hand, stick)
+            observations = accepted
         old = self._previous_sample
         if old is not None and (sample.frame_id <= old.frame_id or sample.t_capture <= old.t_capture):
             raise ValueError("delivered frames must strictly increase")

@@ -1,0 +1,59 @@
+# Merge after prototype.candidate.yaml. No zones in this fragment are a calibrated kit.
+# The product entry point enables sound only after measured auto-calibration succeeds.
+meta:
+  schema_version: "1.11"
+  created: "2026-10-03"
+  phase: "17"
+  description: "Standing four-pad product candidate; developer validation pending."
+  supersedes: null
+  status: candidate
+product:
+  enabled: true
+  pose_asset_id: mediapipe-pose-landmarker-full-float16-v1
+  # Search sweep: 170/650 admitted hand-frames vs 104/650 at 5.5 x 1.6 spans.
+  # This is coverage on a developer replay, NOT endpoint accuracy or live acceptance.
+  endpoint:
+    search_spans: 7.0
+    max_search_spans: 14.0
+    search_width_spans: 2.4
+    min_length_px: 18.0
+    max_angle_change_rad: 1.15
+    max_length_ratio: 1.8
+    memory_s: 0.12
+    min_confidence: 0.65
+  stroke:
+    max_gap_s: 0.115
+    min_travel: 0.018
+    rebound: 0.014
+    downward_ratio: 0.5
+    max_speed: 12.0
+  reach:
+    min_width_px: 72.0
+    min_height_px: 42.0
+    horizontal_gap_px: 32.0
+    vertical_gap_px: 32.0
+    margin_px: 10.0
+    min_strokes: 4
+    min_confidence: 0.65
+    min_travel: 0.04
+    max_gap_s: 0.11
+hands:
+  delegate: CPU
+  input: ROI
+stick:
+  method_id: AXIS_REFINED
+arms:
+  active: A
+  shadow: []
+commit:
+  commit_policy_id: product-measured-v1
+  refractory_zone_s: 0.035
+  refractory_hand_s: 0.025
+  allow_degraded_commits: false
+debug:
+  overlay:
+    enabled: false
+roi:
+  # Keep the whole captured image. The historical 20 px bottom margin excluded
+  # the measured waist reference in the 2026-10-03 developer run.
+  px: [0, 0, 640, 480]

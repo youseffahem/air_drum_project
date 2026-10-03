@@ -258,7 +258,7 @@
       "additionalProperties": false,
       "required": ["schema_version", "created", "phase", "description", "supersedes", "status"],
       "properties": {
-        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block), 1.6 (Phase 13, ADR-0036: live model arm), 1.7 (Phase 14, ADR-0037: calibration_path, derived calibration block, stick.geom.l_prior_by_hand) or 1.8 (Phase 17, ADR-0040: optional hands.identity.user_min_relative_area). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
+        "schema_version": { "type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "1.10", "1.11"], "description": "1.0 (Phase 01), 1.1 (Phase 02, ADR-0013: pixel_format, grab_return_bias_s), 1.2 (Phase 03, ADR-0014: hands block), 1.3 (Phase 05, ADR-0018: optional geometry block), 1.4 (Phase 08, ADR-0022: optional features block) 1.5 (Phase 11, ADR-0028: optional commit.aux_heads block), 1.6 (Phase 13, ADR-0036: live model arm), 1.7 (Phase 14, ADR-0037: calibration_path, derived calibration block, stick.geom.l_prior_by_hand) 1.8 (Phase 17, ADR-0040: optional hands.identity.user_min_relative_area) or 1.10 (2026-10-02 live responsiveness, ADR-0044: optional stick.segment.contrast_target_range / contrast_max_gain). Minor bumps keep older documents readable (docs/architecture/contracts.md section 8)." },
         "created": { "type": "string", "format": "date" },
         "phase": { "type": "string", "pattern": "^[0-2][0-9]$" },
         "description": { "type": "string", "minLength": 1 },
@@ -340,6 +340,7 @@
       "additionalProperties": false,
       "required": ["detector", "model_asset_id", "running_mode", "num_hands", "min_hand_detection_confidence", "min_hand_presence_confidence", "min_tracking_confidence", "input", "swap_handedness", "identity", "grip"],
       "properties": {
+        "delegate": {"enum": ["CPU", "GPU"], "description": "1.11: explicit inference delegate; unsupported platforms fail, never silently claim GPU."},
         "detector": { "type": "string", "enum": ["mediapipe-hand-landmarker"], "description": "Estimator family (Phase 03, Task 03.1 candidate: MediaPipe Tasks Hand Landmarker). A second family is added here by enum extension + ADR." },
         "model_asset_id": { "type": "string", "minLength": 1, "description": "Key in assets/models/manifest.json (file + SHA-256; docs/environment.md section 7). Selects the model file; the Tasks API exposes no separate complexity knob, so this IS the model-complexity parameter. The hash is re-verified at load and embedded in HandObservation.detector_id." },
         "running_mode": { "type": "string", "enum": ["VIDEO", "IMAGE"], "description": "VIDEO: the estimator carries its hand ROI from previous frames (causal; timestamps derived from t_capture). IMAGE: every frame independent. Candidate; decided by Tasks 03.11/03.14." },
@@ -420,7 +421,9 @@
             "min_component_px": { "type": "integer", "minimum": 1 },
             "min_elongation": { "type": "number", "minimum": 1 },
             "angle_tol_rad": { "type": "number", "exclusiveMinimum": 0 },
-            "max_components": { "type": "integer", "minimum": 1 }
+            "max_components": { "type": "integer", "minimum": 1 },
+            "contrast_target_range": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "(1.10, ADR-0044) optional contrast-adaptive edge thresholds: when the p2-p98 grey range of the blurred search region is below this, canny_low and canny_high are divided by min(contrast_max_gain, target / range). null or absent: fixed thresholds (Phase 03 behaviour)." },
+            "contrast_max_gain": { "type": "number", "minimum": 1, "description": "(1.10, ADR-0044) upper bound of that threshold divisor; 1 or absent disables it." }
           },
           "description": "(Task 03.5) classical stick pixel-candidate extraction: Canny edges -> closing -> elongated, orientation-consistent components (spacedrums.stick.segment). All tunable candidates."
         },
@@ -561,6 +564,18 @@
       }
     },
 
+    "product": {
+      "type": "object", "additionalProperties": false,
+      "required": ["enabled", "pose_asset_id"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "pose_asset_id": {"type": "string", "minLength": 1},
+        "endpoint": {"type": "object", "additionalProperties": false, "properties": {"search_spans": {"type": "number", "exclusiveMinimum": 0}, "max_search_spans": {"type": "number", "exclusiveMinimum": 0}, "search_width_spans": {"type": "number", "exclusiveMinimum": 0}, "min_length_px": {"type": "number", "exclusiveMinimum": 0}, "max_angle_change_rad": {"type": "number", "exclusiveMinimum": 0}, "max_length_ratio": {"type": "number", "exclusiveMinimum": 0}, "memory_s": {"type": "number", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}}},
+        "stroke": {"type": "object", "additionalProperties": false, "properties": {"max_gap_s": {"type": "number", "exclusiveMinimum": 0}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "rebound": {"type": "number", "exclusiveMinimum": 0}, "downward_ratio": {"type": "number", "exclusiveMinimum": 0}, "max_speed": {"type": "number", "exclusiveMinimum": 0}}},
+        "reach": {"type": "object", "additionalProperties": false, "properties": {"min_width_px": {"type": "number", "exclusiveMinimum": 0}, "min_height_px": {"type": "number", "exclusiveMinimum": 0}, "horizontal_gap_px": {"type": "number", "exclusiveMinimum": 0}, "vertical_gap_px": {"type": "number", "exclusiveMinimum": 0}, "margin_px": {"type": "number", "exclusiveMinimum": 0}, "min_strokes": {"type": "integer", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "max_gap_s": {"type": "number", "exclusiveMinimum": 0}}}
+      },
+      "description": "1.11 ADR-0045: measured endpoints, measured stroke geometry, automatic four-pad calibration."
+    },
     "geometry": {
       "type": "object",
       "additionalProperties": false,

@@ -35,7 +35,7 @@ camera_profile:
   grab_return_bias_s: null     # MUST stay null until Task 02.8 measures it (then {value_s, run_id, method})
   native_fps_measured: null    # MUST stay null until a Task 02.4 run is cited (then {value_fps, run_id, method})
   queue:
-    max_frames: 2              # candidate (Task 02.3: 1-2 frames)
+    max_frames: 1              # candidate (Task 02.3: 1-2 frames). 1 since 2026-10-02 (ADR-0044, R-QUEUE): the consumer always takes the newest frame
     drop_policy: DROP_OLDEST
     stall_factor: 2.0          # candidate
 
