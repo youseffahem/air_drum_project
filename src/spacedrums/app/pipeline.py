@@ -127,7 +127,10 @@ class DecisionPipeline:
         clock: Callable[[], float] = now,
         gain_fn: Callable[[str, float], float] | None = None,
         model_factory=build_model_arm,
+        developer_demo: bool = False,
     ) -> None:
+        if cfg.get("product", {}).get("developer_demo") and not developer_demo:
+            raise ValueError("fixed developer geometry requires explicit developer_demo opt-in")
         self.cfg = cfg
         self.registry = registry
         self.calibration = cfg.get("calibration")

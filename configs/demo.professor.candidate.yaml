@@ -1,0 +1,16 @@
+# Loaded ONLY by app.play --demo. Frozen guide, not a successful reach calibration.
+# Reproduces AutomaticCalibration's guide from live-guided-02's accepted standing
+# body reference; same 72 x 42 px pads and 2x2 ordering. No thresholds are lowered.
+# Owner-approved developer-only exposure (2026-10-04); production remains -6.
+camera_profile:
+  exposure:
+    mode: MANUAL
+    value: -5
+product:
+  developer_demo:
+    profile_id: professor-fixed-guide-v1
+    source: experiments/pre-participant/20261003-product-v1/live-guided-02/report.json
+    columns: [0.329626949429512, 0.7391104233264923]
+    rows: [0.6336771249771118, 0.870177663564682]
+    width: 0.1125
+    height: 0.0875

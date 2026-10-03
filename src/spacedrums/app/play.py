@@ -2,6 +2,8 @@
 
 Automatically calibrates each launch. R retries, Esc/Q closes. Developer logs
 are saved locally; raw camera images are saved only with --record-frames.
+Explicit --demo selects an uncalibrated fixed guide and a diagnostic camera view.
+--check verifies assets without opening the camera or an audio stream.
 No participant protocol, lock or gate is opened by this entry point.
 """
 
@@ -10,7 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -23,13 +25,16 @@ from spacedrums.app.audio_out import AudioOutput, OutputLatency
 from spacedrums.app.main import Perception
 from spacedrums.app.pipeline import DecisionPipeline
 from spacedrums.calib.automatic import AutomaticCalibration
+from spacedrums.calib.developer_demo import DeveloperDemoLayout
 from spacedrums.calib.reach import ReachSettings
 from spacedrums.capture import CaptureSettings, LiveFrameSource, OpenCvCamera, ReplayFrameSource, Roi
 from spacedrums.config import config_hash, load_config, validate
 from spacedrums.contracts import Arm, ImageRef
 from spacedrums.contracts.schema import validator
+from spacedrums.geometry import ZoneRegistry
 from spacedrums.hands.body import BodyLandmarker
 from spacedrums.timing import now, process_cpu_seconds, wall_clock_iso
+from spacedrums.ui.developer_demo import DemoOverlay
 from spacedrums.ui.kit import render_kit
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -43,12 +48,44 @@ def distribution(values):
     )
 
 
-def run(args):
-    cv2.setNumThreads(1)
-    cfg = load_config(ROOT / "configs/prototype.candidate.yaml", ROOT / "configs/product.candidate.yaml").data
-    cfg["hands"]["delegate"] = args.delegate
+def play_config(*, demo=False, delegate="CPU"):
+    paths = [ROOT / "configs/prototype.candidate.yaml", ROOT / "configs/product.candidate.yaml"]
+    if demo:
+        paths.append(ROOT / "configs/demo.professor.candidate.yaml")
+    cfg = load_config(*paths).data
+    cfg["hands"]["delegate"] = delegate
+    if demo:
+        cfg["zones"] = DeveloperDemoLayout(cfg).zones
     cfg["audio"]["sample_bank"]["path"] = str(ROOT / "assets/samples")
     cfg["audio"]["sample_bank"]["manifest"] = str(ROOT / "assets/samples/recorded-manifest.json")
+    validate(cfg)
+    return cfg
+
+
+def check_assets(cfg):
+    """No camera, window, sound stream or fabricated strike is opened by preflight."""
+    from spacedrums.audio import SampleBank
+    from spacedrums.hands.model_asset import resolve_model_asset
+
+    asset = resolve_model_asset(cfg["hands"]["model_asset_id"])
+    bank = SampleBank.load(**{
+        "root": cfg["audio"]["sample_bank"]["path"],
+        "manifest": cfg["audio"]["sample_bank"]["manifest"],
+        "sample_rate_hz": cfg["audio"]["sample_rate_hz"],
+    })
+    for zone in cfg["zones"]:
+        bank[zone["sample_id"]]
+    return {"assets": "HASH_VERIFIED", "hands_sha256": asset.sha256,
+            "samples": [z["sample_id"] for z in cfg["zones"]],
+            "camera_opened": False, "audio_opened": False, "live_verified": False}
+
+
+def run(args):
+    cv2.setNumThreads(1)
+    cfg = play_config(demo=args.demo, delegate=args.delegate)
+    if args.check:
+        print(json.dumps(check_assets(cfg), indent=2))
+        return 0
     replay = ReplayFrameSource(args.replay, limit=args.max_frames) if args.replay else None
     if args.recorded_roi:
         if replay is None or replay.roi is None:
@@ -62,7 +99,8 @@ def run(args):
     directory.mkdir(parents=True, exist_ok=False)
     provenance = "DEVELOPER_REPLAY" if args.replay else "DEVELOPER_LIVE"
     reach_settings = ReachSettings(**cfg["product"].get("reach", {}))
-    calibration = AutomaticCalibration((roi.w, roi.h), settings=reach_settings, provenance=provenance)
+    calibration = (DeveloperDemoLayout(cfg) if args.demo else
+                   AutomaticCalibration((roi.w, roi.h), settings=reach_settings, provenance=provenance))
     source = perception = pose = audio = None
     pipeline = None
     metrics = defaultdict(list)
@@ -76,11 +114,31 @@ def run(args):
     last_status = start
     stage_times = defaultdict(list)
     source_report = {}
+    counts = Counter()
+    endpoint_reasons = Counter()
+    demo_overlay = DemoOverlay() if args.demo and not args.no_window else None
+    registry = None
+
+    def start_pipeline():
+        nonlocal audio, pipeline, registry
+        cfg["zones"] = calibration.zones
+        validate(cfg)
+        registry = ZoneRegistry.from_config(cfg["zones"])
+        audio = AudioOutput(cfg, latency=OutputLatency.unmeasured(),
+                            device_enabled=not args.no_audio and not args.replay)
+        audio.start()
+        pipeline = DecisionPipeline(
+            cfg, registry=registry, session_id=session, active_arm=Arm.A,
+            hardware_id="developer-host", config_hash=config_hash(cfg), audio=audio,
+            developer_demo=args.demo,
+        )
+
     if args.record_frames:
         (directory / "frames").mkdir()
     try:
         perception = Perception(cfg)
-        pose = BodyLandmarker(cfg["product"]["pose_asset_id"])
+        if not args.demo:
+            pose = BodyLandmarker(cfg["product"]["pose_asset_id"])
         if args.replay:
             source = replay
             samples = iter(source)
@@ -112,6 +170,8 @@ def run(args):
         records = (directory / "observations.jsonl").open("w", encoding="utf-8")
         if args.record_frames:
             frame_records = (directory / "frames.jsonl").open("w", encoding="utf-8")
+        if args.demo:
+            start_pipeline()
         for sample in samples:
             begin = now()
             if args.max_seconds and begin - start >= args.max_seconds:
@@ -133,6 +193,7 @@ def run(args):
             perception_started = now()
             observations = perception(view)
             evidence = perception.estimator.evidence
+            endpoint_reasons.update(e.reason for e in evidence.values())
             metrics["hand_inference_ms"].append(perception.last_hands.processing_s * 1000)
             metrics["perception_ms"].append((now() - perception_started) * 1000)
             if calibration.state == "STAND" and sample.t_capture - last_pose >= 0.2:
@@ -151,9 +212,12 @@ def run(args):
                     endpoint_evidence=evidence,
                 )
                 commits += len(result.commits)
+                counts.update(c.zone_id for c in result.commits)
                 for rec in result.timing:
                     if rec.t_audio_scheduled is not None and not args.replay:
                         metrics["audio_schedule_ms"].append((rec.t_audio_scheduled - rec.t_commit) * 1000)
+                        metrics["capture_to_schedule_ms"].append(
+                            (rec.t_audio_scheduled - sample.t_capture) * 1000)
                 if audio is not None:
                     audio.check_health(now())
             metrics["decision_ms"].append((now() - stage) * 1000)
@@ -161,26 +225,7 @@ def run(args):
             cal_commits = result.commits if result is not None else ()
             calibration.update(sample.t_capture, evidence, body, cal_commits)
             if calibration.state == "VERIFY" and pipeline is None:
-                cfg["zones"] = calibration.zones
-                validate(cfg)
-                from spacedrums.geometry import ZoneRegistry
-
-                registry = ZoneRegistry.from_config(cfg["zones"])
-                audio = AudioOutput(
-                    cfg,
-                    latency=OutputLatency.unmeasured(),
-                    device_enabled=not args.no_audio and not args.replay,
-                )
-                audio.start()
-                pipeline = DecisionPipeline(
-                    cfg,
-                    registry=registry,
-                    session_id=session,
-                    active_arm=Arm.A,
-                    hardware_id="developer-host",
-                    config_hash=config_hash(cfg),
-                    audio=audio,
-                )
+                start_pipeline()
             if calibration.state == "RETRY" and pipeline is not None:
                 pipeline = None
                 audio.stop()
@@ -199,26 +244,38 @@ def run(args):
                         "endpoints": [e.to_dict() for e in evidence.values()],
                         "sticks": [s.to_dict() for o, s in observations.values()],
                         "commits": [c.to_dict() for c in cal_commits],
+                        "audio_events": [e.to_dict() for e in result.audio] if result else [],
+                        "audio_device_state": audio.device_state if audio else "NOT_STARTED",
+                        "timing": [r.to_dict() for r in result.timing] if result else [],
+                        "decisions": {
+                            str(h): {"track": hf.track.to_dict(),
+                                     "candidates": [c.to_dict() for c in hf.candidates],
+                                     "gates": hf.decision_traces,
+                                     "stroke": pipeline.geometry.diagnostics.get(h)}
+                            for h, hf in result.hands.items()
+                        } if result else {},
                     },
                     allow_nan=False,
                 )
                 + "\n"
             )
             if not args.no_window:
-                from spacedrums.geometry import ZoneRegistry
-
                 zones = calibration.zones or calibration.guide_zones
-                registry = ZoneRegistry.from_config(zones) if zones else None
-                img = render_kit(
+                display_registry = registry or (ZoneRegistry.from_config(zones) if zones else None)
+                img = demo_overlay.render(
+                    view.full, roi, registry, evidence, result, dropped=dropped,
+                    perception_ms=metrics["perception_ms"][-1], audio_state=audio.device_state,
+                    stroke_diagnostics=pipeline.geometry.diagnostics,
+                ) if demo_overlay else render_kit(
                     view.full,
                     roi,
-                    registry,
+                    display_registry,
                     sticks=[s for o, s in observations.values()],
                     body=calibration.body,
                     message=calibration.message,
                     target=calibration.target,
                 )
-                if args.developer:
+                if args.developer and not args.demo:
                     cv2.putText(
                         img,
                         f"DEV {calibration.state} tips {sum(s.present for o, s in observations.values())}",
@@ -232,13 +289,14 @@ def run(args):
                 key = cv2.pollKey() & 0xFF
                 if key in (27, ord("q")):
                     break
-                if key == ord("r"):
+                if key == ord("r") and not args.demo:
                     attempts.append(calibration.report())
                     calibration = AutomaticCalibration(
                         (roi.w, roi.h), settings=reach_settings, provenance=provenance
                     )
                     perception.estimator.reset()
                     pipeline = None
+                    registry = None
                     body = None
                     if audio:
                         audio.stop()
@@ -248,7 +306,7 @@ def run(args):
                 records.flush()
                 if frame_records:
                     frame_records.flush()
-                if args.developer:
+                if args.developer or args.demo:
                     print(
                         json.dumps(
                             {
@@ -256,6 +314,9 @@ def run(args):
                                 "message": calibration.message,
                                 "frames": delivered,
                                 "measured_tips": sum(e.kind == "MEASURED" for e in evidence.values()),
+                                "commits_by_drum": dict(counts),
+                                "audio": audio.device_state if audio else "NOT_STARTED",
+                                "dropped": dropped,
                             }
                         ),
                         flush=True,
@@ -309,11 +370,15 @@ def run(args):
         "error": error,
         "config": cfg,
         "config_hash": config_hash(cfg),
-        "calibration": {**calibration.report(), "provenance": provenance},
+        "calibration": None if args.demo else {**calibration.report(), "provenance": provenance},
+        "developer_demo": calibration.report() if args.demo else None,
+        "live_physical_verification": "NOT_YET_VERIFIED",
         "previous_attempts": attempts,
         "delivered_frames": delivered,
         "dropped_frames": dropped,
         "commits": commits,
+        "commits_by_drum": {z: counts[z] for z in ("snare", "crash_ride", "hihat", "tom1")},
+        "endpoint_reasons": dict(endpoint_reasons),
         "source_timeline_fps": fps,
         "live_unique_fps": fps if not args.replay else None,
         "raw_capture_reads_per_s": capture_timing.get("raw_frames_read", 0) / capture_wall
@@ -335,17 +400,21 @@ def run(args):
         "audio": audio_stats,
         "action_to_sound_ms": None,
         "audio_output_latency_ms": None,
-        "acceptance": "PENDING_INDEPENDENT_VALIDATION"
+        "acceptance": "RUNTIME_ERROR" if error else
+        "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION" if args.demo else
+        "PENDING_INDEPENDENT_VALIDATION"
         if calibration.state == "READY"
         else "CALIBRATION_INCOMPLETE",
         "target_fps": 30,
-        "models": {"hands": cfg["hands"]["model_asset_id"], "pose": cfg["product"]["pose_asset_id"]},
+        "models": {"hands": cfg["hands"]["model_asset_id"],
+                   "pose": None if args.demo else cfg["product"]["pose_asset_id"]},
         "model_sha256": {
             "hands": perception.landmarker.asset.sha256 if perception else None,
             "pose": pose.asset.sha256 if pose else None,
         },
     }
-    validator("product-calibration").validate(report["calibration"])
+    if not args.demo:
+        validator("product-calibration").validate(report["calibration"])
     (directory / "report.json").write_text(
         json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8"
     )
@@ -366,6 +435,8 @@ def run(args):
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--developer", action="store_true")
+    p.add_argument("--demo", action="store_true", help="Explicit uncalibrated developer 2x2 live demo")
+    p.add_argument("--check", action="store_true", help="Check config/model/samples without opening devices")
     p.add_argument("--delegate", choices=("CPU", "GPU"), default="CPU")
     p.add_argument("--no-audio", action="store_true")
     p.add_argument("--no-window", action="store_true")
@@ -377,7 +448,10 @@ def main(argv=None):
         "--recorded-roi", action="store_true", help="Use the recorded crop when replaying older captures"
     )
     p.add_argument("--output", type=Path)
-    return run(p.parse_args(argv))
+    args = p.parse_args(argv)
+    if args.demo and args.recorded_roi:
+        p.error("fixed demo geometry requires its full-camera ROI; do not use --recorded-roi")
+    return run(args)
 
 
 if __name__ == "__main__":
