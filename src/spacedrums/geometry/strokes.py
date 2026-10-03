@@ -29,14 +29,23 @@ class MeasuredStrokeGeometry(GeometryEngine):
         super().__init__(registry, v_min=v_min, session_id=session_id)
         self.settings = settings or StrokeSettings()
         self.motion = {}
+        self.diagnostics = {}
 
     def reset_hand(self, hand_id):
         super().reset_hand(hand_id)
         self.motion.pop(HandId(hand_id), None)
+        self.diagnostics.pop(HandId(hand_id), None)
 
     def observe(self, *, frame_id, t_capture, hand_id, position, status, t_candidate=None):
         h, status = HandId(hand_id), TrackStatus(status)
         s = self.settings
+        diagnostic = {"reason": "NO_MEASURED_TIP", "velocity": None, "travel": None}
+
+        def no_strike(reason):
+            diagnostic["reason"] = reason
+            self.diagnostics[h] = diagnostic
+            return ()
+
         m = self.motion.get(h)
         if m and t_capture <= m["last"].t:
             raise ValueError("stroke evidence must have increasing timestamps")
@@ -48,7 +57,7 @@ class MeasuredStrokeGeometry(GeometryEngine):
                 self.reset_hand(h)
             elif m:
                 m["gap"] = True
-            return ()
+            return no_strike("NO_MEASURED_TIP")
         current = TrajectoryPoint(t_capture, tuple(position))
         if m is None:
             self.motion[h] = {
@@ -59,7 +68,7 @@ class MeasuredStrokeGeometry(GeometryEngine):
                 "down": False,
                 "gap": False,
             }
-            return ()
+            return no_strike("NEED_RECENT_TRAJECTORY")
         previous = m["last"]
         dt = t_capture - previous.t
         vx = (position[0] - previous.position[0]) / dt
@@ -67,7 +76,7 @@ class MeasuredStrokeGeometry(GeometryEngine):
         if (vx * vx + vy * vy) ** 0.5 > s.max_speed:
             self.reset_hand(h)
             # Do not let a rejected teleport seed the next crossing.
-            return ()
+            return no_strike("SPEED_DISCONTINUITY")
         dy = position[1] - previous.position[1]
         m["last"] = current
         if dy < 0:
@@ -80,8 +89,15 @@ class MeasuredStrokeGeometry(GeometryEngine):
         gap_ok = not (m["gap"] or dt > 0.05) or m["down"]
         m["gap"] = False
         m["down"] = vy >= self.v_min and vy >= abs(vx) * s.downward_ratio
-        if m["fired"] or not gap_ok or not m["down"] or position[1] - m["top"] < s.min_travel:
-            return ()
+        diagnostic.update(velocity=[vx, vy], travel=position[1] - m["top"])
+        if m["fired"]:
+            return no_strike("WAIT_FOR_REBOUND")
+        if not gap_ok:
+            return no_strike("GAP_WITHOUT_MEASURED_APPROACH")
+        if not m["down"]:
+            return no_strike("NOT_DOWNWARD")
+        if position[1] - m["top"] < s.min_travel:
+            return no_strike("INSUFFICIENT_TRAVEL")
         impacts = []
         for zone in self.registry:
             if h not in zone.allowed_hands or zone.shape.contains(previous.position):
@@ -94,11 +110,13 @@ class MeasuredStrokeGeometry(GeometryEngine):
                 Impact(zone, crossing_time(previous.t, t_capture, crossing.s), crossing.point, (vx, vy), 0)
             )
         if not impacts:
-            return ()
+            return no_strike("NO_TOP_EDGE_CROSSING")
         impact = min(impacts, key=lambda x: (x.t_cross, x.zone.zone_id))
         m["fired"] = True
         key = (h, impact.zone.zone_id)
         self._episode_counter[key] = self._episode_counter.get(key, 0) + 1
+        diagnostic.update(reason="CROSSING", zone_id=impact.zone.zone_id)
+        self.diagnostics[h] = diagnostic
         return (
             self._candidate(
                 impact,

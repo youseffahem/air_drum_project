@@ -570,6 +570,19 @@
       "properties": {
         "enabled": {"type": "boolean"},
         "pose_asset_id": {"type": "string", "minLength": 1},
+        "developer_demo": {
+          "type": "object", "additionalProperties": false,
+          "required": ["profile_id", "source", "columns", "rows", "width", "height"],
+          "properties": {
+            "profile_id": {"const": "professor-fixed-guide-v1"},
+            "source": {"type": "string", "minLength": 1},
+            "columns": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}},
+            "rows": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}},
+            "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+            "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+          },
+          "description": "Explicit app.play --demo only; fixed developer guide, never calibrated or physically validated."
+        },
         "endpoint": {"type": "object", "additionalProperties": false, "properties": {"search_spans": {"type": "number", "exclusiveMinimum": 0}, "max_search_spans": {"type": "number", "exclusiveMinimum": 0}, "search_width_spans": {"type": "number", "exclusiveMinimum": 0}, "min_length_px": {"type": "number", "exclusiveMinimum": 0}, "max_angle_change_rad": {"type": "number", "exclusiveMinimum": 0}, "max_length_ratio": {"type": "number", "exclusiveMinimum": 0}, "memory_s": {"type": "number", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}}},
         "stroke": {"type": "object", "additionalProperties": false, "properties": {"max_gap_s": {"type": "number", "exclusiveMinimum": 0}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "rebound": {"type": "number", "exclusiveMinimum": 0}, "downward_ratio": {"type": "number", "exclusiveMinimum": 0}, "max_speed": {"type": "number", "exclusiveMinimum": 0}}},
         "reach": {"type": "object", "additionalProperties": false, "properties": {"min_width_px": {"type": "number", "exclusiveMinimum": 0}, "min_height_px": {"type": "number", "exclusiveMinimum": 0}, "horizontal_gap_px": {"type": "number", "exclusiveMinimum": 0}, "vertical_gap_px": {"type": "number", "exclusiveMinimum": 0}, "margin_px": {"type": "number", "exclusiveMinimum": 0}, "min_strokes": {"type": "integer", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "max_gap_s": {"type": "number", "exclusiveMinimum": 0}}}
