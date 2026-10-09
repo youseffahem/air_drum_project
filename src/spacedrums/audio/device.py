@@ -54,6 +54,39 @@ class DeviceClockMapper:
         return fit.offset_s + fit.slope * float(t_device)
 
 
+def resolve_output_device(
+    name: str | None,
+    host_api: str | None,
+    *,
+    hostapis: list[dict] | None = None,
+    devices: list[dict] | None = None,
+) -> tuple[int, str] | None:
+    """Index and host-API name of an output device on ``host_api`` (case-insensitive substring).
+
+    Prefers the output whose name contains ``name``, else that API's default output. Returns None when
+    the host API or an output on it is not available, so the caller keeps PortAudio's own default.
+    """
+    if not host_api:
+        return None
+    if hostapis is None or devices is None:
+        import sounddevice as sd
+
+        hostapis, devices = list(sd.query_hostapis()), list(sd.query_devices())
+    for api in hostapis:
+        if host_api.lower() not in str(api["name"]).lower():
+            continue
+        outputs = [i for i in api["devices"] if devices[i]["max_output_channels"] > 0]
+        if name:
+            wanted = [i for i in outputs if name.lower() in str(devices[i]["name"]).lower()]
+            if wanted:
+                return wanted[0], str(api["name"])
+        default = api.get("default_output_device", -1)
+        if default is not None and default >= 0:
+            return int(default), str(api["name"])
+        return (outputs[0], str(api["name"])) if outputs else None
+    return None
+
+
 class SoundDeviceOutput:
     """Thin lifecycle wrapper around a PortAudio output callback.
 
@@ -73,8 +106,14 @@ class SoundDeviceOutput:
         device: int | str | None = None,
         stream_factory: Callable[..., Any] | None = None,
         clock: Callable[[], float] = now,
+        host_api: str | None = None,
+        latency: str | float = "low",
+        exclusive: bool = False,
     ) -> None:
         self.mixer, self.mapper = mixer, DeviceClockMapper()
+        self.host_api, self.latency, self.exclusive = host_api, latency, bool(exclusive)
+        self.opened_host_api: str | None = None
+        self.opened_latency_s: float | None = None
         self.sample_rate_hz, self.buffer_frames = int(sample_rate_hz), int(buffer_frames)
         self.device = device
         self.stream: Any | None = None
@@ -109,20 +148,51 @@ class SoundDeviceOutput:
             import sounddevice as sd
 
             factory = sd.OutputStream
-        stream = factory(
-            samplerate=self.sample_rate_hz,
-            blocksize=self.buffer_frames,
-            channels=self.mixer.channels,
-            dtype="float32",
-            device=self.device,
-            callback=self._callback,
-        )
+        base = {
+            "samplerate": self.sample_rate_hz,
+            "blocksize": self.buffer_frames,
+            "channels": self.mixer.channels,
+            "dtype": "float32",
+            "callback": self._callback,
+        }
+        attempts = []
         try:
-            stream.start()
-        except BaseException:
-            with contextlib.suppress(Exception):
-                stream.close()
-            raise
+            resolved = resolve_output_device(
+                self.device if isinstance(self.device, str) else None, self.host_api
+            )
+        except Exception:  # noqa: BLE001 - a device query must never block the plain default path
+            resolved = None
+        if resolved is not None:
+            modes = [(None, "")]
+            if "wasapi" in resolved[1].lower():
+                import sounddevice as sd
+
+                # Exclusive mode reaches ~5 ms but takes the device from other apps; shared is the fallback.
+                modes = ([(sd.WasapiSettings(exclusive=True), " (exclusive)")] if self.exclusive else []) + [
+                    (sd.WasapiSettings(auto_convert=True), " (shared)")
+                ]
+            for mode, tag in modes:
+                extra = {} if mode is None else {"extra_settings": mode}
+                opts = {**base, "device": resolved[0], "latency": self.latency, **extra}
+                attempts.append((opts, resolved[1] + tag))
+        attempts.append(({**base, "device": self.device, "latency": self.latency}, None))
+        stream = None
+        for position, (kwargs, api) in enumerate(attempts):
+            try:
+                stream = factory(**kwargs)
+                stream.start()
+            except BaseException as exc:
+                if stream is not None:
+                    with contextlib.suppress(Exception):
+                        stream.close()
+                stream = None
+                if position == len(attempts) - 1 or not isinstance(exc, Exception):
+                    raise
+                continue
+            self.opened_host_api = api
+            reported = getattr(stream, "latency", None)
+            self.opened_latency_s = float(reported) if isinstance(reported, (int, float)) else None
+            break
         self.mapper = DeviceClockMapper()  # a re-opened device may restart its stream clock
         self.last_callback_t = None
         self.started_t = self.clock()
@@ -148,4 +218,4 @@ class SoundDeviceOutput:
         self.stop()
 
 
-__all__ = ["ClockFit", "DeviceClockMapper", "SoundDeviceOutput"]
+__all__ = ["ClockFit", "DeviceClockMapper", "SoundDeviceOutput", "resolve_output_device"]

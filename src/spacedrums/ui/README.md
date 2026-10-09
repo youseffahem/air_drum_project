@@ -41,3 +41,14 @@ imports `calib` (independent L7 siblings). Tests: `tests/ui/test_ui_wizard_views
 **Status:** `guide.py` IMPLEMENTED (Phase 02, prototype quality; tests in `tests/ui/`); `overlay.py` minimal debug overlay IMPLEMENTED (Phase 03, Task 03.15: landmarks, grip + prior, search region, candidates, axis, tip coloured by method with the MARKER fallback/benchmark tag, filtered tip + velocity, per-hand status; exercised by `scripts/benchmark_tip_methods.py`). Zone display (Phase 04) and the full dashboard (Phase 15) are PLANNED.
 
 `draw_guide(frame, roi, band=(y0, y1), instruction, status_lines)` draws the fixed ROI box, the "hands here" band (ROI-normalized y, y down), the instruction "Stand so both hands and sticks stay inside the box" and a capture-stats line in which drops/duplicates/stalls are always visible. `scripts/show_guide.py` runs it live and saves a screenshot.
+
+## Full-kit stage view (`stage.py`)
+
+`app.play --demo` (default `--kit full`) renders `StageRenderer`: the mirrored, dimmed camera upscaled to
+960x720 with seven pads (crash, tom 1, tom 2, ride, hi-hat, snare, floor tom; no kick). Hits flash the pad in
+its accent colour, spring the drum heads, wobble the cymbals, emit ripples and sparks, and feed a hit/combo
+readout; fingertips leave a glowing trail and the strike edge brightens as one approaches. Everything is
+display-only: `StageRenderer.to_display` is the one place that maps ROI-normalised camera coordinates to
+display pixels, and it reads only committed strikes and endpoint evidence from the shared pipeline.
+`D` switches to the diagnostic `DemoOverlay`; `--kit four` keeps the 2x2 guide. The renderer costs about
+4 ms per frame (`latency_ms.render_ms` in the run report).

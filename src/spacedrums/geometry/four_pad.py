@@ -36,32 +36,36 @@ def four_pad_layout(
     if xl - width / 2 < 0 or xr + width / 2 > 1 or yu < 0 or yl + height > 1:
         raise ValueError("pads must be inside the ROI")
     xs = (xr, xl) if mirror else (xl, xr)
-    zones = []
-    for i, zid in enumerate(DISPLAY_ORDER):
-        x, y = xs[i % 2], (yu, yl)[i // 2]
-        left, right, bottom = x - width / 2, x + width / 2, y + height
-        r = min(width, height) * 0.16
-        points = []
-        for cx, cy, start in (
-            (left + r, y + r, 180),
-            (right - r, y + r, 270),
-            (right - r, bottom - r, 0),
-            (left + r, bottom - r, 90),
-        ):
-            for j in range(5):
-                theta = math.radians(start + j * 90 / 4)
-                points.append([cx + r * math.cos(theta), cy + r * math.sin(theta)])
-        zones.append(
-            {
-                "zone_id": zid,
-                "name": NAMES[zid],
-                "trigger_type": "HAND_TIP",
-                "shape": {"type": "POLYGON", "points": points},
-                "impact_surface": {"type": "SEGMENT", "p0": [left + r, y], "p1": [right - r, y]},
-                "inward_normal": [0.0, 1.0],
-                "allowed_hands": ["LEFT", "RIGHT"],
-                "sample_id": SAMPLES[zid],
-                "gain_curve_id": "default",
-            }
-        )
-    return zones
+    return [
+        pad_zone(zid, NAMES[zid], SAMPLES[zid], xs[i % 2], (yu, yl)[i // 2], width, height)
+        for i, zid in enumerate(DISPLAY_ORDER)
+    ]
+
+
+def pad_zone(
+    zone_id: str, name: str, sample_id: str, x: float, y: float, width: float, height: float
+) -> dict:
+    """One rounded pad: ``x`` is its centre, ``y`` its top strike edge (camera coordinates)."""
+    left, right, bottom = x - width / 2, x + width / 2, y + height
+    r = min(width, height) * 0.16
+    points = []
+    for cx, cy, start in (
+        (left + r, y + r, 180),
+        (right - r, y + r, 270),
+        (right - r, bottom - r, 0),
+        (left + r, bottom - r, 90),
+    ):
+        for j in range(5):
+            theta = math.radians(start + j * 90 / 4)
+            points.append([cx + r * math.cos(theta), cy + r * math.sin(theta)])
+    return {
+        "zone_id": zone_id,
+        "name": name,
+        "trigger_type": "HAND_TIP",
+        "shape": {"type": "POLYGON", "points": points},
+        "impact_surface": {"type": "SEGMENT", "p0": [left + r, y], "p1": [right - r, y]},
+        "inward_normal": [0.0, 1.0],
+        "allowed_hands": ["LEFT", "RIGHT"],
+        "sample_id": sample_id,
+        "gain_curve_id": "default",
+    }

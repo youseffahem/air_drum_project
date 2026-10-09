@@ -95,8 +95,10 @@ def pipeline_for(cfg, audio, clock, *, demo=True):
 def test_demo_opt_in_preserves_production_thresholds_and_layout():
     normal, demo = play.play_config(), play.play_config(demo=True)
     assert "developer_demo" not in normal["product"]
-    for key in ("endpoint", "stroke", "reach"):
+    for key in ("endpoint", "reach"):
         assert normal["product"][key] == demo["product"][key]
+    # The demo alone may fire one camera frame early; every other stroke threshold is production's.
+    assert {**normal["product"]["stroke"], "lead_s": 0.033} == demo["product"]["stroke"]
     for key in ("commit", "tracking", "geometry", "audio", "stick"):
         assert normal[key] == demo[key]
     layout = DeveloperDemoLayout(demo)
@@ -173,7 +175,8 @@ def test_demo_launcher_logs_real_decisions_without_calibration(monkeypatch, tmp_
     monkeypatch.setattr(play, "BodyLandmarker", forbidden)
     monkeypatch.setattr("sounddevice.OutputStream", forbidden)
     output = tmp_path / "run"
-    assert play.main(["--demo", "--replay", "SYNTHETIC", "--no-window", "--output", str(output)]) == 0
+    argv = ["--demo", "--kit", "four", "--replay", "SYNTHETIC", "--no-window", "--output", str(output)]
+    assert play.main(argv) == 0
     report = json.loads((output / "report.json").read_text())
     assert report["error"] is None
     assert report["commits_by_drum"]["snare"] == 1
@@ -210,3 +213,45 @@ def test_failed_start_is_preserved_as_failure(monkeypatch, tmp_path):
     assert report["audio"] is None
     assert report["calibration"] is None
     assert report["live_unique_fps"] is None
+
+
+def test_full_kit_demo_has_seven_pieces_without_kick_and_loads_all_samples():
+    cfg = play.play_config(demo=True, kit="full")
+    assert cfg["product"]["developer_demo"]["profile_id"] == "full-kit-v1"
+    ids = [z["zone_id"] for z in cfg["zones"]]
+    assert sorted(ids) == sorted(["crash", "ride", "hihat", "snare", "tom1", "tom2", "floor_tom"])
+    assert len({z["sample_id"] for z in cfg["zones"]}) == 7
+    assert play.check_assets(cfg)["assets"] == "HASH_VERIFIED"
+    layout = DeveloperDemoLayout(cfg)
+    assert len(layout.zones) == 7 and layout.report()["profile"]["profile_id"] == "full-kit-v1"
+
+
+def test_full_kit_window_loop_renders_the_stage_and_toggles_diagnostics(monkeypatch, tmp_path):
+    cfg = play.play_config(demo=True, kit="full")
+    rows = list(pixel_sequence(cfg, [Swing(HandId.RIGHT, "snare", 0.3)], 1.0))
+    perception_for(monkeypatch, rows)
+
+    class SyntheticReplay:
+        def __init__(self, *a, **kw):
+            self.roi = Roi(0, 0, 640, 480)
+
+        def __iter__(self):
+            return iter(v.sample for v, _ in rows)
+
+        def view(self, sample):
+            return rows[sample.frame_id][0]
+
+    shown, keys = [], iter([ord("d"), ord("d")] + [-1] * 100)
+    monkeypatch.setattr(play, "ReplayFrameSource", SyntheticReplay)
+    monkeypatch.setattr(play.cv2, "namedWindow", lambda *a, **k: None)
+    monkeypatch.setattr(play.cv2, "resizeWindow", lambda *a, **k: None)
+    monkeypatch.setattr(play.cv2, "destroyAllWindows", lambda *a, **k: None)
+    monkeypatch.setattr(play.cv2, "imshow", lambda name, img: shown.append(img.shape))
+    monkeypatch.setattr(play.cv2, "pollKey", lambda: next(keys))
+    output = tmp_path / "run"
+    assert play.main(["--demo", "--replay", "SYNTHETIC", "--output", str(output)]) == 0
+    report = json.loads((output / "report.json").read_text())
+    assert report["error"] is None and report["commits_by_drum"]["snare"] == 1
+    assert set(report["commits_by_drum"]) == {"crash", "ride", "hihat", "snare", "tom1", "tom2", "floor_tom"}
+    assert report["latency_ms"]["render_ms"]["p50"] > 0
+    assert (720, 960, 3) in shown and (480, 640, 3) in shown  # stage view, then diagnostics after 'd'

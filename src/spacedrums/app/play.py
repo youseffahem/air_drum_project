@@ -36,6 +36,7 @@ from spacedrums.hands.body import BodyLandmarker
 from spacedrums.timing import now, process_cpu_seconds, wall_clock_iso
 from spacedrums.ui.developer_demo import DemoOverlay
 from spacedrums.ui.kit import render_kit
+from spacedrums.ui.stage import StageRenderer
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -48,14 +49,17 @@ def distribution(values):
     )
 
 
-def play_config(*, demo=False, delegate="CPU"):
+def play_config(*, demo=False, delegate="CPU", kit="four", exclusive=False):
     paths = [ROOT / "configs/prototype.candidate.yaml", ROOT / "configs/product.candidate.yaml"]
     if demo:
         paths.append(ROOT / "configs/demo.professor.candidate.yaml")
+        if kit == "full":
+            paths.append(ROOT / "configs/demo.fullkit.candidate.yaml")
     cfg = load_config(*paths).data
     cfg["hands"]["delegate"] = delegate
     if demo:
         cfg["zones"] = DeveloperDemoLayout(cfg).zones
+    cfg["audio"]["wasapi_exclusive"] = bool(exclusive)
     cfg["audio"]["sample_bank"]["path"] = str(ROOT / "assets/samples")
     cfg["audio"]["sample_bank"]["manifest"] = str(ROOT / "assets/samples/recorded-manifest.json")
     validate(cfg)
@@ -82,7 +86,7 @@ def check_assets(cfg):
 
 def run(args):
     cv2.setNumThreads(1)
-    cfg = play_config(demo=args.demo, delegate=args.delegate)
+    cfg = play_config(demo=args.demo, delegate=args.delegate, kit=args.kit, exclusive=args.exclusive_audio)
     if args.check:
         print(json.dumps(check_assets(cfg), indent=2))
         return 0
@@ -117,6 +121,8 @@ def run(args):
     counts = Counter()
     endpoint_reasons = Counter()
     demo_overlay = DemoOverlay() if args.demo and not args.no_window else None
+    stage_view = StageRenderer() if args.demo and not args.no_window and args.kit == "full" else None
+    show_diagnostics = False
     registry = None
 
     def start_pipeline():
@@ -264,9 +270,13 @@ def run(args):
                 + "\n"
             )
             if not args.no_window:
+                render_started = now()
                 zones = calibration.zones or calibration.guide_zones
                 display_registry = registry or (ZoneRegistry.from_config(zones) if zones else None)
-                img = demo_overlay.render(
+                img = stage_view.render(
+                    view.full, roi, registry, evidence, result, audio=audio,
+                    latency_ms=(metrics["capture_to_schedule_ms"] or [None])[-1],
+                ) if stage_view and not show_diagnostics else demo_overlay.render(
                     view.full, roi, registry, evidence, result, dropped=dropped,
                     perception_ms=metrics["perception_ms"][-1], audio_state=audio.device_state,
                     stroke_diagnostics=pipeline.geometry.diagnostics,
@@ -289,10 +299,13 @@ def run(args):
                         (255, 210, 120),
                         1,
                     )
+                metrics["render_ms"].append((now() - render_started) * 1000)
                 cv2.imshow("Space Drums", img)
                 key = cv2.pollKey() & 0xFF
                 if key in (27, ord("q")):
                     break
+                if key == ord("d") and stage_view:
+                    show_diagnostics = not show_diagnostics
                 if key == ord("r") and not args.demo:
                     attempts.append(calibration.report())
                     calibration = AutomaticCalibration(
@@ -381,7 +394,7 @@ def run(args):
         "delivered_frames": delivered,
         "dropped_frames": dropped,
         "commits": commits,
-        "commits_by_drum": {z: counts[z] for z in ("snare", "crash_ride", "hihat", "tom1")},
+        "commits_by_drum": {z["zone_id"]: counts[z["zone_id"]] for z in cfg["zones"]},
         "endpoint_reasons": dict(endpoint_reasons),
         "source_timeline_fps": fps,
         "live_unique_fps": fps if not args.replay else None,
@@ -443,6 +456,10 @@ def main(argv=None):
     p.add_argument("--check", action="store_true", help="Check config/model/samples without opening devices")
     p.add_argument("--delegate", choices=("CPU", "GPU"), default="CPU")
     p.add_argument("--no-audio", action="store_true")
+    p.add_argument("--kit", choices=("full", "four"), default="full",
+                   help="--demo layout: full 7-piece kit without kick (default) or the 2x2 guide")
+    p.add_argument("--exclusive-audio", action="store_true",
+                   help="WASAPI exclusive mode: ~5 ms output instead of ~22 ms, but other apps lose sound")
     p.add_argument("--fingers", action="store_true", help="Bare hands: index fingertips act as sticks")
     p.add_argument("--no-window", action="store_true")
     p.add_argument("--record-frames", action="store_true")
