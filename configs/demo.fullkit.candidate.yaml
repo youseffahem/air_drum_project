@@ -1,0 +1,17 @@
+# Loaded ONLY by app.play --demo (default --kit full), after demo.professor.candidate.yaml.
+# Seven pieces, no kick: crash, toms 1-2, ride on top; hi-hat, snare, floor tom below.
+# x is the pad centre and y the top strike edge, in the player's mirrored display, ROI-normalised.
+# Every pad keeps the product floors (72 x 42 px, 32 px gaps). Positions are a developer guess,
+# not a calibrated reach; move rows/columns to suit where you stand.
+product:
+  developer_demo:
+    profile_id: full-kit-v1
+    source: configs/demo.fullkit.candidate.yaml
+    pads:
+      - {zone_id: crash,     x: 0.13, y: 0.42, width: 0.17, height: 0.10}
+      - {zone_id: tom1,      x: 0.38, y: 0.42, width: 0.15, height: 0.10}
+      - {zone_id: tom2,      x: 0.62, y: 0.42, width: 0.15, height: 0.10}
+      - {zone_id: ride,      x: 0.87, y: 0.42, width: 0.17, height: 0.10}
+      - {zone_id: hihat,     x: 0.17, y: 0.68, width: 0.19, height: 0.11}
+      - {zone_id: snare,     x: 0.45, y: 0.68, width: 0.20, height: 0.11}
+      - {zone_id: floor_tom, x: 0.78, y: 0.68, width: 0.21, height: 0.11}

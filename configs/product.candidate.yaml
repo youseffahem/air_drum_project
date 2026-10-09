@@ -53,6 +53,12 @@ commit:
 debug:
   overlay:
     enabled: false
+audio:
+  # WASAPI with a low suggested latency: ~3-10 ms instead of MME's 90-180 ms. Falls back to the
+  # default device if the host API or exclusive settings are unavailable.
+  device:
+    host_api: Windows WASAPI
+  stream_latency: low
 roi:
   # Keep the whole captured image. The historical 20 px bottom margin excluded
   # the measured waist reference in the 2026-10-03 developer run.

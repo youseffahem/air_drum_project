@@ -574,17 +574,32 @@
           "type": "object", "additionalProperties": false,
           "required": ["profile_id", "source", "columns", "rows", "width", "height"],
           "properties": {
-            "profile_id": {"const": "professor-fixed-guide-v1"},
+            "profile_id": {"enum": ["professor-fixed-guide-v1", "full-kit-v1"]},
             "source": {"type": "string", "minLength": 1},
             "columns": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}},
             "rows": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}},
             "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
-            "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+            "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+            "pads": {
+              "type": "array", "minItems": 1,
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "required": ["zone_id", "x", "y", "width", "height"],
+                "properties": {
+                  "zone_id": {"$ref": "common.schema.json#/$defs/zone_id"},
+                  "x": {"type": "number", "minimum": 0, "maximum": 1},
+                  "y": {"type": "number", "minimum": 0, "maximum": 1},
+                  "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+                  "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+                }
+              },
+              "description": "Full-kit pads in mirrored display coordinates: x is the centre, y the top strike edge."
+            }
           },
           "description": "Explicit app.play --demo only; fixed developer guide, never calibrated or physically validated."
         },
         "endpoint": {"type": "object", "additionalProperties": false, "properties": {"search_spans": {"type": "number", "exclusiveMinimum": 0}, "max_search_spans": {"type": "number", "exclusiveMinimum": 0}, "search_width_spans": {"type": "number", "exclusiveMinimum": 0}, "min_length_px": {"type": "number", "exclusiveMinimum": 0}, "max_angle_change_rad": {"type": "number", "exclusiveMinimum": 0}, "max_length_ratio": {"type": "number", "exclusiveMinimum": 0}, "memory_s": {"type": "number", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}}},
-        "stroke": {"type": "object", "additionalProperties": false, "properties": {"max_gap_s": {"type": "number", "exclusiveMinimum": 0}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "rebound": {"type": "number", "exclusiveMinimum": 0}, "downward_ratio": {"type": "number", "exclusiveMinimum": 0}, "max_speed": {"type": "number", "exclusiveMinimum": 0}}},
+        "stroke": {"type": "object", "additionalProperties": false, "properties": {"max_gap_s": {"type": "number", "exclusiveMinimum": 0}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "rebound": {"type": "number", "exclusiveMinimum": 0}, "downward_ratio": {"type": "number", "exclusiveMinimum": 0}, "max_speed": {"type": "number", "exclusiveMinimum": 0}, "lead_s": {"type": "number", "minimum": 0, "maximum": 0.1}}},
         "reach": {"type": "object", "additionalProperties": false, "properties": {"min_width_px": {"type": "number", "exclusiveMinimum": 0}, "min_height_px": {"type": "number", "exclusiveMinimum": 0}, "horizontal_gap_px": {"type": "number", "exclusiveMinimum": 0}, "vertical_gap_px": {"type": "number", "exclusiveMinimum": 0}, "margin_px": {"type": "number", "exclusiveMinimum": 0}, "min_strokes": {"type": "integer", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "max_gap_s": {"type": "number", "exclusiveMinimum": 0}}}
       },
       "description": "1.11 ADR-0045: measured endpoints, measured stroke geometry, automatic four-pad calibration."
@@ -721,6 +736,8 @@
         },
         "sample_rate_hz": { "type": "integer", "minimum": 1 },
         "buffer_frames": { "type": "integer", "minimum": 1, "description": "Callback buffer size B (tunable)." },
+        "wasapi_exclusive": { "type": "boolean", "description": "Try WASAPI exclusive mode (~5 ms) before shared mode (~22 ms); exclusive blocks other apps' audio. Default false." },
+        "stream_latency": { "oneOf": [{"enum": ["low", "high"]}, {"type": "number", "exclusiveMinimum": 0}], "description": "PortAudio suggested output latency: 'low', 'high' or seconds. Default 'low'." },
         "sample_bank": {
           "type": "object", "additionalProperties": false, "required": ["path", "manifest"],
           "properties": {

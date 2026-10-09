@@ -22,6 +22,8 @@ class StrokeSettings:
     rebound: float = 0.014
     downward_ratio: float = 0.5
     max_speed: float = 12.0
+    # Look-ahead for a fast, sustained downstroke (seconds). 0 keeps strict observed crossings.
+    lead_s: float = 0.0
 
 
 class MeasuredStrokeGeometry(GeometryEngine):
@@ -87,6 +89,7 @@ class MeasuredStrokeGeometry(GeometryEngine):
         else:
             m["bottom"] = position[1]
         gap_ok = not (m["gap"] or dt > 0.05) or m["down"]
+        was_down = m["down"]
         m["gap"] = False
         m["down"] = vy >= self.v_min and vy >= abs(vx) * s.downward_ratio
         diagnostic.update(velocity=[vx, vy], travel=position[1] - m["top"])
@@ -109,13 +112,24 @@ class MeasuredStrokeGeometry(GeometryEngine):
             impacts.append(
                 Impact(zone, crossing_time(previous.t, t_capture, crossing.s), crossing.point, (vx, vy), 0)
             )
+        reason = "CROSSING"
+        if not impacts and s.lead_s > 0 and was_down:
+            # Two consecutive downward samples: the edge the finger will reach within lead_s counts now.
+            ahead = (position[0] + vx * s.lead_s, position[1] + vy * s.lead_s)
+            for zone in self.registry:
+                if h not in zone.allowed_hands or zone.shape.contains(position):
+                    continue
+                crossing = segment_surface(position, ahead, zone.impact_surface)
+                if crossing is not None and crossing.s > 1e-9:
+                    impacts.append(Impact(zone, t_capture, crossing.point, (vx, vy), 0))
+            reason = "LEAD_CROSSING"
         if not impacts:
             return no_strike("NO_TOP_EDGE_CROSSING")
         impact = min(impacts, key=lambda x: (x.t_cross, x.zone.zone_id))
         m["fired"] = True
         key = (h, impact.zone.zone_id)
         self._episode_counter[key] = self._episode_counter.get(key, 0) + 1
-        diagnostic.update(reason="CROSSING", zone_id=impact.zone.zone_id)
+        diagnostic.update(reason=reason, zone_id=impact.zone.zone_id)
         self.diagnostics[h] = diagnostic
         return (
             self._candidate(

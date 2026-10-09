@@ -120,6 +120,9 @@ class AudioOutput:
                 device=audio["device"]["name"],
                 stream_factory=stream_factory,
                 clock=clock,
+                host_api=audio["device"].get("host_api"),
+                latency=audio.get("stream_latency", "low"),
+                exclusive=bool(audio.get("wasapi_exclusive", False)),
             )
         self.events: int = 0
 
@@ -198,6 +201,8 @@ class AudioOutput:
                 "dropped_while_down": self.dropped_while_down,
                 "last_error": self.last_error,
                 "callbacks": getattr(self.device, "callbacks", None),
+                "host_api": getattr(self.device, "opened_host_api", None),
+                "stream_latency_s": getattr(self.device, "opened_latency_s", None),
                 "output_scale": self.output_scale,
             },
         }

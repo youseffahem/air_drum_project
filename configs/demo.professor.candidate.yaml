@@ -7,6 +7,10 @@ camera_profile:
     mode: MANUAL
     value: -5
 product:
+  # Developer-only: a sustained downstroke fires up to one camera frame early (33 ms). A finger that
+  # stops just above a pad edge can still trigger; set 0 to require an observed crossing.
+  stroke:
+    lead_s: 0.033
   developer_demo:
     profile_id: professor-fixed-guide-v1
     source: experiments/pre-participant/20261003-product-v1/live-guided-02/report.json
