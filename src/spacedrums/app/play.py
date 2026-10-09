@@ -137,6 +137,10 @@ def run(args):
         (directory / "frames").mkdir()
     try:
         perception = Perception(cfg)
+        if args.fingers:
+            from spacedrums.stick.visible import FingertipEndpointEstimator
+
+            perception.estimator = FingertipEndpointEstimator(perception.stick_settings)
         if not args.demo:
             pose = BodyLandmarker(cfg["product"]["pose_asset_id"])
         if args.replay:
@@ -439,6 +443,7 @@ def main(argv=None):
     p.add_argument("--check", action="store_true", help="Check config/model/samples without opening devices")
     p.add_argument("--delegate", choices=("CPU", "GPU"), default="CPU")
     p.add_argument("--no-audio", action="store_true")
+    p.add_argument("--fingers", action="store_true", help="Bare hands: index fingertips act as sticks")
     p.add_argument("--no-window", action="store_true")
     p.add_argument("--record-frames", action="store_true")
     p.add_argument("--max-seconds", type=float)

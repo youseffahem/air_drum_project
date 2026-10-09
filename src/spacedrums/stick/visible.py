@@ -225,3 +225,30 @@ class VisibleEndpointEstimator:
             confidence,
             length / roi.h,
         )
+
+
+class FingertipEndpointEstimator(VisibleEndpointEstimator):
+    """Local experiment: the index fingertip is the strike point, so bare hands play without sticks."""
+
+    def estimate(self, view, hand):
+        s, h = view.sample, hand.hand_id
+        roi = Roi.from_rect(s.roi_px)
+        if not hand.present or hand.landmarks is None:
+            self.evidence[h] = EndpointEvidence(s.frame_id, s.t_capture, h, "MISSING", "HAND_MISSING")
+            return StickObservation.absent(s.frame_id, s.t_capture, h, self.method_id)
+        scale = np.array([roi.w, roi.h])
+        lm = np.asarray(hand.landmarks, dtype=float)
+        tip, origin = lm[8] * scale, lm[5] * scale  # index fingertip, index knuckle
+        vec = tip - origin
+        length = float(np.linalg.norm(vec))
+        if length < 2:
+            self.evidence[h] = EndpointEvidence(s.frame_id, s.t_capture, h, "UNCERTAIN", "WEAK_OR_SHORT_SUPPORT")
+            return StickObservation.absent(s.frame_id, s.t_capture, h, self.method_id)
+        direction = vec / length
+        confidence = float(np.clip(hand.handedness_score or 0, 0, 1))
+        pn, on = to_roi_norm(tuple(tip), roi), to_roi_norm(tuple(origin), roi)
+        self.evidence[h] = EndpointEvidence(
+            s.frame_id, s.t_capture, h, "MEASURED", "FINGERTIP", pn, on, confidence, length
+        )
+        return StickObservation(s.frame_id, s.t_capture, h, True, self.method_id, on,
+                                unit_px_to_norm(direction, roi), pn, confidence, confidence, length / roi.h)
