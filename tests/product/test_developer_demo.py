@@ -217,13 +217,13 @@ def test_failed_start_is_preserved_as_failure(monkeypatch, tmp_path):
 
 def test_full_kit_demo_has_seven_pieces_without_kick_and_loads_all_samples():
     cfg = play.play_config(demo=True, kit="full")
-    assert cfg["product"]["developer_demo"]["profile_id"] == "full-kit-v1"
+    assert cfg["product"]["developer_demo"]["profile_id"] == "full-kit-v2"
     ids = [z["zone_id"] for z in cfg["zones"]]
     assert sorted(ids) == sorted(["crash", "ride", "hihat", "snare", "tom1", "tom2", "floor_tom"])
     assert len({z["sample_id"] for z in cfg["zones"]}) == 7
     assert play.check_assets(cfg)["assets"] == "HASH_VERIFIED"
     layout = DeveloperDemoLayout(cfg)
-    assert len(layout.zones) == 7 and layout.report()["profile"]["profile_id"] == "full-kit-v1"
+    assert len(layout.zones) == 7 and layout.report()["profile"]["profile_id"] == "full-kit-v2"
 
 
 def test_full_kit_window_loop_renders_the_stage_and_toggles_diagnostics(monkeypatch, tmp_path):

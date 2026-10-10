@@ -142,3 +142,105 @@ def test_lead_needs_a_sustained_fast_downstroke(cfg):
     one_sample = [(x, edge_y - 0.20)] * 4 + [(x, edge_y - 0.05)]  # a single fast sample is not sustained
     for path in (slow, hover, one_sample):
         assert not _feed(_engine(cfg, 0.033), path)
+
+
+# -- realistic arrangement (display coordinates; x is the pad centre, y the top strike edge) -------
+
+
+def _pads(cfg):
+    return {p["zone_id"]: p for p in cfg["product"]["developer_demo"]["pads"]}
+
+
+def test_kit_is_arranged_like_a_drum_kit_from_the_players_seat(cfg):
+    p = _pads(cfg)
+
+    def edge(z):
+        return p[z]["y"]
+
+    def bottom(z):
+        return p[z]["y"] + p[z]["height"]
+
+    # cymbals are the highest pieces, crash on the left and ride on the right
+    assert max(edge("crash"), edge("ride")) < min(edge(z) for z in ("tom1", "tom2", "hihat", "snare",
+        "floor_tom"))
+    assert p["crash"]["x"] < p["tom1"]["x"] < p["tom2"]["x"] < p["ride"]["x"]
+    # hi-hat on the player's left, below the crash and in front of (higher than) the snare
+    assert p["hihat"]["x"] < p["snare"]["x"] and bottom("crash") < edge("hihat") < edge("snare")
+    # rack toms sit above the snare / floor tom, tom2 right of and a little higher than tom1
+    assert max(bottom("tom1"), bottom("tom2")) < min(edge("snare"), edge("floor_tom"))
+    assert p["tom1"]["x"] < p["tom2"]["x"] and edge("tom2") < edge("tom1")
+    assert abs(p["tom1"]["x"] - p["snare"]["x"]) < 0.1  # above the snare, slightly right of it
+    # the floor tom is lower right, beside the snare, with tom2 above it
+    assert p["floor_tom"]["x"] > p["snare"]["x"] and abs(p["tom2"]["x"] - p["floor_tom"]["x"]) < 0.2
+
+
+def test_cymbals_look_different_from_drum_heads_and_hit_targets_are_large(cfg):
+    p = _pads(cfg)
+    w, h = cfg["roi"]["px"][2:]
+    drums = ("tom1", "tom2", "snare", "floor_tom")
+    for z in ("crash", "ride", "hihat"):
+        assert p[z]["width"] / p[z]["height"] > 1.9  # wide, shallow plates
+    for z in drums:
+        assert p[z]["width"] / p[z]["height"] < 1.9  # deeper drum heads
+        assert p[z]["width"] * w >= 90 and p[z]["height"] * h >= 50  # well above the 72 x 42 px floor
+    area = {z: p[z]["width"] * p[z]["height"] for z in p}
+    assert area["floor_tom"] == max(area[z] for z in drums)
+    assert area["snare"] > area["tom1"] and area["snare"] > area["tom2"]
+
+
+def test_every_pair_clears_the_gap_floors_including_diagonals(cfg):
+    from spacedrums.geometry.kit_layout import kit_clearance_failures
+
+    s = ReachSettings(**cfg["product"]["reach"])
+    pads = list(_pads(cfg).values())
+    assert kit_clearance_failures(pads, tuple(cfg["roi"]["px"][2:]), s.horizontal_gap_px,
+        s.vertical_gap_px) == []
+
+
+def test_mirrored_zone_geometry_matches_the_display_layout(cfg):
+    p = _pads(cfg)
+    for z in cfg["zones"]:
+        pad = p[z["zone_id"]]
+        xs = [q[0] for q in z["shape"]["points"]]
+        ys = [q[1] for q in z["shape"]["points"]]
+        # camera x = 1 - display x; the polygon spans exactly the configured pad
+        assert min(xs) == pytest.approx(1 - pad["x"] - pad["width"] / 2, abs=1e-9)
+        assert max(xs) == pytest.approx(1 - pad["x"] + pad["width"] / 2, abs=1e-9)
+        assert min(ys) == pytest.approx(pad["y"], abs=1e-9)
+        assert max(ys) == pytest.approx(pad["y"] + pad["height"], abs=1e-9)
+        assert z["impact_surface"]["p0"][1] == z["impact_surface"]["p1"][1] == pytest.approx(pad["y"])
+
+
+def test_saved_kit_layout_replaces_the_configured_pads(tmp_path):
+    from spacedrums.geometry.kit_layout import save_pads, transform_pads
+
+    base = play.play_config(demo=True, kit="full")
+    moved = transform_pads(base["product"]["developer_demo"]["pads"], dx=0.01)
+    path = tmp_path / "kit-layout.yaml"
+    save_pads(path, moved)
+    cfg = play.play_config(demo=True, kit="full", kit_layout=path)
+    assert cfg["product"]["developer_demo"]["source"] == str(path)
+    old = {z["zone_id"]: z["shape"]["points"][0][0] for z in base["zones"]}
+    new = {z["zone_id"]: z["shape"]["points"][0][0] for z in cfg["zones"]}
+    assert all(new[k] == pytest.approx(old[k] - 0.01, abs=1e-4) for k in old)  # display +x is camera -x
+    too_far = tmp_path / "too-far.yaml"
+    save_pads(too_far, transform_pads(moved, dx=0.5))
+    with pytest.raises(ValueError):
+        play.play_config(demo=True, kit="full", kit_layout=too_far)
+    bunched = tmp_path / "bunched.yaml"
+    save_pads(bunched, transform_pads(base["product"]["developer_demo"]["pads"], scale=1.25))
+    with pytest.raises(ValueError):
+        play.play_config(demo=True, kit="full", kit_layout=bunched)
+
+
+def test_kit_layout_flags_need_the_full_kit_demo():
+    for argv in (["--layout-preview"], ["--kit-layout", "x.yaml"], ["--demo", "--kit", "four",
+        "--layout-preview"]):
+        with pytest.raises(SystemExit):
+            play.main(argv)
+
+
+def test_four_pad_kit_is_unchanged_by_the_full_kit_layout():
+    cfg = play.play_config(demo=True, kit="four")
+    assert [z["zone_id"] for z in cfg["zones"]] == ["crash_ride", "hihat", "snare", "tom1"]
+    assert cfg["product"]["developer_demo"]["profile_id"] == "professor-fixed-guide-v1"

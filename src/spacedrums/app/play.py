@@ -25,17 +25,19 @@ from spacedrums.app.audio_out import AudioOutput, OutputLatency
 from spacedrums.app.main import Perception
 from spacedrums.app.pipeline import DecisionPipeline
 from spacedrums.calib.automatic import AutomaticCalibration
-from spacedrums.calib.developer_demo import DeveloperDemoLayout
+from spacedrums.calib.developer_demo import DeveloperDemoLayout, check_kit_pads
 from spacedrums.calib.reach import ReachSettings
 from spacedrums.capture import CaptureSettings, LiveFrameSource, OpenCvCamera, ReplayFrameSource, Roi
 from spacedrums.config import config_hash, load_config, validate
 from spacedrums.contracts import Arm, ImageRef
 from spacedrums.contracts.schema import validator
 from spacedrums.geometry import ZoneRegistry
+from spacedrums.geometry.kit_layout import load_pads
 from spacedrums.hands.body import BodyLandmarker
 from spacedrums.timing import now, process_cpu_seconds, wall_clock_iso
 from spacedrums.ui.developer_demo import DemoOverlay
 from spacedrums.ui.kit import render_kit
+from spacedrums.ui.layout_preview import LayoutPreview
 from spacedrums.ui.stage import StageRenderer
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -49,7 +51,7 @@ def distribution(values):
     )
 
 
-def play_config(*, demo=False, delegate="CPU", kit="four", exclusive=False):
+def play_config(*, demo=False, delegate="CPU", kit="four", exclusive=False, kit_layout=None):
     paths = [ROOT / "configs/prototype.candidate.yaml", ROOT / "configs/product.candidate.yaml"]
     if demo:
         paths.append(ROOT / "configs/demo.professor.candidate.yaml")
@@ -57,13 +59,35 @@ def play_config(*, demo=False, delegate="CPU", kit="four", exclusive=False):
             paths.append(ROOT / "configs/demo.fullkit.candidate.yaml")
     cfg = load_config(*paths).data
     cfg["hands"]["delegate"] = delegate
+    if demo and kit_layout is not None:  # a layout saved by --layout-preview replaces the configured pads
+        cfg["product"]["developer_demo"]["pads"] = load_pads(kit_layout)
+        cfg["product"]["developer_demo"]["source"] = str(kit_layout)
     if demo:
         cfg["zones"] = DeveloperDemoLayout(cfg).zones
     cfg["audio"]["wasapi_exclusive"] = bool(exclusive)
     cfg["audio"]["sample_bank"]["path"] = str(ROOT / "assets/samples")
-    cfg["audio"]["sample_bank"]["manifest"] = str(ROOT / "assets/samples/recorded-manifest.json")
+    # The full-kit demo plays the acoustic Salamander bank; every other mode keeps the TR-505 bank.
+    bank = "acoustic-manifest.json" if demo and kit == "full" else "recorded-manifest.json"
+    cfg["audio"]["sample_bank"]["manifest"] = str(ROOT / "assets/samples" / bank)
     validate(cfg)
     return cfg
+
+
+def missing_samples(cfg):
+    """Sample files named by the manifest that are not on disk (the WAV binaries are git-ignored)."""
+    manifest = Path(cfg["audio"]["sample_bank"]["manifest"])
+    root = Path(cfg["audio"]["sample_bank"]["path"])
+    files = [e["file"] for e in json.loads(manifest.read_text(encoding="utf-8"))["samples"]]
+    return [f for f in files if not (root / f).exists()]
+
+
+def require_samples(cfg):
+    missing = missing_samples(cfg)
+    if missing:
+        script = ("fetch_acoustic_samples.py" if "acoustic" in cfg["audio"]["sample_bank"]["manifest"]
+                  else "fetch_drum_samples.py")
+        raise FileNotFoundError(
+            f"{len(missing)} sample file(s) missing, e.g. {missing[0]}; run: python scripts/{script}")
 
 
 def check_assets(cfg):
@@ -71,6 +95,7 @@ def check_assets(cfg):
     from spacedrums.audio import SampleBank
     from spacedrums.hands.model_asset import resolve_model_asset
 
+    require_samples(cfg)
     asset = resolve_model_asset(cfg["hands"]["model_asset_id"])
     bank = SampleBank.load(**{
         "root": cfg["audio"]["sample_bank"]["path"],
@@ -86,10 +111,13 @@ def check_assets(cfg):
 
 def run(args):
     cv2.setNumThreads(1)
-    cfg = play_config(demo=args.demo, delegate=args.delegate, kit=args.kit, exclusive=args.exclusive_audio)
+    cfg = play_config(demo=args.demo, delegate=args.delegate, kit=args.kit, exclusive=args.exclusive_audio,
+                      kit_layout=args.kit_layout)
     if args.check:
         print(json.dumps(check_assets(cfg), indent=2))
         return 0
+    if not (args.no_audio or args.replay):
+        require_samples(cfg)
     replay = ReplayFrameSource(args.replay, limit=args.max_frames) if args.replay else None
     if args.recorded_roi:
         if replay is None or replay.roi is None:
@@ -124,20 +152,31 @@ def run(args):
     stage_view = StageRenderer() if args.demo and not args.no_window and args.kit == "full" else None
     show_diagnostics = False
     registry = None
+    preview = None
+    if args.layout_preview and stage_view is not None:
+        preview = LayoutPreview(
+            cfg["product"]["developer_demo"]["pads"],
+            lambda pads: check_kit_pads(pads, (roi.w, roi.h), reach_settings),
+            save_dir=directory,
+        )
 
-    def start_pipeline():
-        nonlocal audio, pipeline, registry
+    def build_pipeline():
+        nonlocal pipeline, registry
         cfg["zones"] = calibration.zones
         validate(cfg)
         registry = ZoneRegistry.from_config(cfg["zones"])
-        audio = AudioOutput(cfg, latency=OutputLatency.unmeasured(),
-                            device_enabled=not args.no_audio and not args.replay)
-        audio.start()
         pipeline = DecisionPipeline(
             cfg, registry=registry, session_id=session, active_arm=Arm.A,
             hardware_id="developer-host", config_hash=config_hash(cfg), audio=audio,
             developer_demo=args.demo,
         )
+
+    def start_pipeline():
+        nonlocal audio
+        audio = AudioOutput(cfg, latency=OutputLatency.unmeasured(),
+                            device_enabled=not args.no_audio and not args.replay)
+        audio.start()
+        build_pipeline()
 
     if args.record_frames:
         (directory / "frames").mkdir()
@@ -231,6 +270,8 @@ def run(args):
                 if audio is not None:
                     audio.check_health(now())
             metrics["decision_ms"].append((now() - stage) * 1000)
+            if preview is not None:
+                preview.observe(evidence, result)
             # Replay decisions use capture time as their clock for calibration matching.
             cal_commits = result.commits if result is not None else ()
             calibration.update(sample.t_capture, evidence, body, cal_commits)
@@ -299,11 +340,20 @@ def run(args):
                         (255, 210, 120),
                         1,
                     )
+                if preview is not None and not show_diagnostics:
+                    preview.draw(img, stage_view, roi, view.full.shape[1])
                 metrics["render_ms"].append((now() - render_started) * 1000)
                 cv2.imshow("Space Drums", img)
                 key = cv2.pollKey() & 0xFF
                 if key in (27, ord("q")):
                     break
+                if preview is not None:
+                    moved = preview.handle_key(key)
+                    if moved is not None:
+                        # Only zones, registry and decision state change; the audio stream keeps running.
+                        cfg["product"]["developer_demo"]["pads"] = moved
+                        calibration = DeveloperDemoLayout(cfg)
+                        build_pipeline()
                 if key == ord("d") and stage_view:
                     show_diagnostics = not show_diagnostics
                 if key == ord("r") and not args.demo:
@@ -458,6 +508,11 @@ def main(argv=None):
     p.add_argument("--no-audio", action="store_true")
     p.add_argument("--kit", choices=("full", "four"), default="full",
                    help="--demo layout: full 7-piece kit without kick (default) or the 2x2 guide")
+    p.add_argument("--layout-preview", action="store_true",
+                   help="--demo --kit full: show pad coordinates and your measured reach; i/k/j/l move, "
+                        "[ ] scale, s saves kit-layout.yaml into the session directory")
+    p.add_argument("--kit-layout", type=Path,
+                   help="--demo --kit full: load pads saved by --layout-preview, not the configured kit")
     p.add_argument("--exclusive-audio", action="store_true",
                    help="WASAPI exclusive mode: ~5 ms output instead of ~22 ms, but other apps lose sound")
     p.add_argument("--fingers", action="store_true", help="Bare hands: index fingertips act as sticks")
@@ -473,6 +528,10 @@ def main(argv=None):
     args = p.parse_args(argv)
     if args.demo and args.recorded_roi:
         p.error("fixed demo geometry requires its full-camera ROI; do not use --recorded-roi")
+    if (args.layout_preview or args.kit_layout) and not (args.demo and args.kit == "full"):
+        p.error("--layout-preview and --kit-layout need --demo with --kit full")
+    if args.layout_preview and args.no_window:
+        p.error("--layout-preview needs the window")
     return run(args)
 
 

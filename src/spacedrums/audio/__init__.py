@@ -5,6 +5,7 @@ from spacedrums.audio.device import ClockFit, DeviceClockMapper, SoundDeviceOutp
 from spacedrums.audio.gain import GainCurve
 from spacedrums.audio.mixer import AudioStats, CallbackMixer
 from spacedrums.audio.scheduler import AudioScheduler
+from spacedrums.audio.variants import VariantSelector
 
 __all__ = [
     "AudioScheduler",
@@ -16,4 +17,5 @@ __all__ = [
     "Sample",
     "SampleBank",
     "SoundDeviceOutput",
+    "VariantSelector",
 ]

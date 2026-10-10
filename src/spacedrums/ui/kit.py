@@ -11,6 +11,7 @@ from functools import lru_cache
 import cv2
 import numpy as np
 
+from spacedrums.geometry.kit_layout import CYMBALS
 from spacedrums.ui.canvas import Canvas
 from spacedrums.ui.preview import mirror_preview
 
@@ -69,11 +70,11 @@ def render_kit(full, roi, registry=None, *, sticks=(), body=None, message="", ta
             mask = np.zeros((y1 - y0 + 1, x1 - x0 + 1), np.uint8)
             cv2.ellipse(mask, (center[0] - x0, center[1] - y0), axes, 0, 0, 360, 255, -1, cv2.LINE_AA)
             patch = target_img[y0 : y1 + 1, x0 : x1 + 1]
-            texture = pad_texture(x1 - x0 + 1, y1 - y0 + 1, zone.zone_id in ("crash_ride", "hihat"))
+            texture = pad_texture(x1 - x0 + 1, y1 - y0 + 1, zone.zone_id in CYMBALS)
             alpha = (mask / 255.0)[..., None]
             patch[:] = (patch * (1 - alpha) + texture * alpha).astype(np.uint8)
             cv2.ellipse(target_img, center, axes, 0, 0, 360, (229, 222, 209), 1, cv2.LINE_AA)
-            if zone.zone_id in ("crash_ride", "hihat"):
+            if zone.zone_id in CYMBALS:
                 cv2.ellipse(
                     target_img,
                     center,

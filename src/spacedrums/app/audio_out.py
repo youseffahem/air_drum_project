@@ -20,11 +20,19 @@ decision loop.
 from __future__ import annotations
 
 import logging
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from spacedrums.audio import AudioScheduler, CallbackMixer, GainCurve, SampleBank, SoundDeviceOutput
+from spacedrums.audio import (
+    AudioScheduler,
+    CallbackMixer,
+    GainCurve,
+    SampleBank,
+    SoundDeviceOutput,
+    VariantSelector,
+)
 from spacedrums.contracts import AudioEvent, CommittedStrike
 from spacedrums.timing import now
 
@@ -100,6 +108,8 @@ class AudioOutput:
         self.curves = {c["gain_curve_id"]: GainCurve.from_config(c) for c in audio["gain"]["curves"]}
         self.zone_curve = {z["zone_id"]: z["gain_curve_id"] for z in cfg["zones"]}
         self.bank: SampleBank | None = None
+        self.variants: VariantSelector | None = None
+        self.variants_played: Counter[str] = Counter()
         self.mixer: CallbackMixer | None = None
         self.device: SoundDeviceOutput | None = None
         if self.device_enabled:
@@ -108,6 +118,7 @@ class AudioOutput:
                 audio["sample_bank"]["manifest"],
                 sample_rate_hz=self.sample_rate_hz,
             )
+            self.variants = VariantSelector(self.bank)
             self.mixer = CallbackMixer(
                 self.sample_rate_hz,
                 channels=2,
@@ -179,9 +190,11 @@ class AudioOutput:
     def play(self, committed: CommittedStrike) -> AudioEvent:
         """Schedule (never a shadow commit — the scheduler refuses) and enqueue if a device runs."""
         event = self.scheduler.schedule(committed)
-        if self.mixer is not None and self.bank is not None:
+        if self.mixer is not None and self.bank is not None and self.variants is not None:
             if self.device_state == "RUNNING":
-                data = self.bank[event.sample_id].data
+                sample = self.variants.pick(event.sample_id, event.gain)
+                self.variants_played[sample.sample_id] += 1
+                data = sample.data
                 self.mixer.enqueue(event, data if self.output_scale == 1.0 else data * self.output_scale)
             else:
                 self.dropped_while_down += 1
@@ -215,6 +228,8 @@ class AudioOutput:
                 "clipped_samples": st.clipped_samples,
                 "voices_cleared": st.voices_cleared,
             }
+            if self.bank is not None and self.bank.groups:
+                out["variants_played"] = dict(self.variants_played)
         return out
 
 
