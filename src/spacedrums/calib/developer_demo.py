@@ -2,7 +2,20 @@
 
 from spacedrums.calib.reach import ReachSettings
 from spacedrums.geometry.four_pad import four_pad_layout
-from spacedrums.geometry.kit_layout import kit_layout, pad_gaps_px
+from spacedrums.geometry.kit_layout import kit_clearance_failures, kit_layout
+
+
+def check_kit_pads(pads, roi_size, settings):
+    """Raise unless every pad keeps the product size floors and every pair keeps the gap floors."""
+    w, h = roi_size
+    if any(q["width"] * w < settings.min_width_px or q["height"] * h < settings.min_height_px for q in pads):
+        raise ValueError("developer guide must preserve product pad and gap floors")
+    failures = kit_clearance_failures(pads, roi_size, settings.horizontal_gap_px, settings.vertical_gap_px)
+    if failures:
+        a, b, dx, dy = failures[0]
+        raise ValueError(
+            f"developer guide must preserve product pad and gap floors: {a}/{b} clear {dx:.0f}/{dy:.0f} px"
+        )
 
 
 class DeveloperDemoLayout:
@@ -11,18 +24,17 @@ class DeveloperDemoLayout:
     body = target = None
     guide_zones = ()
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, pads=None):
         self.profile = dict(cfg["product"]["developer_demo"])
+        if pads is not None:  # a saved --kit-layout override replaces the configured full-kit pads
+            self.profile["pads"] = pads
         self.roi_size = tuple(cfg["roi"]["px"][2:])
         w, h = self.roi_size
         p = self.profile
         s = ReachSettings(**cfg["product"].get("reach", {}))
         if "pads" in p:
             pads = p["pads"]
-            horizontal, vertical = pad_gaps_px(pads, self.roi_size)
-            if (any(q["width"] * w < s.min_width_px or q["height"] * h < s.min_height_px for q in pads)
-                    or horizontal < s.horizontal_gap_px or vertical < s.vertical_gap_px):
-                raise ValueError("developer guide must preserve product pad and gap floors")
+            check_kit_pads(pads, self.roi_size, s)
             self.zones = kit_layout(pads)
             self.message = "DEV full kit: tap a fingertip down through a pad's top edge; lift to repeat"
             return

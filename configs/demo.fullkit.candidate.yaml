@@ -1,17 +1,26 @@
 # Loaded ONLY by app.play --demo (default --kit full), after demo.professor.candidate.yaml.
-# Seven pieces, no kick: crash, toms 1-2, ride on top; hi-hat, snare, floor tom below.
-# x is the pad centre and y the top strike edge, in the player's mirrored display, ROI-normalised.
-# Every pad keeps the product floors (72 x 42 px, 32 px gaps). Positions are a developer guess,
-# not a calibrated reach; move rows/columns to suit where you stand.
+# Seven pieces, no kick, arranged like a drum kit seen from the drummer's seat (display is mirrored):
+#   crash  (high, left)            ride (high, right)
+#       tom1 (above snare)   tom2 (right of tom1, a little higher)
+#   hihat (left, in front)  snare (low, centre-left)   floor_tom (low, right, largest drum)
+# x is the pad centre and y the top strike edge, in the player's mirrored display, ROI-normalised
+# over the 640 x 480 product ROI. Cymbals are wide and shallow, drums deeper; the snare and floor tom
+# are the largest close targets. Every pad keeps the product floors (72 x 42 px) and every pair clears
+# 32 px horizontally or vertically (checked pairwise, diagonals included).
+# Reach evidence: display fingertip positions in the 2026-10-10 full-kit session (p5-p95) covered
+# x 0.14-0.85 and y 0.32-0.74; every top edge below sits inside that band (cymbal edges are kept at
+# 0.34/0.36: only 2% of measured tips were above y 0.30, so a higher crash would be a stretch). This is still a developer
+# guess, not a calibrated reach: use --layout-preview to nudge/scale it where you stand, then
+# --kit-layout FILE to reuse what you saved.
 product:
   developer_demo:
-    profile_id: full-kit-v1
+    profile_id: full-kit-v2
     source: configs/demo.fullkit.candidate.yaml
     pads:
-      - {zone_id: crash,     x: 0.13, y: 0.42, width: 0.17, height: 0.10}
-      - {zone_id: tom1,      x: 0.38, y: 0.42, width: 0.15, height: 0.10}
-      - {zone_id: tom2,      x: 0.62, y: 0.42, width: 0.15, height: 0.10}
-      - {zone_id: ride,      x: 0.87, y: 0.42, width: 0.17, height: 0.10}
-      - {zone_id: hihat,     x: 0.17, y: 0.68, width: 0.19, height: 0.11}
-      - {zone_id: snare,     x: 0.45, y: 0.68, width: 0.20, height: 0.11}
-      - {zone_id: floor_tom, x: 0.78, y: 0.68, width: 0.21, height: 0.11}
+      - {zone_id: crash,     x: 0.16,  y: 0.34, width: 0.20, height: 0.095}
+      - {zone_id: ride,      x: 0.83,  y: 0.36, width: 0.20, height: 0.095}
+      - {zone_id: tom1,      x: 0.395, y: 0.44, width: 0.15, height: 0.11}
+      - {zone_id: tom2,      x: 0.60,  y: 0.42, width: 0.15, height: 0.11}
+      - {zone_id: hihat,     x: 0.15,  y: 0.52, width: 0.19, height: 0.09}
+      - {zone_id: snare,     x: 0.36,  y: 0.68, width: 0.21, height: 0.13}
+      - {zone_id: floor_tom, x: 0.70,  y: 0.66, width: 0.24, height: 0.14}

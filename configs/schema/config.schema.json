@@ -574,7 +574,7 @@
           "type": "object", "additionalProperties": false,
           "required": ["profile_id", "source", "columns", "rows", "width", "height"],
           "properties": {
-            "profile_id": {"enum": ["professor-fixed-guide-v1", "full-kit-v1"]},
+            "profile_id": {"enum": ["professor-fixed-guide-v1", "full-kit-v1", "full-kit-v2"]},
             "source": {"type": "string", "minLength": 1},
             "columns": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}},
             "rows": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}},

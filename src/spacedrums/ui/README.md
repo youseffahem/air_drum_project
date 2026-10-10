@@ -52,3 +52,29 @@ display-only: `StageRenderer.to_display` is the one place that maps ROI-normalis
 display pixels, and it reads only committed strikes and endpoint evidence from the shared pipeline.
 `D` switches to the diagnostic `DemoOverlay`; `--kit four` keeps the 2x2 guide. The renderer costs about
 4 ms per frame (`latency_ms.render_ms` in the run report).
+
+The seven pads are arranged like a drum kit seen from the player's seat (`configs/demo.fullkit.candidate.yaml`,
+profile `full-kit-v2`): crash high left, ride high right, hi-hat left in front of the snare, snare low
+centre-left, tom 1 above it, tom 2 right of and a little higher than tom 1, floor tom low right and largest.
+Cymbals are wide and shallow, drums deeper; every pad is the polygon the strike geometry uses, so what is drawn
+is what is hit. `--kit four` and the 2x2 guide are unchanged.
+
+### Layout preview (`layout_preview.py`)
+
+Stand where you normally play and check the kit before accepting it:
+
+```
+python -m spacedrums.app.play --demo --fingers --layout-preview
+```
+
+It draws each pad's display coordinates and pixel size with its hit count, each hand's measured fingertip
+reach (p5-p95 box and recent points; a pad's text turns red when no measured fingertip has been seen both
+above its top edge and inside it) and a message line. Keys: `i`/`k` move the whole kit up/down, `j`/`l`
+left/right (as displayed), `[` / `]` scale it, `s` saves `kit-layout.yaml` into the session directory. A nudge
+is applied only if it stays inside the ROI, keeps pads from overlapping and keeps the product floors
+(72 x 42 px pads, 32 px gaps, checked pairwise); otherwise the reason is shown and the kit stays as it was.
+Reuse a saved layout with `--demo --kit full --kit-layout PATH`. Only zones, registry and decision state are
+rebuilt on a nudge; the audio stream keeps running. No fingertip or stick threshold is involved.
+
+`python scripts/preview_kit_layout.py --session DIR --output OUT` renders the same view offline from a
+developer session's `observations.jsonl` and prints a per-pad reach verdict and clearance table.

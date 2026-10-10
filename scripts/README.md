@@ -56,6 +56,8 @@ Full phase status and owner actions: `docs/gates/phase-13-gate.md`.
 | `measure_stage_latency.py` | 03 (03.14) | per-stage processing time (hands, stick per method, tracking) on a dev capture replayed from memory; sum vs frame period |
 | `hands_landmark_check.py` | 03 (03.1, 03.2) | estimator wrapper + identity assignment on dev captures: per-frame timing, presence per hand (N reported), schema validation of every record, identity events/rates (`--identity-mode RAW\|TEMPORAL`), overlay PNG; `--synthetic` self-test (incl. a SYNTHETIC crossing) |
 | `fetch_drum_samples.py` | 04 (04.6) | fetch or offline-verify the hash-pinned public-domain prerecorded TR-505 runtime bank |
+| `fetch_acoustic_samples.py` | demo | build/verify the CC BY-SA acoustic Salamander Drumkit bank used by the full-kit demo (`assets/samples/acoustic-manifest.json`) |
+| `preview_kit_layout.py` | demo | offline full-kit layout preview: pad coordinates, pairwise clearances and measured fingertip reach from a developer session |
 | `generate_sample_bank.py` | 04 (04.6) | regenerate deterministic SYNTHETIC WAV fixtures used only by tests |
 | `measure_audio_latency.py` | 04 (04.7, 04.9) | self-test the detector with injected delay or attempt synchronized microphone/digital-loopback output-latency capture; rejected attempts remain PENDING |
 | `measure_geometry_audio_compute.py` | 04 (04.3, 04.8) | profile geometry intersection plus scheduling on labelled SYNTHETIC trajectories |

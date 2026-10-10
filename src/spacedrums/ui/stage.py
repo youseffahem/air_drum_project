@@ -77,10 +77,44 @@ class Pad:
         return self.x + self.w // 2, self.y + self.h // 2
 
 
+# BGR head tint multipliers: the snare keeps the coated white head, toms get darker clear heads.
+HEAD_TINT = {"tom1": (1.0, 0.82, 0.62), "tom2": (1.0, 0.82, 0.62), "floor_tom": (0.95, 0.72, 0.52)}
+
+
+def _decorate(body, mask, pad, c):
+    """Per-piece detail drawn inside the rounded footprint; nothing here moves the footprint."""
+    w, h = pad.w, pad.h
+    zid = pad.zone_id
+    if pad.cymbal:
+        for k in (0.86, 0.68, 0.50) if zid != "hihat" else (0.80, 0.55):
+            cv2.ellipse(body, c, (int(w / 2 * k), int(h / 2 * k)), 0, 0, 360, (70, 110, 140), 1, AA)
+        bell = 0.16 if zid == "ride" else 0.11
+        cv2.ellipse(body, c, (max(3, int(w * bell)), max(2, int(h * bell * 1.6))), 0, 0, 360, (95, 150, 190),
+            -1, AA)
+        cv2.ellipse(body, c, (max(3, int(w * bell)), max(2, int(h * bell * 1.6))), 0, 0, 360, (60, 95, 125),
+            1, AA)
+        if zid == "hihat":  # the bottom plate peeks out under the top one
+            cv2.ellipse(body, (c[0], c[1] + max(2, h // 8)), (int(w * 0.46), int(h * 0.40)), 0, 20, 160,
+                        (60, 95, 125), 2, AA)
+        return
+    cv2.ellipse(body, c, (int(w * 0.40), int(h * 0.34)), 0, 0, 360, (150, 150, 158), 1, AA)
+    if zid == "snare":  # snare wires across the lower half of the head
+        for k in (0.06, 0.16, 0.26):
+            y = c[1] + int(h * k)
+            cv2.line(body, (c[0] - int(w * 0.36), y), (c[0] + int(w * 0.36), y), (170, 170, 176), 1, AA)
+    else:  # a visible shell band along the lower edge reads as a deeper drum
+        cv2.line(body, (4, h - 5), (w - 5, h - 5), (90, 90, 100), 2, AA)
+    for dx in (-int(w * 0.43), int(w * 0.43)):
+        cv2.circle(body, (c[0] + dx, c[1]), 2, (235, 235, 240), -1, AA)
+
+
 def build_sprite(pad: Pad):
     """Pad body with rim, decoration and its label baked in; the mask is the rounded footprint."""
     w, h = pad.w, pad.h
     body = pad_texture(w, h, pad.cymbal).copy()
+    tint = HEAD_TINT.get(pad.zone_id)
+    if tint is not None:
+        body = np.clip(body.astype(np.float32) * tint, 0, 255).astype(np.uint8)
     mask = np.zeros((h, w), np.uint8)
     r = max(3, int(min(w, h) * 0.16))
     _rounded(mask, 0, 0, w - 1, h - 1, r, 255)
@@ -88,14 +122,7 @@ def build_sprite(pad: Pad):
     _rounded(inner, 3, 3, w - 4, h - 4, max(2, r - 3), 255)
     body[(mask > 0) & (inner == 0)] = pad.accent
     c = (w // 2, h // 2)
-    if pad.cymbal:
-        for k in (0.82, 0.60):
-            cv2.ellipse(body, c, (int(w / 2 * k), int(h / 2 * k)), 0, 0, 360, (70, 110, 140), 1, AA)
-        cv2.ellipse(body, c, (max(3, w // 9), max(2, h // 6)), 0, 0, 360, (95, 150, 190), -1, AA)
-    else:
-        cv2.ellipse(body, c, (int(w * 0.40), int(h * 0.34)), 0, 0, 360, (150, 150, 158), 1, AA)
-        for dx in (-int(w * 0.43), int(w * 0.43)):
-            cv2.circle(body, (c[0] + dx, c[1]), 2, (235, 235, 240), -1, AA)
+    _decorate(body, mask, pad, c)
     cv2.line(body, (r, 1), (w - r - 1, 1), _scaled(pad.accent, 1.0), 2, AA)  # the strike edge
     label = pad.name.upper()
     scale = min(0.5, (w - 16) / max(1, cv2.getTextSize(label, FONT, 1.0, 1)[0][0]))

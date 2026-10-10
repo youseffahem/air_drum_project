@@ -1,12 +1,63 @@
 # Phase 04 local sample licences
 
-## Runtime bank — prerecorded Roland TR-505 samples
+## TR-505 bank — electronic drum-machine samples (four-pad kit and non-demo modes)
 
 The runtime candidate bank uses seven WAV recordings from the
 [Oramics Sampled TR-505 collection](https://oramics.github.io/sampled/DM/TR-505/), whose metadata
 labels the collection **Public Domain** and links each source WAV. Exact local paths and SHA-256
 hashes are pinned in `recorded-manifest.json`; files are stored unchanged under `recorded/`.
 Accessed 2026-09-21. Runtime playback loads these local files; it does not synthesize drum sounds.
+
+**These are electronic drum-machine samples, not acoustic drum recordings.** The Roland TR-505 is a 1980s
+drum machine; the files are its stored digital sounds. They are used by `--kit four` and every mode other than
+the seven-piece `--demo` kit, which plays the acoustic bank below.
+
+## Full-kit demo bank — acoustic Salamander Drumkit (CC BY-SA 3.0)
+
+`app.play --demo --kit full` plays **genuine acoustic drum recordings**: *The Salamander Drumkit* by
+**Alexander Holm** (built by the author in 2009 from birch staves; recorded with overhead microphones,
+48 kHz / 24-bit stereo). Licence **CC BY-SA 3.0** (<https://creativecommons.org/licenses/by-sa/3.0/>), stated
+in the archive's own README ("Licence: CC-by-sa") and on the archive.org item page.
+
+- Page: <https://archive.org/details/SalamanderDrumkit>; archive:
+  `https://archive.org/download/SalamanderDrumkit/salamanderDrumkit.tar.bz2` (387,611,727 bytes).
+- Pinned in `acoustic-manifest.json`: MD5 `af8e2067668a7f438e7d981877fb771f` and SHA-1
+  `b16146d901ba4e22f821396362371a745e2aa935` (as listed by archive.org) and SHA-256
+  `34e746ec1721bb530b1caf5b17443ae3cde45a2cce1a80e2637e4c11d6f1e3f5` (computed on first download). Accessed 2026-10-10.
+- `python scripts/fetch_acoustic_samples.py` downloads the archive into `data/cache/` (git-ignored), refuses it if any
+  pin differs, reads only the selected members, and writes `assets/samples/acoustic/*.wav` (git-ignored, like the
+  TR-505 binaries) and the manifest; `--verify` re-hashes the built files offline.
+- Every file's source archive member, source dynamic, trim and peak level is recorded per sample in the manifest.
+
+Used (overhead microphone `OH` takes; up to 3 round-robin takes per layer; hard layer = loudest dynamic, soft =
+the middle dynamic):
+
+| zone | group id | source in the kit | hard / soft source dynamic |
+|---|---|---|---|
+| Snare | `salamander-snare` | `snare` 14x5in birch snare | FF / MP |
+| Tom 1 | `salamander-tom1` | `hiTom` 12x7in rack tom | FF / F |
+| Tom 2 | `salamander-tom2` | `hiTom` resampled down 6 semitones (**DERIVED**) | FF / F |
+| Floor Tom | `salamander-floor-tom` | `loTom` 14x14in floor tom | FF / MP |
+| Hi-Hat | `salamander-hihat` | `hihatClosed` Stagg 14in SH, closed | F / P |
+| Crash | `salamander-crash` | `crash1` Paiste 18in Innovations medium crash | FF / P |
+| Ride | `salamander-ride` | `ride1` 20in medium ride (README: Paiste pst5) | FF / MP |
+
+**Tom 2 is DERIVED.** The kit contains only two toms (rack ~140 Hz, floor ~70 Hz); it has no mid tom. Tom 2 is the
+real rack-tom recording transposed down 6 semitones (a 99/70 resample), so it is a genuine recording but not a
+separate drum, and its decay is about 1.4x longer than a real mid tom's. Replace it with a recorded mid tom when one
+with a compatible licence is available.
+
+Processing (recipe `sal-v1`, deterministic): mono mixdown, no resampling (source is 48 kHz), leading silence trimmed
+to 2 ms before the onset, inaudible tail (< -84 dBFS) dropped with a 60 ms raised-cosine fade, one kit-wide gain
+(loudest hard take at -8 dBFS; relative levels between instruments preserved), soft layers matched to 2 dB under the
+hard layer. Not used: the other mics (the archive has only `OH`), open/semi-open hi-hat, bell, china, splash, kick and
+the second snare; the open hi-hat is deliberately unused because fingertips have no pedal gesture.
+
+**Share-alike and attribution.** The processed WAVs are adaptations of the recordings and are therefore licensed
+**CC BY-SA 3.0** under the same terms, with this attribution: *"The Salamander Drumkit" by Alexander Holm, CC BY-SA 3.0;
+processed by Space Drums (recipe sal-v1).* The author's README says share-alike applies only if the samples
+themselves are modified; the project source code is not a derivative of the samples and keeps the project licence.
+Anyone who redistributes the built `assets/samples/acoustic/` WAVs must keep this notice and the licence.
 
 ## Synthetic test bank
 

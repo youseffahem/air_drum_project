@@ -110,3 +110,70 @@ def test_render_cost_stays_inside_the_frame_budget(registry):
     per_frame_ms = (time.perf_counter() - start) * 1000 / n
     assert per_frame_ms < 25, per_frame_ms  # generous CI bound; the live report logs the real render_ms
     print(f"stage render: {per_frame_ms:.1f} ms/frame")
+
+
+# -- rendered pads must be the hit zones ---------------------------------------------------------
+
+FULL_PADS = [
+    {"zone_id": "crash", "x": 0.16, "y": 0.34, "width": 0.20, "height": 0.095},
+    {"zone_id": "ride", "x": 0.83, "y": 0.36, "width": 0.20, "height": 0.095},
+    {"zone_id": "tom1", "x": 0.395, "y": 0.44, "width": 0.15, "height": 0.11},
+    {"zone_id": "tom2", "x": 0.60, "y": 0.42, "width": 0.15, "height": 0.11},
+    {"zone_id": "hihat", "x": 0.15, "y": 0.52, "width": 0.19, "height": 0.09},
+    {"zone_id": "snare", "x": 0.36, "y": 0.68, "width": 0.21, "height": 0.13},
+    {"zone_id": "floor_tom", "x": 0.70, "y": 0.66, "width": 0.24, "height": 0.14},
+]
+
+
+def _polygon_mask(points, shape):
+    import cv2
+
+    mask = np.zeros(shape, np.uint8)
+    cv2.fillPoly(mask, [np.round(np.asarray(points)).astype(np.int32)], 1)
+    return mask.astype(bool)
+
+
+@pytest.mark.parametrize("roi", [Roi(0, 0, 640, 480), Roi(40, 20, 560, 440)])
+def test_rendered_pads_are_exactly_the_hit_zones(roi):
+    zones = kit_layout(FULL_PADS)
+    registry = ZoneRegistry.from_config(zones)
+    renderer = StageRenderer()
+    renderer.render(frame(), roi, registry, evidence(), result(1.0))
+    for zone in registry:
+        pad = renderer.pads[zone.zone_id]
+        pts = np.array([renderer.to_display(p, roi, 640) for p in zone.shape.points])
+        # the sprite box is the polygon's display bounding box
+        assert pad.x == pytest.approx(np.floor(pts[:, 0].min()), abs=1)
+        assert pad.y == pytest.approx(np.floor(pts[:, 1].min()), abs=1)
+        assert pad.x + pad.w == pytest.approx(np.ceil(pts[:, 0].max()), abs=1)
+        assert pad.y + pad.h == pytest.approx(np.ceil(pts[:, 1].max()), abs=1)
+        # the strike edge drawn is the impact segment, mapped by the same function
+        want = [renderer.to_display(q, roi, 640) for q in (zone.impact_surface.p0, zone.impact_surface.p1)]
+        assert [pt[1] for pt in pad.edge] == pytest.approx([round(w[1]) for w in want], abs=1)
+        assert [pt[0] for pt in pad.edge] == pytest.approx([round(w[0]) for w in want], abs=1)
+        assert pad.edge[0][1] == pytest.approx(pad.y, abs=2)  # the edge is the top of the sprite
+        # the visible footprint (alpha mask) covers the polygon it represents
+        poly = _polygon_mask(pts - [pad.x, pad.y], (pad.h, pad.w))
+        iou = (poly & pad.mask[..., 0]).sum() / (poly | pad.mask[..., 0]).sum()
+        assert iou >= 0.95, (zone.zone_id, iou)
+
+
+def test_display_left_pads_render_left_and_cymbals_are_flagged():
+    registry = ZoneRegistry.from_config(kit_layout(FULL_PADS))
+    renderer = StageRenderer()
+    renderer.render(frame(), ROI, registry, evidence(), result(1.0))
+    centre = {z: p.x + p.w / 2 for z, p in renderer.pads.items()}
+    assert centre["crash"] < centre["tom1"] < centre["tom2"] < centre["ride"]
+    assert centre["hihat"] < centre["snare"] < centre["floor_tom"]
+    assert {z for z, p in renderer.pads.items() if p.cymbal} == {"crash", "ride", "hihat"}
+
+
+def test_every_pad_has_a_distinct_accent_and_look():
+    registry = ZoneRegistry.from_config(kit_layout(FULL_PADS))
+    renderer = StageRenderer()
+    renderer.render(frame(), ROI, registry, evidence(), result(1.0))
+    assert len({p.accent for p in renderer.pads.values()}) == 7
+    sprites = {z: p.sprite[..., :3].reshape(-1, 3).mean(axis=0) for z, p in renderer.pads.items()}
+    drums = [sprites[z] for z in ("tom1", "tom2", "floor_tom")]
+    assert np.abs(sprites["snare"] - drums[0]).max() > 30  # snare head is not a tom head
+    assert np.abs(sprites["crash"] - sprites["snare"]).max() > 30  # cymbal metal is not a drum head
