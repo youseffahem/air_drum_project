@@ -181,3 +181,12 @@ All runs: 2026-09-21, 02:40–03:20 local time, night; room lighting not set or 
 - The 1280×720 modes were measured but not chosen; the 848×480 / 960×540 MJPG modes on DSHOW were only probed (§2), not measured for 60 s — a Phase 03 option if 640×480 proves too coarse.
 - Exposure values are backend-specific integers on a log2 scale; the profile does not claim absolute exposure times beyond the DirectShow convention (2^value s).
 - The development runs were taken on a dirty git tree (the code under test). The baseline-mode FPS cells (640×480 @30, both backends) were re-run on the committed tree with `git_dirty: false` (§3, C-3) and are the citable ones; the 60 FPS attempt, the 720p cells, the auto-exposure cells, the exposure inspection and the flash-latency runs were **not** re-run on the clean tree and remain dirty-tree MEASURED evidence for this phase's engineering decisions (integrity I-11; re-run before any thesis citation).
+
+## 11. Native 1280x720 capture for app.play (2026-10-16, ADR-0047)
+
+Development evidence: [`perf/camera-quality-native-720p.md`](perf/camera-quality-native-720p.md).
+
+- 640x480 is the centre 960x720 window of the 1280x720 sensor image (ECC scale 1.500, x offset 159 px).
+- A DSHOW 1920x1080 request delivers 1280x720 compressed at 30.1 unique FPS with no duplicates. 1920x1080 is not supported.
+- `configs/camera/hw01-native-720p.candidate.yaml` (merged by `app.play` only) captures 1280x720 and tracks the
+  640x480 window. The baseline fragment in this profile is unchanged.

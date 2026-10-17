@@ -1,0 +1,2592 @@
+diff --git a/configs/README.md b/configs/README.md
+
+index 9a17cde..d61bd69 100644
+
+--- a/configs/README.md
+
++++ b/configs/README.md
+
+@@ -46,6 +46,9 @@ configuration still needs the selected package, reviewed budgets and a frozen ve
+
+ - `example.candidate.yaml` — schema example and test fixture (a 1.2 document since Phase 03; every number a candidate placeholder). Also the **base document** onto which fragments are merged; it carries the `hands` and `stick` blocks that `spacedrums.hands` / `spacedrums.stick` read and a real `tracking.filter` (`kalman_cv`, ADR-0016).
+
+ - `prototype.candidate.yaml` — Phase 05 full document for the playable prototype (schema 1.3, ADR-0018: HW-01 camera fragment + Phase 03 blocks + MVP-4 zones + `geometry.v_min` + rule-based `anticipator` + `commit` + `arms`); every value a playability **candidate**, none tuned on data (Task 05.6 PENDING).
+
+ - `camera/hw01-integrated-webcam.candidate.yaml` — Phase 02 camera fragment (`meta` + `camera_profile` + `roi`) for HW-01; candidate values, measured fields null until cited runs exist (docs/camera-profile-hw01-integrated-webcam.md).
+
++- `red-tip.candidate.yaml` — fragment merged only by `app.play --red-tips` (ADR-0046): the optional `product.stick_tip` block for red painted stick tips (HSV floors, blob limits, tracking gates, evidence classes; a MARKER condition). Developer candidates, not a calibration; tune with `scripts/tune_red_tips.py` (writes `red-tip.tuned.yaml`, a `product: stick_tip:` fragment) and pass it with `--stick-tip-config configs/red-tip.tuned.yaml`.
+
++- `camera/hw01-native-720p.candidate.yaml` — fragment merged by `app.play` unless `--camera standard` (ADR-0047): `camera_profile.native_capture` captures the webcam's native 1280x720 mode (DSHOW 1920x1080 request), verifies it and falls back to 640x480, and cuts the measured 640x480 window `[159, 0, 960, 720]` for tracking at 640x480. Recommended settings and troubleshooting: `docs/perf/camera-quality-native-720p.md`.
+
++  Since ADR-0048 it also carries `camera_profile.exposure.guard` (re-apply MANUAL / AUTO -> -5 when the measured rate falls below 24 FPS). `product.candidate.yaml` holds `product.preview` (display-only brightness; `app.play --preview natural|raw|legacy`). Evidence: `docs/perf/camera-brightness.md`.
+
+ 
+
+ Naming (docs/repo-layout.md section 3.1, ADR-0010): frozen, citable configs are `<component>.<variant>.v<N>.yaml` with `meta.status: frozen`; development files are `*.candidate.yaml` with `meta.status: candidate` and may not be cited by a gate record or result. Fragments: a file may carry only the blocks it owns plus `meta`; the loader merges fragments onto a base and validates the whole. A fragment's `meta.schema_version` is the version of the merged document it forms (its `meta` wins the merge), so the HW-01 fragment declares 1.2 although its own blocks are 1.1 content (ADR-0014).
+
+ 
+
+diff --git a/configs/product.candidate.yaml b/configs/product.candidate.yaml
+
+index 091684b..9162894 100644
+
+--- a/configs/product.candidate.yaml
+
++++ b/configs/product.candidate.yaml
+
+@@ -10,6 +10,16 @@ meta:
+
+ product:
+
+   enabled: true
+
+   pose_asset_id: mediapipe-pose-landmarker-full-float16-v1
+
++  # Live window only (ADR-0048): no artistic darkening, gamma toward a natural mean brightness.
+
++  # Tracking never sees these pixels. app.play --preview raw|legacy selects the camera pixels or the
+
++  # previous look (stage x0.62 + vignette, kit x0.60).
+
++  preview:
+
++    dim: 1.0
+
++    vignette: false
+
++    tone: AUTO
+
++    target_luminance: 115   # MEASURED: Windows Camera's auto exposure gives ~115-122 in the owner's room
+
++    min_gamma: 0.5
+
++    smoothing: 0.15
+
+   # Search sweep: 170/650 admitted hand-frames vs 104/650 at 5.5 x 1.6 spans.
+
+   # This is coverage on a developer replay, NOT endpoint accuracy or live acceptance.
+
+   endpoint:
+
+diff --git a/configs/schema/README.md b/configs/schema/README.md
+
+index 6f3b92c..595fdcc 100644
+
+--- a/configs/schema/README.md
+
++++ b/configs/schema/README.md
+
+@@ -21,3 +21,17 @@ Schema 1.11 (ADR-0045): optional `product` (`enabled`, `pose_asset_id`) and
+
+ fail explicitly. The product entry point performs automatic calibration before
+
+ constructing the sounding pipeline; legacy `app.main` refuses product configs.
+
+ See `configs/product.candidate.yaml`, merged after `prototype.candidate.yaml`.
+
++
+
++Still 1.11, additive (ADR-0046): optional `product.stick_tip` for red painted stick tips
+
++(`configs/red-tip.candidate.yaml`, merged by `app.play --red-tips` only). HSV floors, blob limits,
+
++tracking gates and evidence classes; cross-field rules are checked by `RedTipSettings`.
+
++Revision 2026-10-16 (still additive): `open_px`, `hue_margin_weak`, `grow_px`, `v_highlight`,
+
++`s_highlight_max`, `min_seed_px`, `min_seed_fraction`, `head_length_factor`, `head_contrast` (seed/growth
+
++hysteresis, colour share and the cap point).
+
++
+
++Still 1.11, additive (ADR-0047): optional `camera_profile.native_capture` (`request_px`, `expect_px`,
+
++`crop_px`, `min_fps`, `probe_frames`, `fallback`) and `camera_profile.controls` (verified device controls).
+
++`configs/camera/hw01-native-720p.candidate.yaml` is merged by `app.play` unless `--camera standard`.
+
++
+
++Still 1.11, additive (ADR-0048): optional `camera_profile.exposure.guard` (measured-rate exposure guard) and
+
++`product.preview` (display-only brightness: `dim`, `vignette`, `tone`, `gamma`, `target_luminance`, `min_gamma`, `smoothing`).
+
+diff --git a/configs/schema/config.schema.json b/configs/schema/config.schema.json
+
+index b7e2fb9..7c397cb 100644
+
+--- a/configs/schema/config.schema.json
+
++++ b/configs/schema/config.schema.json
+
+@@ -302,7 +302,18 @@
+
+           "type": "object", "additionalProperties": false, "required": ["mode", "value"],
+
+           "properties": {
+
+             "mode": { "type": "string", "enum": ["AUTO", "MANUAL"] },
+
+-            "value": { "type": ["number", "null"], "description": "Backend-specific exposure value when MANUAL; null when AUTO." }
+
++            "value": { "type": ["number", "null"], "description": "Backend-specific exposure value when MANUAL; null when AUTO." },
+
++            "guard": {
+
++              "type": "object", "additionalProperties": false,
+
++              "properties": {
+
++                "min_fps": { "type": "number", "exclusiveMinimum": 0, "description": "Unique-frame rate floor measured over window_s." },
+
++                "window_s": { "type": "number", "exclusiveMinimum": 0 },
+
++                "settle_s": { "type": "number", "minimum": 0, "description": "AUTO only: convergence time before the rate is judged." },
+
++                "fallback_value": { "type": ["number", "null"], "description": "AUTO: MANUAL value to switch to when the floor is not met; null = only record it." },
+
++                "max_actions": { "type": "integer", "minimum": 1 }
+
++              },
+
++              "description": "Optional, additive (1.11, ADR-0048): measured-rate exposure guard. MANUAL: re-apply the exposure when the rate falls below min_fps (another application changed it; read-back does not show it). AUTO: switch once to fallback_value when the light forces the rate below min_fps."
+
++            }
+
+           }
+
+         },
+
+         "timestamp_source": { "type": "string", "enum": ["DRIVER_MAPPED", "GRAB_RETURN"], "description": "Policy for t_capture (Phase 02, Task 02.2)." },
+
+@@ -324,7 +335,23 @@
+
+             "drop_policy": { "type": "string", "enum": ["DROP_OLDEST"], "description": "Only policy allowed by the architecture (latency never accumulates). Drops are counted in FrameSample.dropped_since_last." },
+
+             "stall_factor": { "type": "number", "exclusiveMinimum": 1, "description": "A stall is flagged when no frame arrives for > stall_factor x expected interval (tunable)." }
+
+           }
+
+-        }
+
++        },
+
++        "native_capture": {
+
++          "type": "object", "additionalProperties": false, "required": ["request_px", "expect_px", "crop_px"],
+
++          "properties": {
+
++            "request_px": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2, "description": "[width, height] REQUESTED from the driver to reach the native mode (on HW-01 DSHOW, 1920x1080 negotiates 1280x720 compressed at 30 FPS; a 1280x720 request gives YUY2 at 10 FPS)." },
+
++            "expect_px": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2, "description": "[width, height] the delivered frames must have; verified on the frames themselves, not on driver properties." },
+
++            "crop_px": { "type": "array", "items": { "type": "integer", "minimum": 0 }, "minItems": 4, "maxItems": 4, "description": "[x, y, w, h] window of the native frame that is the tracking field of view; area-downscaled to resolution_px. Must fit expect_px, be at least resolution_px and have its aspect ratio." },
+
++            "min_fps": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "Unique-frame rate the open probe must reach under MANUAL exposure; null = no rate check." },
+
++            "probe_frames": { "type": "integer", "minimum": 2, "description": "Frames read to verify size and rate before streaming." },
+
++            "fallback": { "type": "string", "enum": ["STANDARD", "FAIL"], "description": "STANDARD = reopen at resolution_px and record why; FAIL = refuse to start." }
+
++          },
+
++          "description": "Optional, additive (1.11, ADR-0047): capture the native sensor mode, keep tracking at resolution_px with an unchanged field of view and keep the native window for display. Absent = capture resolution_px directly."
+
++        },
+
++        "controls": {
+
++          "type": "object", "additionalProperties": false, "properties": { "GAIN": { "type": "number" }, "BRIGHTNESS": { "type": "number" }, "CONTRAST": { "type": "number" }, "SATURATION": { "type": "number" }, "SHARPNESS": { "type": "number" }, "GAMMA": { "type": "number" }, "BACKLIGHT": { "type": "number" }, "AUTO_WB": { "type": "number" }, "WB_TEMPERATURE": { "type": "number" }, "AUTOFOCUS": { "type": "number" }, "FOCUS": { "type": "number" } },
+
++          "description": "Optional, additive (1.11, ADR-0047): device controls (cv2.CAP_PROP_<NAME>, backend-specific units) set after the stream starts, verified by read-back and restored on close. Absent = the driver keeps its values."
+
++        }
+
+       }
+
+     },
+
+ 
+
+@@ -600,7 +627,9 @@
+
+         },
+
+         "endpoint": {"type": "object", "additionalProperties": false, "properties": {"search_spans": {"type": "number", "exclusiveMinimum": 0}, "max_search_spans": {"type": "number", "exclusiveMinimum": 0}, "search_width_spans": {"type": "number", "exclusiveMinimum": 0}, "min_length_px": {"type": "number", "exclusiveMinimum": 0}, "max_angle_change_rad": {"type": "number", "exclusiveMinimum": 0}, "max_length_ratio": {"type": "number", "exclusiveMinimum": 0}, "memory_s": {"type": "number", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}}},
+
+         "stroke": {"type": "object", "additionalProperties": false, "properties": {"max_gap_s": {"type": "number", "exclusiveMinimum": 0}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "rebound": {"type": "number", "exclusiveMinimum": 0}, "downward_ratio": {"type": "number", "exclusiveMinimum": 0}, "max_speed": {"type": "number", "exclusiveMinimum": 0}, "lead_s": {"type": "number", "minimum": 0, "maximum": 0.1}}},
+
+-        "reach": {"type": "object", "additionalProperties": false, "properties": {"min_width_px": {"type": "number", "exclusiveMinimum": 0}, "min_height_px": {"type": "number", "exclusiveMinimum": 0}, "horizontal_gap_px": {"type": "number", "exclusiveMinimum": 0}, "vertical_gap_px": {"type": "number", "exclusiveMinimum": 0}, "margin_px": {"type": "number", "exclusiveMinimum": 0}, "min_strokes": {"type": "integer", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "max_gap_s": {"type": "number", "exclusiveMinimum": 0}}}
+
++        "reach": {"type": "object", "additionalProperties": false, "properties": {"min_width_px": {"type": "number", "exclusiveMinimum": 0}, "min_height_px": {"type": "number", "exclusiveMinimum": 0}, "horizontal_gap_px": {"type": "number", "exclusiveMinimum": 0}, "vertical_gap_px": {"type": "number", "exclusiveMinimum": 0}, "margin_px": {"type": "number", "exclusiveMinimum": 0}, "min_strokes": {"type": "integer", "exclusiveMinimum": 0}, "min_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "min_travel": {"type": "number", "exclusiveMinimum": 0}, "max_gap_s": {"type": "number", "exclusiveMinimum": 0}}},
+
++        "stick_tip": {"type": "object", "additionalProperties": false, "properties": {"hue_low_max": {"type": "integer", "minimum": 0, "maximum": 179}, "hue_high_min": {"type": "integer", "minimum": 1, "maximum": 180}, "s_min": {"type": "integer", "minimum": 0, "maximum": 255}, "v_min": {"type": "integer", "minimum": 0, "maximum": 255}, "s_min_weak": {"type": "integer", "minimum": 0, "maximum": 255}, "v_min_weak": {"type": "integer", "minimum": 0, "maximum": 255}, "close_px": {"type": "integer", "minimum": 0, "maximum": 31}, "merge_px": {"type": "number", "minimum": 0}, "min_area_px": {"type": "number", "exclusiveMinimum": 0}, "max_area_px": {"type": "number", "exclusiveMinimum": 0}, "max_elongation": {"type": "number", "minimum": 1}, "hue_margin_weak": {"type": "integer", "minimum": 0, "maximum": 89}, "open_px": {"type": "integer", "minimum": 0, "maximum": 15}, "grow_px": {"type": "integer", "minimum": 0, "maximum": 31}, "v_highlight": {"type": "integer", "minimum": 0, "maximum": 255}, "s_highlight_max": {"type": "integer", "minimum": 0, "maximum": 255}, "min_seed_px": {"type": "integer", "minimum": 1}, "min_seed_fraction": {"type": "number", "minimum": 0, "maximum": 1}, "head_length_factor": {"type": "number", "exclusiveMinimum": 0}, "head_contrast": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "reference_area_px": {"type": "number", "exclusiveMinimum": 0}, "dark_paint": {"type": "boolean"}, "dark_hue_min": {"type": "integer", "minimum": -89, "maximum": 89}, "dark_hue_max": {"type": "integer", "minimum": -89, "maximum": 89}, "dark_s_min": {"type": "integer", "minimum": 0, "maximum": 255}, "dark_v_min": {"type": "integer", "minimum": 0, "maximum": 255}, "dark_v_max": {"type": "integer", "minimum": 0, "maximum": 255}, "dark_rg_min": {"type": "integer", "minimum": 0, "maximum": 255}, "dark_hue_mean_max": {"type": "number"}, "dark_rb_mean_max": {"type": "number"}, "dark_s_mean_min": {"type": "number"}, "dark_v_mean_min": {"type": "number"}, "dark_min_area_px": {"type": "number", "exclusiveMinimum": 0}, "dark_max_area_px": {"type": "number", "exclusiveMinimum": 0}, "dark_max_elongation": {"type": "number", "minimum": 1}, "dark_birth_surround": {"type": "number", "minimum": 0, "maximum": 1}, "dark_birth_frames": {"type": "integer", "minimum": 1}, "dark_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "ignore_regions": {"type": "array", "items": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number", "minimum": 0, "maximum": 1}}}, "max_tracks": {"type": "integer", "minimum": 2, "maximum": 8}, "birth_frames": {"type": "integer", "minimum": 1}, "gate_px": {"type": "number", "exclusiveMinimum": 0}, "gate_speed_gain": {"type": "number", "minimum": 0}, "gate_growth_px_s": {"type": "number", "minimum": 0}, "gate_max_px": {"type": "number", "exclusiveMinimum": 0}, "max_predict_s": {"type": "number", "minimum": 0}, "max_coast_s": {"type": "number", "minimum": 0}, "velocity_alpha": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "ambiguity_margin": {"type": "number", "minimum": 0}, "reset_after_ambiguity": {"type": "boolean"}, "max_weak_frames": {"type": "integer", "minimum": 0}, "static_window_s": {"type": "number", "exclusiveMinimum": 0}, "move_px": {"type": "number", "exclusiveMinimum": 0}, "observed_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "weak_confidence": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "hand_assist": {"type": "boolean"}, "hand_reach_spans": {"type": "number", "exclusiveMinimum": 0}}, "description": "Optional, additive (1.11): red painted stick tips for app.play --red-tips (configs/red-tip.candidate.yaml), a coloured MARKER condition (integrity I-7). OpenCV HSV units, ROI pixels and seconds; cross-field rules are checked by spacedrums.stick.red_tip.RedTipSettings. Seed/growth hysteresis, colour share and cap-point keys added 2026-10-16 (revision 2)."},
+
++        "preview": {"type": "object", "additionalProperties": false, "properties": {"dim": {"type": ["number", "null"], "exclusiveMinimum": 0, "maximum": 1}, "vignette": {"type": "boolean"}, "tone": {"type": "string", "enum": ["OFF", "GAMMA", "AUTO"]}, "gamma": {"type": "number", "exclusiveMinimum": 0, "maximum": 3}, "target_luminance": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 255}, "min_gamma": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "smoothing": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}}, "description": "Optional, additive (1.11, ADR-0048): live-window brightness for app.play, display only (tracking never sees it). dim null = each view's legacy darkening; tone AUTO = gamma toward target_luminance. app.play --preview natural|raw|legacy."}
+
+       },
+
+       "description": "1.11 ADR-0045: measured endpoints, measured stroke geometry, automatic four-pad calibration."
+
+     },
+
+diff --git a/docs/camera-profile-hw01-integrated-webcam.md b/docs/camera-profile-hw01-integrated-webcam.md
+
+index 6ef578d..dc11320 100644
+
+--- a/docs/camera-profile-hw01-integrated-webcam.md
+
++++ b/docs/camera-profile-hw01-integrated-webcam.md
+
+@@ -181,3 +181,12 @@ All runs: 2026-09-21, 02:40–03:20 local time, night; room lighting not set or
+
+ - The 1280×720 modes were measured but not chosen; the 848×480 / 960×540 MJPG modes on DSHOW were only probed (§2), not measured for 60 s — a Phase 03 option if 640×480 proves too coarse.
+
+ - Exposure values are backend-specific integers on a log2 scale; the profile does not claim absolute exposure times beyond the DirectShow convention (2^value s).
+
+ - The development runs were taken on a dirty git tree (the code under test). The baseline-mode FPS cells (640×480 @30, both backends) were re-run on the committed tree with `git_dirty: false` (§3, C-3) and are the citable ones; the 60 FPS attempt, the 720p cells, the auto-exposure cells, the exposure inspection and the flash-latency runs were **not** re-run on the clean tree and remain dirty-tree MEASURED evidence for this phase's engineering decisions (integrity I-11; re-run before any thesis citation).
+
++
+
++## 11. Native 1280x720 capture for app.play (2026-10-16, ADR-0047)
+
++
+
++Development evidence: [`perf/camera-quality-native-720p.md`](perf/camera-quality-native-720p.md).
+
++
+
++- 640x480 is the centre 960x720 window of the 1280x720 sensor image (ECC scale 1.500, x offset 159 px).
+
++- A DSHOW 1920x1080 request delivers 1280x720 compressed at 30.1 unique FPS with no duplicates. 1920x1080 is not supported.
+
++- `configs/camera/hw01-native-720p.candidate.yaml` (merged by `app.play` only) captures 1280x720 and tracks the
+
++  640x480 window. The baseline fragment in this profile is unchanged.
+
+diff --git a/docs/decisions/README.md b/docs/decisions/README.md
+
+index 1cc8308..7ed5176 100644
+
+--- a/docs/decisions/README.md
+
++++ b/docs/decisions/README.md
+
+@@ -54,5 +54,8 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
+
+ | [ADR-0044](ADR-0044-live-responsiveness.md) | Live responsiveness: loss-cause diagnostics (`app.loss_diagnosis`), one-slot capture queue in the prototype config, optional contrast-adaptive stick edges (config 1.10, not enabled), exposure kept at -6 | Queue DECIDED (pre-declared rule passed); stick option not adopted and exposure -6 kept (owner decisions; live check did not confirm -5), 2026-10-02 | 2026-10-02 | - |
+
+ 
+
+ | [ADR-0045](ADR-0045-standing-four-pad-product.md) | Standing 2x2 product candidate: measured endpoints, automatic calibration, causal stroke geometry, clean kit view, config 1.11 | Implementation candidate; physical acceptance pending | 2026-10-03 | - |
+
++| [ADR-0046](ADR-0046-red-tip-marker-stick-mode.md) | Red painted stick tips (`app.play --red-tips`): HSV tip detection, two-tip tracking, labelled MARKER, no hand model by default, predictions never strike, additive `product.stick_tip` | Implementation candidate; real-camera evidence pending | 2026-10-16 | - |
+
++| [ADR-0047](ADR-0047-native-capture-hd-preview.md) | Native 1280x720 capture (DSHOW 1920x1080 request, verified, fallback to 640x480) cut and area-downscaled to the unchanged 640x480 tracking frame; native 960x720 window for display only; `app.play --camera native` default, `--exposure` override, opt-in verified device controls | Implementation candidate; live tracking effect and flash-latency A/B pending | 2026-10-16 | - |
+
++| [ADR-0048](ADR-0048-camera-brightness.md) | Camera brightness: display-only natural preview (no stage/kit darkening, auto gamma; `--preview natural\|raw\|legacy`), measured-rate exposure guard (re-apply MANUAL, AUTO -> -5 fallback; fixes Windows Camera forcing 15 FPS), opt-in `--tracking-tone auto` for the hand model | Implementation candidate; live tracking effect pending | 2026-10-16 | - |
+
+ 
+
+-Next free number: **ADR-0046** (ADR-0043, ablation preparation, exists but is not listed above).
+
++Next free number: **ADR-0049** (ADR-0043, ablation preparation, exists but is not listed above).
+
+diff --git a/docs/user/standing-product.md b/docs/user/standing-product.md
+
+index b3b94ca..64aa8c8 100644
+
+--- a/docs/user/standing-product.md
+
++++ b/docs/user/standing-product.md
+
+@@ -148,6 +148,41 @@ Each output directory must be new. Raw/diagnostic representative PNGs,
+
+ `observations.jsonl` and `report.json` are saved locally. No profile is adopted
+
+ automatically. See [camera investigation](../reports/camera-quality-20261004.md).
+
+ 
+
++### Camera quality (native 1280x720, ADR-0047)
+
++
+
++`app.play` and the launchers capture the webcam's native 1280x720 mode by default. Tracking still gets
+
++the same 640x480 field of view, and the 960x720 window now shows real camera pixels instead of an
+
++enlarged 640x480 image. If the mode is not delivered, the console says so and the run continues at
+
++640x480. Options for one launch:
+
++
+
++```powershell
+
++.\demo-sticks-spacedrums.ps1 --camera standard   # the previous 640x480 capture, unchanged config
+
++.\demo-sticks-spacedrums.ps1 --exposure -5       # brightest exposure that keeps 30 FPS
+
++.\.venv\Scripts\python.exe scripts\camera_modes.py compare --perception hands   # A/B, no audio
+
++```
+
++
+
++Native frames are about 3.6 ms later and somewhat darker at the same exposure. Their effect on tracking
+
++is not yet measured with a player. Evidence, recommended settings and troubleshooting:
+
++[camera quality](../perf/camera-quality-native-720p.md). `camera_quality_experiment.py` above still
+
++measures the standard path.
+
++
+
++### Image brightness (ADR-0048)
+
++
+
++The window no longer darkens the camera image. A display-only gamma brightens it toward the Windows Camera
+
++level; tracking sees the camera pixels unchanged. If another camera app (for example Windows Camera) changes
+
++the exposure while SpaceDrums runs, SpaceDrums notices the slower frame rate and restores its exposure within a
+
++few seconds.
+
++
+
++```powershell
+
++.\demo-sticks-spacedrums.ps1 --preview raw     # camera pixels, no brightening
+
++.\demo-sticks-spacedrums.ps1 --preview legacy  # the previous dimmed stage look
+
++.\play-spacedrums.ps1 --exposure -5            # brightest exposure measured to keep ~30 FPS
+
++.\play-spacedrums.ps1 --exposure auto          # auto exposure; falls back to -5 if it drops below 24 FPS
+
++```
+
++
+
++`--tracking-tone auto` (fingers / visible sticks only) also brightens what the hand model sees. It is opt-in
+
++and not yet checked live. Details: [camera brightness](../perf/camera-brightness.md).
+
++
+
+ The isolated short endpoint check uses the developer configuration and never
+
+ constructs a strike decision pipeline or audio output:
+
+ 
+
+diff --git a/scripts/README.md b/scripts/README.md
+
+index 6ba91dc..caa8372 100644
+
+--- a/scripts/README.md
+
++++ b/scripts/README.md
+
+@@ -58,6 +58,10 @@ Full phase status and owner actions: `docs/gates/phase-13-gate.md`.
+
+ | `fetch_drum_samples.py` | 04 (04.6) | fetch or offline-verify the hash-pinned public-domain prerecorded TR-505 runtime bank |
+
+ | `fetch_acoustic_samples.py` | demo | build/verify the CC BY-SA acoustic Salamander Drumkit bank used by the full-kit demo (`assets/samples/acoustic-manifest.json`) |
+
+ | `preview_kit_layout.py` | demo | offline full-kit layout preview: pad coordinates, pairwise clearances and measured fingertip reach from a developer session |
+
++| `analyze_red_tips.py` | demo (ADR-0046) | offline red-tip analysis, never opens a camera/mic: `frames` (recorded frames/video/one image with `--scale`: continuity, loss gaps, rejects, tip HSV, suggested `--stick-tip-config` YAML, red objects that never move, contact sheet with cap-point crosshairs; `--labels`: real-footage accuracy against clicked tip centres: detection rate, pixel error, identity swaps), `replay-fingertips` (SYNTHETIC red tips on a fingertip session's real trajectories vs the fingertip pipeline), `synthetic` (known-truth self-test; `--small-tips` for the first version's tip size) |
+
++| `tune_red_tips.py` | demo (ADR-0046) | interactive red-tip tuning on recorded frames (trackbars, cap-point crosshairs, seed/growth masks, click for HSV) that writes `configs/red-tip.tuned.yaml`; `--label` to click true cap centres for `analyze_red_tips.py frames --labels`; `--no-window --set k=v --save` headless |
+
++| `compare_play_sessions.py` | demo (ADR-0046) | `--run MODE DIR EXPECT` blocks (e.g. fingers vs red tips, `snare=16` or `none`): correct / missed / false / wrong-zone / duplicate strikes against counted ground truth, tip continuity, logged processing and software latency |
+
++| `camera_modes.py` | camera (ADR-0047/0048) | live webcam diagnostics, no audio: `exposure` (AUTO vs fixed -7..-3 on the app path, guard off, forward+reverse: unique FPS, intervals, brightness, black/white level, noise, natural-preview brightness and gamma, optional `--perception`); `modes` (DSHOW/MSMF x 640x480/1280x720/1920x1080 x default/MJPG: requested vs advertised vs verified size, unique FPS, duplicates, interval stability, brightness, noise, detail, CPU, frame PNGs), `compare` (`app.play --camera standard` vs `native`, alternated: capture mode, FPS, drops, hand-over lag, conversion cost, CPU, display images, FOV registration) |
+
+ | `generate_sample_bank.py` | 04 (04.6) | regenerate deterministic SYNTHETIC WAV fixtures used only by tests |
+
+ | `measure_audio_latency.py` | 04 (04.7, 04.9) | self-test the detector with injected delay or attempt synchronized microphone/digital-loopback output-latency capture; rejected attempts remain PENDING |
+
+ | `measure_geometry_audio_compute.py` | 04 (04.3, 04.8) | profile geometry intersection plus scheduling on labelled SYNTHETIC trajectories |
+
+diff --git a/src/spacedrums/app/README.md b/src/spacedrums/app/README.md
+
+index 46dd51c..c5d7135 100644
+
+--- a/src/spacedrums/app/README.md
+
++++ b/src/spacedrums/app/README.md
+
+@@ -1,5 +1,30 @@
+
+ # spacedrums.app
+
+ 
+
++## Camera brightness (2026-10-16, ADR-0048)
+
++
+
++`--preview natural|raw|legacy` (display only; natural = no darkening + auto gamma), the native fragment's
+
++exposure guard (`report.json -> capture.capture_mode.exposure`), and opt-in `--tracking-tone auto` (hand model
+
++only; refused with `--red-tips`). Evidence: [`docs/perf/camera-brightness.md`](../../../docs/perf/camera-brightness.md).
+
++
+
++## Camera mode (2026-10-16, ADR-0047)
+
++
+
++`play.py --camera native` (default) merges `configs/camera/hw01-native-720p.candidate.yaml`. The webcam is
+
++captured at its native 1280x720 mode, and tracking still receives a 640x480 frame with the same field of
+
++view. Every view draws on `LiveFrameSource.preview_image` (the native 960x720 window), so the 960x720
+
++window shows it 1:1. If the mode is not delivered, the run falls back to 640x480, prints why, and records
+
++it in `report.json -> capture.capture_mode`. `--camera standard` restores the previous capture with a
+
++byte-identical config. `--exposure auto|VALUE` overrides the profile exposure for one launch. Guide:
+
++[`docs/perf/camera-quality-native-720p.md`](../../../docs/perf/camera-quality-native-720p.md).
+
++
+
++## Red painted stick tips (2026-10-16, ADR-0046)
+
++
+
++`play.py --red-tips` replaces `main.Perception` with `red_tip_perception.RedTipPerception`. The interface
+
++is the same, but it reads only colour tips (`stick.red_tip*`, a MARKER condition), and the hand model runs
+
++only with `--hand-assist`. Each frame, the play loop calls `DecisionPipeline.reset_hand` for every hand
+
++whose tip identity started or may have swapped, before `step`. The pipeline accepts `MARKER` product
+
++endpoints next to `AXIS_REFINED`; everything else in the decision path is unchanged. Guide:
+
++[`docs/perf/red-tip-stick-mode.md`](../../../docs/perf/red-tip-stick-mode.md).
+
++
+
+ ## Phase 14 calibration
+
+ 
+
+ Status: IMPLEMENTED development machinery; developer live calibration PENDING.
+
+diff --git a/src/spacedrums/app/pipeline.py b/src/spacedrums/app/pipeline.py
+
+index 18cc67a..b08f4e4 100644
+
+--- a/src/spacedrums/app/pipeline.py
+
++++ b/src/spacedrums/app/pipeline.py
+
+@@ -57,6 +57,8 @@ from spacedrums.tracking import CausalTracker, TrackerSettings
+
+ 
+
+ HANDS = (HandId.LEFT, HandId.RIGHT)
+
+ SUPPORTED_ARMS = (Arm.A, Arm.B, *MODEL_ARMS)
+
++# Product endpoints: visible stick / fingertip (AXIS_REFINED) or red painted tips (MARKER, play --red-tips).
+
++PRODUCT_TIP_METHODS = (TipMethod.AXIS_REFINED, TipMethod.MARKER)
+
+ Observations = Mapping[HandId, tuple[HandObservation, StickObservation]]
+
+ 
+
+ 
+
+@@ -298,6 +300,14 @@ class DecisionPipeline:
+
+             self.policies[arm][h].absorb_suppression(self.policies[previous][h])
+
+         self._skip_commits = True
+
+ 
+
++    def reset_hand(self, hand: HandId | str, reason: ResetReason = ResetReason.LOW_CONFIDENCE) -> None:
+
++        """External per-hand restart (e.g. a red-tip identity that started or may have swapped).
+
++
+
++        The tracker reports ``reason`` on the hand's next ``step``, which resets its stroke geometry,
+
++        commit machines and anticipator exactly like a tracker-initiated reset; refractory timers persist.
+
++        """
+
++        self.trackers[HandId(hand)].reset(reason)
+
++
+
+     def _fallback(self, reason, t):
+
+         if self.model_error is not None:
+
+             return
+
+@@ -338,13 +348,15 @@ class DecisionPipeline:
+
+                 if (e.frame_id, e.t_capture, e.hand_id) != (sample.frame_id, sample.t_capture, h):
+
+                     raise ValueError("endpoint evidence must belong to this hand and current frame")
+
+                 if e.kind == "MEASURED":
+
+-                    if (not stick.present or stick.method_id is not TipMethod.AXIS_REFINED
+
++                    if (not stick.present or stick.method_id not in PRODUCT_TIP_METHODS
+
+                             or stick.tip != e.tip or stick.axis_origin != e.origin
+
+                             or stick.tip_confidence != e.confidence):
+
+                         raise ValueError("measured evidence must match the visible endpoint observation")
+
+                 else:
+
+-                    stick = StickObservation.absent(sample.frame_id, sample.t_capture, h,
+
+-                                                    TipMethod.AXIS_REFINED)
+
++                    # Red painted tips stay labelled MARKER (integrity I-7); every other path as before.
+
++                    marker = stick.method_id is TipMethod.MARKER
+
++                    method = TipMethod.MARKER if marker else TipMethod.AXIS_REFINED
+
++                    stick = StickObservation.absent(sample.frame_id, sample.t_capture, h, method)
+
+                 accepted[h] = (hand, stick)
+
+             observations = accepted
+
+         old = self._previous_sample
+
+@@ -598,4 +610,4 @@ class DecisionPipeline:
+
+         }
+
+ 
+
+ 
+
+-__all__ = ["HANDS", "SUPPORTED_ARMS", "DecisionPipeline", "FrameResult", "HandFrame"]
+
++__all__ = ["HANDS", "PRODUCT_TIP_METHODS", "SUPPORTED_ARMS", "DecisionPipeline", "FrameResult", "HandFrame"]
+
+diff --git a/src/spacedrums/app/play.py b/src/spacedrums/app/play.py
+
+index 7970c60..cf3e61b 100644
+
+--- a/src/spacedrums/app/play.py
+
++++ b/src/spacedrums/app/play.py
+
+@@ -3,6 +3,8 @@
+
+ Automatically calibrates each launch. R retries, Esc/Q closes. Developer logs
+
+ are saved locally; raw camera images are saved only with --record-frames.
+
+ Explicit --demo selects an uncalibrated fixed guide and a diagnostic camera view.
+
++--red-tips tracks red painted stick tips by colour (a MARKER condition); --fingers
+
++plays with index fingertips; neither flag keeps the visible-stick estimator.
+
+ --check verifies assets without opening the camera or an audio stream.
+
+ No participant protocol, lock or gate is opened by this entry point.
+
+ """
+
+@@ -24,12 +26,20 @@ import numpy as np
+
+ from spacedrums.app.audio_out import AudioOutput, OutputLatency
+
+ from spacedrums.app.main import Perception
+
+ from spacedrums.app.pipeline import DecisionPipeline
+
++from spacedrums.app.red_tip_perception import RedTipPerception
+
+ from spacedrums.calib.automatic import AutomaticCalibration
+
+ from spacedrums.calib.developer_demo import DeveloperDemoLayout, check_kit_pads
+
+ from spacedrums.calib.reach import ReachSettings
+
+-from spacedrums.capture import CaptureSettings, LiveFrameSource, OpenCvCamera, ReplayFrameSource, Roi
+
+-from spacedrums.config import config_hash, load_config, validate
+
+-from spacedrums.contracts import Arm, ImageRef
+
++from spacedrums.capture import (
+
++    CaptureSettings,
+
++    LiveFrameSource,
+
++    OpenCvCamera,
+
++    ReplayFrameSource,
+
++    Roi,
+
++    crop_roi,
+
++)
+
++from spacedrums.config import config_hash, load_config, load_yaml, validate
+
++from spacedrums.contracts import Arm, FrameView, ImageRef
+
+ from spacedrums.contracts.schema import validator
+
+ from spacedrums.geometry import ZoneRegistry
+
+ from spacedrums.geometry.kit_layout import load_pads
+
+@@ -38,7 +48,8 @@ from spacedrums.timing import now, process_cpu_seconds, wall_clock_iso
+
+ from spacedrums.ui.developer_demo import DemoOverlay
+
+ from spacedrums.ui.kit import render_kit
+
+ from spacedrums.ui.layout_preview import LayoutPreview
+
+-from spacedrums.ui.stage import StageRenderer
+
++from spacedrums.ui.preview_tone import PRESETS, PreviewSettings, PreviewTone
+
++from spacedrums.ui.stage import DIM, StageRenderer
+
+ 
+
+ ROOT = Path(__file__).resolve().parents[3]
+
+ 
+
+@@ -51,13 +62,61 @@ def distribution(values):
+
+     )
+
+ 
+
+ 
+
+-def play_config(*, demo=False, delegate="CPU", kit="four", exclusive=False, kit_layout=None):
+
++def stick_tip_override(path):
+
++    """A tuned ``product: stick_tip:`` fragment (scripts/analyze_red_tips.py); nothing else may change."""
+
++    doc = load_yaml(path)
+
++    if not isinstance(doc, dict) or set(doc) != {"product"} or not isinstance(doc["product"], dict) \
+
++            or set(doc["product"]) != {"stick_tip"}:
+
++        raise ValueError(f"{path}: a stick-tip override contains only product: stick_tip: ...")
+
++    return Path(path)
+
++
+
++
+
++def exposure_override(text):
+
++    """``--exposure``: ``auto`` or a backend exposure value (DirectShow log2 seconds, e.g. -5)."""
+
++    if text.strip().lower() == "auto":
+
++        return {"mode": "AUTO", "value": None}
+
++    return {"mode": "MANUAL", "value": float(text)}
+
++
+
++
+
++def display_roi(roi, scale):
+
++    """The tracking ROI in the pixels of a display image ``scale`` times larger."""
+
++    if scale == 1.0:
+
++        return roi
+
++    return Roi(round(roi.x * scale), round(roi.y * scale), round(roi.w * scale), round(roi.h * scale))
+
++
+
++
+
++def toned_view(view, tone):
+
++    """The tracking view through ``tone`` (opt-in ``--tracking-tone``); the recorded frame stays raw."""
+
++    full = tone(view.full)
+
++    if full is view.full:
+
++        return view
+
++    return FrameView(sample=view.sample, roi=crop_roi(full, Roi.from_rect(view.sample.roi_px)), full=full)
+
++
+
++
+
++def play_config(*, demo=False, delegate="CPU", kit="four", exclusive=False, kit_layout=None, red_tips=False,
+
++                stick_tip=None, hand_assist=False, camera="standard", exposure=None):
+
++    """``camera="native"`` merges the native-capture fragment (ADR-0047); "standard" keeps the
+
++    configuration byte-identical to the one before it existed. ``exposure`` overrides the profile."""
+
++    if camera not in ("native", "standard"):
+
++        raise ValueError(f"camera must be 'native' or 'standard', not {camera!r}")
+
+     paths = [ROOT / "configs/prototype.candidate.yaml", ROOT / "configs/product.candidate.yaml"]
+
+     if demo:
+
+         paths.append(ROOT / "configs/demo.professor.candidate.yaml")
+
+         if kit == "full":
+
+             paths.append(ROOT / "configs/demo.fullkit.candidate.yaml")
+
++    if red_tips:  # painted-tip MARKER mode only: fingertip and visible-stick configs stay byte-identical
+
++        paths.append(ROOT / "configs/red-tip.candidate.yaml")
+
++        if stick_tip is not None:
+
++            paths.append(stick_tip_override(stick_tip))
+
++    elif stick_tip is not None or hand_assist:
+
++        raise ValueError("stick-tip settings and hand assist apply to --red-tips only")
+
++    if camera == "native":
+
++        paths.append(ROOT / "configs/camera/hw01-native-720p.candidate.yaml")
+
+     cfg = load_config(*paths).data
+
++    if exposure is not None:
+
++        cfg["camera_profile"]["exposure"] = {**cfg["camera_profile"]["exposure"], **exposure}  # keeps a guard
+
++    if hand_assist:
+
++        cfg["product"]["stick_tip"]["hand_assist"] = True
+
+     cfg["hands"]["delegate"] = delegate
+
+     if demo and kit_layout is not None:  # a layout saved by --layout-preview replaces the configured pads
+
+         cfg["product"]["developer_demo"]["pads"] = load_pads(kit_layout)
+
+@@ -112,7 +171,10 @@ def check_assets(cfg):
+
+ def run(args):
+
+     cv2.setNumThreads(1)
+
+     cfg = play_config(demo=args.demo, delegate=args.delegate, kit=args.kit, exclusive=args.exclusive_audio,
+
+-                      kit_layout=args.kit_layout)
+
++                      kit_layout=args.kit_layout, red_tips=args.red_tips, stick_tip=args.stick_tip_config,
+
++                      hand_assist=args.hand_assist, camera=args.camera, exposure=args.exposure)
+
++    preview_settings = PreviewSettings.from_config(cfg["product"].get("preview")).preset(args.preview)
+
++    cfg["product"]["preview"] = preview_settings.to_dict()  # the record shows what the window used
+
+     if args.check:
+
+         print(json.dumps(check_assets(cfg), indent=2))
+
+         return 0
+
+@@ -149,7 +211,17 @@ def run(args):
+
+     counts = Counter()
+
+     endpoint_reasons = Counter()
+
+     demo_overlay = DemoOverlay() if args.demo and not args.no_window else None
+
+-    stage_view = StageRenderer() if args.demo and not args.no_window and args.kit == "full" else None
+
++    legacy_dim = preview_settings.dim is None  # each view's previous darkening
+
++    stage_view = None
+
++    if args.demo and not args.no_window and args.kit == "full":
+
++        stage_view = StageRenderer(dim=DIM if legacy_dim else preview_settings.dim,
+
++                                   vignette=preview_settings.vignette)
+
++    kit_dim = {"dim": 0.60, "lift": 4} if legacy_dim else {"dim": preview_settings.dim, "lift": 0}
+
++    tone = PreviewTone(preview_settings)  # display pixels only; never the tracking frame
+
++    # Opt-in, HAND/fingertip/visible-stick only (ADR-0048): the same auto gamma on the frame the hand model
+
++    # sees. Off by default; recordings keep the raw frame, so a replay with the flag reproduces it.
+
++    tracking_tone = PreviewTone(PreviewSettings.from_config(cfg["product"].get("preview")).preset("natural")
+
++                                ) if args.tracking_tone == "auto" else None
+
+     show_diagnostics = False
+
+     registry = None
+
+     preview = None
+
+@@ -181,7 +253,10 @@ def run(args):
+
+     if args.record_frames:
+
+         (directory / "frames").mkdir()
+
+     try:
+
+-        perception = Perception(cfg)
+
++        if args.red_tips:
+
++            perception = RedTipPerception(cfg)
+
++        else:
+
++            perception = Perception(cfg)
+
+         if args.fingers:
+
+             from spacedrums.stick.visible import FingertipEndpointEstimator
+
+ 
+
+@@ -199,6 +274,11 @@ def run(args):
+
+             source = LiveFrameSource(OpenCvCamera(), CaptureSettings.from_config(cfg))
+
+             mode = source.start()
+
+             source_report["negotiated"] = vars(mode)
+
++            capture_mode = source.capture_report()
+
++            source_report["capture_mode"] = capture_mode
+
++            if capture_mode["mode"] == "STANDARD_FALLBACK":
+
++                print(json.dumps({"camera": "native mode not delivered; using the standard mode",
+
++                                  "reason": capture_mode["rejected"]}), flush=True)
+
+ 
+
+             def live_samples():
+
+                 last_frame = now()
+
+@@ -240,11 +320,14 @@ def run(args):
+
+                 frame_records.write(json.dumps(saved.to_dict()) + "\n")
+
+                 metrics["frame_recording_ms"].append((now() - recording_started) * 1000)
+
+             perception_started = now()
+
+-            observations = perception(view)
+
++            observations = perception(toned_view(view, tracking_tone) if tracking_tone else view)
+
+             evidence = perception.estimator.evidence
+
++            tips = perception.estimator.frame if args.red_tips else None
+
+             endpoint_reasons.update(e.reason for e in evidence.values())
+
+             metrics["hand_inference_ms"].append(perception.last_hands.processing_s * 1000)
+
+             metrics["perception_ms"].append((now() - perception_started) * 1000)
+
++            if tips is not None:
+
++                metrics["red_tip_ms"].append(tips.ms)
+
+             if calibration.state == "STAND" and sample.t_capture - last_pose >= 0.2:
+
+                 body = pose.detect(view)
+
+                 last_pose = sample.t_capture
+
+@@ -253,6 +336,8 @@ def run(args):
+
+             result = None
+
+             if pipeline is not None:
+
+                 decision_time = None if not args.replay else sample.t_frame_available + (now() - begin)
+
++                for hand in tips.resets if tips is not None else ():
+
++                    pipeline.reset_hand(hand)  # a new or possibly swapped tip identity restarts its strokes
+
+                 result = pipeline.step(
+
+                     sample,
+
+                     observations,
+
+@@ -294,6 +379,7 @@ def run(args):
+
+                         "hands": [o.to_dict() for o, s in observations.values()],
+
+                         "endpoints": [e.to_dict() for e in evidence.values()],
+
+                         "sticks": [s.to_dict() for o, s in observations.values()],
+
++                        **({"red_tip": tips.to_record()} if tips is not None else {}),
+
+                         "commits": [c.to_dict() for c in cal_commits],
+
+                         "audio_events": [e.to_dict() for e in result.audio] if result else [],
+
+                         "audio_device_state": audio.device_state if audio else "NOT_STARTED",
+
+@@ -314,21 +400,30 @@ def run(args):
+
+                 render_started = now()
+
+                 zones = calibration.zones or calibration.guide_zones
+
+                 display_registry = registry or (ZoneRegistry.from_config(zones) if zones else None)
+
++                # Native capture: the same field of view at full sensor detail, for display only.
+
++                hires = source.preview_image(sample) if isinstance(source, LiveFrameSource) else None
+
++                scale = hires.shape[1] / view.full.shape[1] if hires is not None else 1.0
+
++                shown, shown_roi = (hires, display_roi(roi, scale)) if hires is not None else (view.full, roi)
+
++                tone_started = now()
+
++                shown = tone(shown)  # a new array; the camera and tracking frames are untouched
+
++                metrics["preview_tone_ms"].append((now() - tone_started) * 1000)
+
+                 img = stage_view.render(
+
+-                    view.full, roi, registry, evidence, result, audio=audio,
+
++                    view.full if hires is not None else shown, roi, registry, evidence, result, audio=audio,
+
+                     latency_ms=(metrics["capture_to_schedule_ms"] or [None])[-1],
+
++                    preview=shown if hires is not None else None,
+
+                 ) if stage_view and not show_diagnostics else demo_overlay.render(
+
+-                    view.full, roi, registry, evidence, result, dropped=dropped,
+
++                    shown, shown_roi, registry, evidence, result, dropped=dropped,
+
+                     perception_ms=metrics["perception_ms"][-1], audio_state=audio.device_state,
+
+-                    stroke_diagnostics=pipeline.geometry.diagnostics,
+
++                    stroke_diagnostics=pipeline.geometry.diagnostics, tip_diagnostics=tips, px_scale=scale,
+
+                 ) if demo_overlay else render_kit(
+
+-                    view.full,
+
+-                    roi,
+
++                    shown,
+
++                    shown_roi,
+
+                     display_registry,
+
+                     sticks=[s for o, s in observations.values()],
+
+                     body=calibration.body,
+
+                     message=calibration.message,
+
+                     target=calibration.target,
+
++                    **kit_dim,
+
+                 )
+
+                 if args.developer and not args.demo:
+
+                     cv2.putText(
+
+@@ -384,6 +479,8 @@ def run(args):
+
+                                 "commits_by_drum": dict(counts),
+
+                                 "audio": audio.device_state if audio else "NOT_STARTED",
+
+                                 "dropped": dropped,
+
++                                **({"red_tip": {str(h): st.state for h, st in tips.slots.items()}}
+
++                                   if tips is not None else {}),
+
+                             }
+
+                         ),
+
+                         flush=True,
+
+@@ -402,6 +499,7 @@ def run(args):
+
+                 capture=source.stats().to_dict(),
+
+                 queue=source.queue_report(),
+
+                 timestamps=source.timestamp_report(),
+
++                capture_mode=source.capture_report(),
+
+             )
+
+         audio_stats = audio.stats() if audio else None
+
+         if audio:
+
+@@ -428,6 +526,7 @@ def run(args):
+
+         ).stdout.strip()
+
+     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+
+         gpu = None
+
++    hand_model = not args.red_tips or bool(cfg["product"]["stick_tip"]["hand_assist"])
+
+     report = {
+
+         "schema_version": "1.0",
+
+         "provenance": provenance,
+
+@@ -464,6 +563,8 @@ def run(args):
+
+         "gpu_snapshot": gpu,
+
+         "latency_ms": {k: distribution(v) for k, v in metrics.items()},
+
+         "capture": source_report,
+
++        "preview": tone.report() if not args.no_window else None,
+
++        "tracking_tone": tracking_tone.report() if tracking_tone else None,
+
+         "audio": audio_stats,
+
+         "action_to_sound_ms": None,
+
+         "audio_output_latency_ms": None,
+
+@@ -473,13 +574,16 @@ def run(args):
+
+         if calibration.state == "READY"
+
+         else "CALIBRATION_INCOMPLETE",
+
+         "target_fps": 30,
+
+-        "models": {"hands": cfg["hands"]["model_asset_id"],
+
++        "models": {"hands": cfg["hands"]["model_asset_id"] if hand_model else None,
+
+                    "pose": None if args.demo else cfg["product"]["pose_asset_id"]},
+
+         "model_sha256": {
+
+-            "hands": perception.landmarker.asset.sha256 if perception else None,
+
++            "hands": perception.landmarker.asset.sha256 if perception and perception.landmarker else None,
+
+             "pose": pose.asset.sha256 if pose else None,
+
+         },
+
+     }
+
++    if args.red_tips:  # integrity I-7: painted tips are a coloured-marker condition, labelled as such
+
++        report["tip_method"] = "MARKER"
+
++        report["red_tip"] = perception.estimator.summary() if perception else None
+
+     if not args.demo:
+
+         validator("product-calibration").validate(report["calibration"])
+
+     (directory / "report.json").write_text(
+
+@@ -516,6 +620,28 @@ def main(argv=None):
+
+     p.add_argument("--exclusive-audio", action="store_true",
+
+                    help="WASAPI exclusive mode: ~5 ms output instead of ~22 ms, but other apps lose sound")
+
+     p.add_argument("--fingers", action="store_true", help="Bare hands: index fingertips act as sticks")
+
++    p.add_argument("--red-tips", action="store_true",
+
++                   help="Sticks with red painted tips: colour tracking of both tips (a MARKER condition); "
+
++                        "the hand model is not run unless --hand-assist")
+
++    p.add_argument("--hand-assist", action="store_true",
+
++                   help="--red-tips: also run the hand model to label new tips (~27 ms per frame)")
+
++    p.add_argument("--stick-tip-config", type=Path,
+
++                   help="--red-tips: YAML 'product: stick_tip:' fragment overriding the tip settings "
+
++                        "(e.g. written by scripts/analyze_red_tips.py)")
+
++    p.add_argument("--camera", choices=("native", "standard"), default="native",
+
++                   help="native (default): capture the webcam's 1280x720 mode, track the same 640x480 "
+
++                        "field of view and show it at full detail; falls back to standard if the mode is "
+
++                        "not delivered. standard: the previous 640x480 capture, byte-identical config")
+
++    p.add_argument("--preview", choices=PRESETS, default="natural",
+
++                   help="live window only: natural (default; no darkening, gamma toward a natural "
+
++                        "brightness), raw (camera pixels) or legacy (the previous dimmed look)")
+
++    p.add_argument("--tracking-tone", choices=("off", "auto"), default="off",
+
++                   help="opt-in: brighten the frames the hand model sees with the preview's auto gamma "
+
++                        "(offline: more hands found in 6 of 7 dark recordings, fewer in 1; "
+
++                        "not live-validated)")
+
++    p.add_argument("--exposure", type=exposure_override, metavar="auto|VALUE",
+
++                   help="override the camera exposure for this launch: auto, or a DirectShow log2 value "
+
++                        "(-5 = 31 ms, the longest that keeps 30 FPS on the integrated webcam)")
+
+     p.add_argument("--no-window", action="store_true")
+
+     p.add_argument("--record-frames", action="store_true")
+
+     p.add_argument("--max-seconds", type=float)
+
+@@ -532,6 +658,13 @@ def main(argv=None):
+
+         p.error("--layout-preview and --kit-layout need --demo with --kit full")
+
+     if args.layout_preview and args.no_window:
+
+         p.error("--layout-preview needs the window")
+
++    if args.red_tips and args.fingers:
+
++        p.error("--red-tips and --fingers are different tip modes; choose one")
+
++    if args.tracking_tone == "auto" and args.red_tips:
+
++        p.error("--tracking-tone auto is validated for the hand model only, "
+
++                "not for red-tip colour thresholds")
+
++    if (args.hand_assist or args.stick_tip_config) and not args.red_tips:
+
++        p.error("--hand-assist and --stick-tip-config need --red-tips")
+
+     return run(args)
+
+ 
+
+ 
+
+diff --git a/src/spacedrums/capture/README.md b/src/spacedrums/capture/README.md
+
+index e6ad7f3..a16d3a7 100644
+
+--- a/src/spacedrums/capture/README.md
+
++++ b/src/spacedrums/capture/README.md
+
+@@ -11,7 +11,11 @@
+
+ | `stats.py` | `interval_stats` (delivered FPS, jitter, gaps, stalls, histogram), `StallDetector`, `CaptureStats` |
+
+ | `source.py` | `LiveFrameSource` (`FrameSource`): capture thread -> t_capture policy -> duplicate refusal -> queue -> `FrameSample` |
+
+ | `device.py` | enumeration / mode probing through the backend (Task 02.1); values are *advertised*, never measured |
+
++| `exposure.py` | `ExposureGuard` / `ExposureWatch` (`camera_profile.exposure.guard`, ADR-0048): measured unique-FPS guard that re-applies a MANUAL exposure or replaces a too-slow AUTO with a fallback; read-back is unreliable on HW-01 |
+
++| `native.py` | `NativeCapture` (`camera_profile.native_capture`, ADR-0047): native-mode request, verification and fallback; `tracking_frame` = crop + area downscale to `resolution_px` (upscaling and aspect changes refused) |
+
+ 
+
+-Policies (docs/camera-profile-hw01-integrated-webcam.md, ADR-0013): delivered FPS is measured from `t_capture` of unique frames only; byte-identical consecutive frames are refused and counted (`CaptureStats.duplicates`); `frame_id` is assigned at delivery so neither drops nor duplicates consume ids; `t_capture <= t_frame_available` and monotone `t_capture` are enforced and any clamp is counted. No interpolation or resampling anywhere.
+
++Policies (docs/camera-profile-hw01-integrated-webcam.md, ADR-0013): delivered FPS is measured from `t_capture` of unique frames only; byte-identical consecutive frames are refused and counted (`CaptureStats.duplicates`); `frame_id` is assigned at delivery so neither drops nor duplicates consume ids; `t_capture <= t_frame_available` and monotone `t_capture` are enforced and any clamp is counted. No temporal interpolation and no upsampling anywhere; the only spatial resampling is the opt-in native-capture area downscale (ADR-0047).
+
+ 
+
+ **Phase 05:** `replay.ReplayFrameSource` — the basic replay `FrameSource` (architecture.md §12): reads a recorded session or a Phase 02/03 dev capture (`frames.jsonl` + PNG frames), reproduces `t_capture` / `t_frame_available` / `dropped_since_last` exactly and sets `timestamp_source = REPLAY` (`tests/capture/test_replay_source.py`). Promoted from the Phase 03 script helper `scripts/_devcapture.py`, which stays for the Phase 03 scripts.
+
++
+
++**ADR-0047 (2026-10-16):** optional native capture. `LiveFrameSource` opens `native_capture.request_px`, verifies the delivered frames (size on every probe frame, unique FPS >= `min_fps` under MANUAL exposure) and otherwise reopens `resolution_px` (`capture_report()["mode"] == "STANDARD_FALLBACK"`, with the reason). Delivered native frames are cut to `crop_px` and area-downscaled to `resolution_px` before `t_frame_available`; `FrameSample`s, ROI and every downstream coordinate keep the tracking size. `preview_image(sample)` returns the native-resolution window for display only. Optional `camera_profile.controls` (GAIN, BRIGHTNESS, ...) are set after the stream starts, verified by read-back (`OpenCvCamera.controls_report`) and restored on close. Diagnostics: `scripts/camera_modes.py`; evidence: `docs/perf/camera-quality-native-720p.md`.
+
+diff --git a/src/spacedrums/capture/__init__.py b/src/spacedrums/capture/__init__.py
+
+index a680427..064df76 100644
+
+--- a/src/spacedrums/capture/__init__.py
+
++++ b/src/spacedrums/capture/__init__.py
+
+@@ -14,7 +14,9 @@ from spacedrums.capture.backend import (
+
+     RawFrame,
+
+     SyntheticCamera,
+
+ )
+
++from spacedrums.capture.exposure import ExposureGuard, ExposureWatch
+
+ from spacedrums.capture.frame_queue import BoundedFrameQueue
+
++from spacedrums.capture.native import NativeCapture, NativeModeRejected, tracking_frame
+
+ from spacedrums.capture.replay import ReplayFrameSource
+
+ from spacedrums.capture.roi import (
+
+     Roi,
+
+@@ -35,10 +37,14 @@ __all__ = [
+
+     "CaptureSettings",
+
+     "CaptureStats",
+
+     "DriverTimestampMapper",
+
++    "ExposureGuard",
+
++    "ExposureWatch",
+
+     "GrabReturnStamper",
+
+     "IntervalStats",
+
+     "LinearMap",
+
+     "LiveFrameSource",
+
++    "NativeCapture",
+
++    "NativeModeRejected",
+
+     "NegotiatedMode",
+
+     "OpenCvCamera",
+
+     "RawFrame",
+
+@@ -52,4 +58,5 @@ __all__ = [
+
+     "norm_to_px_point",
+
+     "px_to_norm",
+
+     "px_to_norm_point",
+
++    "tracking_frame",
+
+ ]
+
+diff --git a/src/spacedrums/capture/backend.py b/src/spacedrums/capture/backend.py
+
+index e367ccf..123120b 100644
+
+--- a/src/spacedrums/capture/backend.py
+
++++ b/src/spacedrums/capture/backend.py
+
+@@ -19,6 +19,10 @@ OpenCV specifics learned on HW-01 (docs/camera-profile-hw01-integrated-webcam.md
+
+ * Exposure values are backend-specific: on both Windows backends the value is the DirectShow
+
+   log2 scale (``-6`` = 2**-6 s = 15.6 ms); ``AUTO_EXPOSURE`` = 0.75 (auto) / 0.25 (manual) on
+
+   DSHOW and 1 / 0 on MSMF (OpenCV convention). Read-back is unreliable on MSMF.
+
++* Other device controls (``CameraOpenSpec.controls``, ADR-0047) are opt-in: each is set once the
+
++  stream runs, read back and reported as verified only if the read-back equals the request (HW-01
+
++  DSHOW accepts GAIN 1-8 and *reports success* for nothing above 8). Changed controls are restored
+
++  to the values read at open when the camera is closed.
+
+ """
+
+ 
+
+ from __future__ import annotations
+
+@@ -48,6 +52,12 @@ class CameraOpenSpec:
+
+     pixel_format: str | None = None  # FOURCC
+
+     exposure_mode: str = "AUTO"  # AUTO | MANUAL
+
+     exposure_value: float | None = None
+
++    controls: tuple[tuple[str, float], ...] = ()  # (CONTROL name, value); empty = leave the driver's values
+
++
+
++
+
++# Device controls a profile may request (names of cv2.CAP_PROP_<NAME>); everything else is refused.
+
++CONTROLS = ("GAIN", "BRIGHTNESS", "CONTRAST", "SATURATION", "SHARPNESS", "GAMMA", "BACKLIGHT",
+
++            "AUTO_WB", "WB_TEMPERATURE", "AUTOFOCUS", "FOCUS")
+
+ 
+
+ 
+
+ @dataclass(frozen=True)
+
+@@ -129,6 +139,8 @@ class OpenCvCamera:
+
+         self._stamp_after_retrieve = False
+
+         self._grab_probe: dict[str, float] | None = None
+
+         self._blocking_probe_frames = blocking_probe_frames
+
++        self._restore_controls: list[tuple[str, float]] = []
+
++        self.controls_report: list[dict[str, Any]] = []
+
+ 
+
+     def open(self, spec: CameraOpenSpec) -> NegotiatedMode:
+
+         import cv2
+
+@@ -153,6 +165,7 @@ class OpenCvCamera:
+
+         if not ok:
+
+             raise RuntimeError("camera opened but delivered no frame")
+
+         self.apply_exposure(spec.exposure_mode, spec.exposure_value)
+
++        self.controls_report = self.apply_controls(spec.controls)
+
+         pos = cap.get(cv2.CAP_PROP_POS_MSEC)
+
+         self._pos_msec_available = pos is not None and pos > 0
+
+         self._probe_blocking()
+
+@@ -227,6 +240,28 @@ class OpenCvCamera:
+
+         result["readback_value"] = float(cap.get(cv2.CAP_PROP_EXPOSURE))
+
+         return result
+
+ 
+
++    def apply_controls(self, controls: tuple[tuple[str, float], ...]) -> list[dict[str, Any]]:
+
++        """Set each requested control; ``verified`` only when the read-back equals the request."""
+
++        import cv2
+
++
+
++        cap = self._cap
+
++        assert cap is not None
+
++        report = []
+
++        for name, value in controls:
+
++            key = name.upper()
+
++            if key not in CONTROLS:
+
++                raise ValueError(f"unknown camera control {name!r}; allowed: {CONTROLS}")
+
++            prop = getattr(cv2, "CAP_PROP_" + key)
+
++            original = float(cap.get(prop))
+
++            set_ok = bool(cap.set(prop, float(value)))
+
++            readback = float(cap.get(prop))
+
++            if set_ok and readback != original:
+
++                self._restore_controls.append((key, original))
+
++            report.append({"control": key, "requested": float(value), "original": original,
+
++                           "set_ok": set_ok, "readback": readback,
+
++                           "verified": set_ok and math.isclose(readback, float(value), abs_tol=1e-6)})
+
++        return report
+
++
+
+     def read(self) -> RawFrame | None:
+
+         import cv2
+
+ 
+
+@@ -260,6 +295,9 @@ class OpenCvCamera:
+
+         import cv2
+
+ 
+
+         if self._cap is not None:
+
++            for key, original in reversed(self._restore_controls):
+
++                self._cap.set(getattr(cv2, "CAP_PROP_" + key), original)
+
++            self._restore_controls = []
+
+             if self._restore_auto is not None:
+
+                 # leave the device in auto exposure for other applications
+
+                 self._cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, self._restore_auto)
+
+@@ -357,6 +395,7 @@ class SyntheticCamera:
+
+ 
+
+ 
+
+ __all__ = [
+
++    "CONTROLS",
+
+     "CameraBackend",
+
+     "CameraOpenSpec",
+
+     "NegotiatedMode",
+
+diff --git a/src/spacedrums/capture/source.py b/src/spacedrums/capture/source.py
+
+index 0f9747d..cdfd17d 100644
+
+--- a/src/spacedrums/capture/source.py
+
++++ b/src/spacedrums/capture/source.py
+
+@@ -26,7 +26,20 @@ frames are *not* delivered and are counted in ``CaptureStats.duplicates``; count
+
+ frames would present padded frames as native FPS (integrity I-5). ``frame_id`` is assigned only
+
+ at delivery, so neither duplicates nor dropped frames consume an id (contracts.md section 1).
+
+ 
+
+-No frame interpolation, upsampling or resampling happens anywhere in this module.
+
++No frame interpolation or upsampling happens anywhere in this module. With
+
++``camera_profile.native_capture`` (ADR-0047) the camera is opened in its native mode, the open is
+
++verified (negotiated and delivered size, unique-frame rate) and, if it fails, the standard
+
++``resolution_px`` mode is reopened (``capture_report()["mode"] == "STANDARD_FALLBACK"``). Each
+
++delivered native frame is then cut to the configured window and area-downscaled to
+
++``resolution_px`` (``capture.native.tracking_frame``) before ``t_frame_available``, so tracking keeps
+
++its geometry and the conversion cost is inside the measured hand-over; the native-resolution window
+
++is kept for display only (:meth:`LiveFrameSource.preview_image`). Duplicates are detected on the
+
++native frame.
+
++
+
++With ``camera_profile.exposure.guard`` (ADR-0048) the capture thread measures the unique-frame rate
+
++and re-applies the requested exposure (or replaces a too-slow AUTO with the fallback value) when
+
++another application or the camera changed it; see ``capture.exposure``. The action runs after the
+
++frame is queued; ``capture_report()["exposure"]`` lists every action.
+
+ """
+
+ 
+
+ from __future__ import annotations
+
+@@ -34,14 +47,16 @@ from __future__ import annotations
+
+ import threading
+
+ from collections import Counter, deque
+
+ from collections.abc import Iterator
+
+-from dataclasses import dataclass
+
++from dataclasses import dataclass, replace
+
+ from typing import Any
+
+ 
+
+ import numpy as np
+
+ 
+
+ from spacedrums import timing
+
+ from spacedrums.capture.backend import CameraBackend, CameraOpenSpec, NegotiatedMode
+
++from spacedrums.capture.exposure import ExposureGuard, ExposureWatch
+
+ from spacedrums.capture.frame_queue import BoundedFrameQueue
+
++from spacedrums.capture.native import NativeCapture, NativeModeRejected, crop_view, tracking_frame
+
+ from spacedrums.capture.roi import Roi, crop_roi
+
+ from spacedrums.capture.stats import CaptureStats, StallDetector, interval_stats
+
+ from spacedrums.capture.timestamps import DriverTimestampMapper, GrabReturnStamper
+
+@@ -63,12 +78,16 @@ class CaptureSettings:
+
+     dedupe: bool = True
+
+     warmup_frames: int = 10
+
+     mapper_warmup_n: int = 60
+
++    native: NativeCapture | None = None  # None = capture resolution_px directly (the standard mode)
+
++    exposure_guard: ExposureGuard | None = None  # None = trust the driver (the previous behaviour)
+
+ 
+
+     @classmethod
+
+     def from_config(cls, cfg: dict[str, Any], *, dedupe: bool = True) -> CaptureSettings:
+
+         cam = cfg["camera_profile"]
+
+         exp = cam["exposure"]
+
+         bias = cam.get("grab_return_bias_s")
+
++        native = cam.get("native_capture")
+
++        guard = exp.get("guard")
+
+         return cls(
+
+             camera_profile_id=cam["profile_id"],
+
+             spec=CameraOpenSpec(
+
+@@ -80,6 +99,7 @@ class CaptureSettings:
+
+                 pixel_format=cam.get("pixel_format"),
+
+                 exposure_mode=exp["mode"],
+
+                 exposure_value=exp["value"],
+
++                controls=tuple((k, float(v)) for k, v in (cam.get("controls") or {}).items()),
+
+             ),
+
+             roi=Roi.from_rect(cfg["roi"]["px"]) if cfg.get("roi") else None,
+
+             timestamp_source=TimestampSource(cam["timestamp_source"]),
+
+@@ -88,6 +108,8 @@ class CaptureSettings:
+
+             stall_factor=float(cam["queue"]["stall_factor"]),
+
+             nominal_fps=float(cam["requested_fps"]),
+
+             dedupe=dedupe,
+
++            native=NativeCapture.from_config(native) if native else None,
+
++            exposure_guard=ExposureGuard.from_config(guard) if guard else None,
+
+         )
+
+ 
+
+ 
+
+@@ -97,6 +119,7 @@ class _Pending:
+
+     t_capture: float
+
+     t_frame_available: float
+
+     source: TimestampSource
+
++    preview: np.ndarray | None = None  # native-resolution tracking window (display only)
+
+ 
+
+ 
+
+ def _same_image(a: np.ndarray, b: np.ndarray) -> bool:
+
+@@ -143,13 +166,27 @@ class LiveFrameSource:
+
+         self._cpu0 = 0.0
+
+         self._wall0 = 0.0
+
+         self._error: BaseException | None = None
+
++        self._native: NativeCapture | None = None  # set only once a native open is verified
+
++        self._capture_report: dict[str, Any] = {}
+
++        self._convert_s: deque[float] = deque(maxlen=900)  # guarded by _lock
+
++        self._preview: tuple[int, np.ndarray | None] | None = None  # consumer thread only
+
++        self._watch: ExposureWatch | None = None  # capture thread; read via capture_report()
+
+ 
+
+     # -- lifecycle -------------------------------------------------------------------------
+
+     def start(self) -> NegotiatedMode:
+
+         if self._thread is not None:
+
+             raise RuntimeError("already started")
+
+-        self.negotiated = self.camera.open(self.settings.spec)
+
+-        self._frame_size = (self.negotiated.width, self.negotiated.height)
+
++        if self.settings.native is not None:
+
++            self.negotiated = self._open_native(self.settings.native)
+
++        else:
+
++            self.negotiated = self.camera.open(self.settings.spec)
+
++            self._capture_report = {"mode": "STANDARD"}
+
++        if self._native is not None:
+
++            self._frame_size = (int(self.settings.spec.width), int(self.settings.spec.height))
+
++        else:
+
++            self._frame_size = (self.negotiated.width, self.negotiated.height)
+
++        self._capture_report["tracking_px"] = list(self._frame_size)
+
++        self._capture_report["controls"] = getattr(self.camera, "controls_report", None)
+
+         if self._roi is None:
+
+             self._roi = Roi.full_frame(*self._frame_size)
+
+         elif not self._roi.fits(*self._frame_size):
+
+@@ -162,6 +199,66 @@ class LiveFrameSource:
+
+         self._thread.start()
+
+         return self.negotiated
+
+ 
+
++    def _open_native(self, native: NativeCapture) -> NegotiatedMode:
+
++        """Open the native mode and verify it; reopen the standard mode if it is not delivered."""
+
++        spec = self.settings.spec
+
++        if not (spec.width and spec.height):
+
++            raise ValueError("native_capture needs camera_profile.resolution_px (the tracking size)")
+
++        native.check((spec.width, spec.height))
+
++        report: dict[str, Any] = {"native_capture": native.to_dict()}
+
++        try:
+
++            try:
+
++                request = replace(spec, width=native.request_px[0], height=native.request_px[1])
+
++                mode = self.camera.open(request)
+
++            except RuntimeError as exc:
+
++                raise NativeModeRejected(f"native open failed: {exc}") from exc
+
++            report["native_negotiated"] = mode.to_dict()
+
++            report["probe"] = self._probe_native(native, mode)
+
++        except NativeModeRejected as exc:
+
++            self.camera.close()
+
++            if native.fallback == "FAIL":
+
++                raise
+
++            report.update(mode="STANDARD_FALLBACK", rejected=str(exc), probe=exc.probe)
+
++            self._capture_report = report
+
++            return self.camera.open(spec)
+
++        report["mode"] = "NATIVE_CROP"
+
++        self._capture_report = report
+
++        self._native = native
+
++        return mode
+
++
+
++    def _probe_native(self, native: NativeCapture, mode: NegotiatedMode) -> dict[str, Any]:
+
++        """Read ``probe_frames`` frames: every one must have the expected size, at a unique rate
+
++        of at least ``min_fps`` when the exposure is MANUAL (under AUTO the rate follows the light
+
++        in every mode, so it cannot tell modes apart). Driver properties alone prove nothing."""
+
++        ew, eh = native.expect_px
+
++        if (mode.width, mode.height) != (ew, eh):
+
++            raise NativeModeRejected(f"driver reports {mode.width}x{mode.height}, expected {ew}x{eh}")
+
++        shapes: set[tuple[int, int]] = set()
+
++        unique_t: list[float] = []
+
++        prev: np.ndarray | None = None
+
++        read = 0
+
++        for _ in range(native.probe_frames):
+
++            raw = self.camera.read()
+
++            if raw is None:
+
++                continue
+
++            read += 1
+
++            shapes.add((raw.image.shape[1], raw.image.shape[0]))
+
++            if prev is None or not _same_image(raw.image, prev):
+
++                unique_t.append(raw.t_grab_return)
+
++            prev = raw.image
+
++        fps = (len(unique_t) - 1) / (unique_t[-1] - unique_t[0]) \
+
++            if len(unique_t) > 1 and unique_t[-1] > unique_t[0] else None
+
++        manual = self.settings.spec.exposure_mode.upper() == "MANUAL"
+
++        probe = {"frames_read": read, "unique_frames": len(unique_t), "unique_fps": fps,
+
++                 "delivered_px": sorted([list(s) for s in shapes]),
+
++                 "rate_checked": bool(native.min_fps) and manual}
+
++        if read < 2 or shapes != {(ew, eh)}:
+
++            raise NativeModeRejected(f"delivered frames {probe['delivered_px']} (read {read}), "
+
++                                     f"expected {ew}x{eh}", probe)
+
++        if probe["rate_checked"] and (fps is None or fps < native.min_fps):
+
++            raise NativeModeRejected(f"unique-frame rate {fps} below min_fps {native.min_fps}", probe)
+
++        return probe
+
++
+
+     def stop(self) -> None:
+
+         self._stop.set()
+
+         self._queue.close()
+
+@@ -225,6 +322,11 @@ class LiveFrameSource:
+
+                     s.spec.exposure_mode, s.spec.exposure_value
+
+                 )
+
+                 exposure_reapplied = True
+
++                if s.exposure_guard is not None:
+
++                    watch = ExposureWatch(s.exposure_guard, s.spec.exposure_mode, s.spec.exposure_value,
+
++                                          raw.t_grab_return)
+
++                    with self._lock:
+
++                        self._watch = watch
+
+             if self._stall is not None and self._stall.observe(raw.t_grab_return):
+
+                 with self._lock:
+
+                     self._stalled += 1
+
+@@ -245,6 +347,13 @@ class LiveFrameSource:
+
+                     src = TimestampSource.DRIVER_MAPPED
+
+             if t_cap is None:
+
+                 t_cap = self._grab.to_mono(raw.t_grab_return)
+
++            image, preview = raw.image, None
+
++            if self._native is not None:
+
++                t0 = timing.now()
+
++                preview = crop_view(raw.image, self._native.crop_px)
+
++                image = tracking_frame(raw.image, self._native.crop_px, self._frame_size)
+
++                with self._lock:
+
++                    self._convert_s.append(timing.now() - t0)
+
+             t_avail = timing.now()
+
+             clamped = 0
+
+             if t_cap > t_avail:
+
+@@ -262,7 +371,12 @@ class LiveFrameSource:
+
+                     self._driver_mapped += 1
+
+                 else:
+
+                     self._grab_return += 1
+
+-            self._queue.put(_Pending(raw.image, t_cap, t_avail, src))
+
++            self._queue.put(_Pending(image, t_cap, t_avail, src, preview))
+
++            watch = self._watch
+
++            if watch is not None:  # after the hand-over: an exposure call costs tens of ms
+
++                action = watch.observe(raw.t_grab_return, float(raw.image[::16, ::16].mean()))
+
++                if action is not None:
+
++                    self.exposure_report = self.camera.apply_exposure(*action)
+
+ 
+
+     # -- consumer side ---------------------------------------------------------------------
+
+     def next_frame(self, timeout: float | None = 1.0) -> FrameSample | None:
+
+@@ -281,6 +395,7 @@ class LiveFrameSource:
+
+         frame_id = self._next_frame_id
+
+         self._next_frame_id += 1
+
+         self._recent_t_capture.append(pending.t_capture)
+
++        self._preview = (frame_id, pending.preview)
+
+         return FrameSample(
+
+             frame_id=frame_id,
+
+             t_capture=pending.t_capture,
+
+@@ -310,6 +425,36 @@ class LiveFrameSource:
+
+             raise ValueError("sample carries no in-memory image")
+
+         return FrameView(sample=sample, roi=crop_roi(full, Roi.from_rect(sample.roi_px)), full=full)
+
+ 
+
++    def preview_image(self, sample: FrameSample) -> np.ndarray | None:
+
++        """Native-resolution image of ``sample``'s field of view, for display only.
+
++
+
++        ``None`` in the standard mode, after a fallback, or when ``sample`` is not the latest
+
++        delivered frame. It shares memory with the capture buffer: copy before drawing on it, and
+
++        never pass it to perception, calibration or a recorder (those use ``view(sample)``).
+
++        """
+
++        got = self._preview
+
++        return got[1] if got is not None and got[0] == sample.frame_id else None
+
++
+
++    def capture_report(self) -> dict[str, Any]:
+
++        """Which capture mode is running and why, the native-open probe, the device controls and
+
++        the per-frame crop/downscale cost (call from the consumer thread or after stop)."""
+
++        with self._lock:
+
++            conv = sorted(self._convert_s)
+
++        rep = dict(self._capture_report)
+
++        with self._lock:
+
++            watch = self._watch
+
++        rep["exposure"] = {"requested": {"mode": self.settings.spec.exposure_mode,
+
++                                         "value": self.settings.spec.exposure_value},
+
++                           "last_apply": self.exposure_report,
+
++                           "guard": watch.report() if watch is not None else None}
+
++        rep["conversion_ms"] = {
+
++            "frames": len(conv),
+
++            "p50": 1000 * conv[len(conv) // 2],
+
++            "p95": 1000 * conv[min(len(conv) - 1, int(0.95 * len(conv)))],
+
++            "max": 1000 * conv[-1],
+
++        } if conv else None
+
++        return rep
+
++
+
+     @property
+
+     def roi(self) -> Roi | None:
+
+         return self._roi
+
+diff --git a/src/spacedrums/stick/README.md b/src/spacedrums/stick/README.md
+
+index 34a144c..0b638a2 100644
+
+--- a/src/spacedrums/stick/README.md
+
++++ b/src/spacedrums/stick/README.md
+
+@@ -11,5 +11,9 @@
+
+ | `tip_geom.py` | 03.7 | `GEOM`: tip = grip + L·axis_dir (L in ROI-height units) |
+
+ | `tip_axis_refined.py` | 03.8 | `AXIS_REFINED`: connected-support endpoint gated vs GEOM; GEOM fallback (counted) |
+
+ | `tip_marker.py` | 03.9 | `MARKER`: HSV blob — **fallback / benchmark only**, WARNING logged, labelled everywhere (REQ-211, I-7) |
+
++| `red_tip.py` | ADR-0046 | red painted tips (`app.play --red-tips`): one HSV pass over both sides of the hue wrap; seed/growth hysteresis (paint-core seeds, opened; growth only near seeds; reflections bridge only inside the paint's hull); colour-share (`OFF_COLOUR`), area and elongation rejects with counted reasons; the **cap point** (centre of the more saturated end of a long region, so a paint run on the shaft never moves it); weak-floor re-detection of blur streaks inside a track gate. **A MARKER condition** |
+
++| `red_tip_tracker.py` | ADR-0046 | two tips: joint (Hungarian) association with bounded prediction used for gating only, two-frame birth, coasting, LEFT/RIGHT slots, adoption after a lost streak, ambiguity flags and identity resets, slot release by red objects that never move, eviction of idle low-score clutter at the track limit, no binding among more red candidates than slots until one moves |
+
++| `red_tip_estimator.py` | ADR-0046 | `MARKER` `StickObservation` + `EndpointEvidence` per hand from one pass per frame; a prediction never carries coordinates; per-frame diagnostics and session stats |
+
++| `red_tip_synthetic.py` | ADR-0046 | SYNTHETIC glossy red-tip renderer (blur, reflections, occluders, distractors; `draw_stick`: wooden shaft and mottled paint run; `REAL_CAP`: the owner photo's cap size) for tests and offline self-checks |
+
+ 
+
+ `tip_confidence ≤ handedness_score` for every method (ambiguous identity ⇒ DEGRADED downstream). Evidence: `docs/reports/phase-03-tip-benchmark.md`. Tests: `tests/stick/` (`TEST-STICK-1/2`, `TEST-CONFORM-1`). Scripts: `scripts/benchmark_tip_methods.py`, `tools/annotate_tip.py`.
+
+diff --git a/src/spacedrums/ui/README.md b/src/spacedrums/ui/README.md
+
+index abc6bfa..2f73b9a 100644
+
+--- a/src/spacedrums/ui/README.md
+
++++ b/src/spacedrums/ui/README.md
+
+@@ -49,10 +49,21 @@ imports `calib` (independent L7 siblings). Tests: `tests/ui/test_ui_wizard_views
+
+ its accent colour, spring the drum heads, wobble the cymbals, emit ripples and sparks, and feed a hit/combo
+
+ readout; fingertips leave a glowing trail and the strike edge brightens as one approaches. Everything is
+
+ display-only: `StageRenderer.to_display` is the one place that maps ROI-normalised camera coordinates to
+
+-display pixels, and it reads only committed strikes and endpoint evidence from the shared pipeline.
+
++display pixels, and it reads only committed strikes and endpoint evidence from the shared pipeline. With native capture
+
++(ADR-0047), `render(..., preview=)` takes the native 960x720 window instead of upscaling the 640x480 frame;
+
++the pad geometry is unchanged.
+
++ADR-0048: `preview_tone.PreviewTone` (display-only auto gamma) and `StageRenderer(dim=, vignette=)` /
+
++`render_kit(dim=, lift=)`; `app.play --preview natural` turns the artistic darkening off (`legacy` restores it). `DemoOverlay.render(..., px_scale=)` and `render_kit` draw on the preview
+
++with the ROI scaled by 1.5 (`app.play.display_roi`).
+
+ `D` switches to the diagnostic `DemoOverlay`; `--kit four` keeps the 2x2 guide. The renderer costs about
+
+ 4 ms per frame (`latency_ms.render_ms` in the run report).
+
+ 
+
++With `--red-tips` (ADR-0046) the diagnostic `DemoOverlay` (`D`, or the default view of `--kit four`) also
+
++draws the raw red mask (inset, mirrored like the view), accepted (yellow) and rejected (grey) blobs, each
+
++hand's track id, state and confidence (filled dot = observed; ring = predicted, never used for a hit; orange
+
++ring = seen but untrusted), strike candidates (magenta) and two HUD lines: red-tip ms, per-hand state and
+
++measured share, and each hand's current stroke reason. Without red tips the view is unchanged.
+
++
+
+ The seven pads are arranged like a drum kit seen from the player's seat (`configs/demo.fullkit.candidate.yaml`,
+
+ profile `full-kit-v2`): crash high left, ride high right, hi-hat left in front of the snare, snare low
+
+ centre-left, tom 1 above it, tom 2 right of and a little higher than tom 1, floor tom low right and largest.
+
+diff --git a/src/spacedrums/ui/developer_demo.py b/src/spacedrums/ui/developer_demo.py
+
+index ceb3fb5..e3de046 100644
+
+--- a/src/spacedrums/ui/developer_demo.py
+
++++ b/src/spacedrums/ui/developer_demo.py
+
+@@ -1,5 +1,12 @@
+
+-"""Camera diagnostics for the explicit developer demo; no event generation here."""
+
++"""Camera diagnostics for the explicit developer demo; no event generation here.
+
+ 
+
++With red painted tips (``tip_diagnostics``, app.play --red-tips) the view also shows the raw red mask
+
++(inset), accepted (yellow) and rejected (grey) blobs, each hand's track id/state/confidence (filled =
+
++observed, ring = predicted and never used for a hit), strike candidates (magenta) and per-hand stroke
+
++reasons. Without it the rendering is unchanged.
+
++"""
+
++
+
++import math
+
+ from collections import Counter, deque
+
+ 
+
+ import cv2
+
+@@ -8,6 +15,12 @@ import numpy as np
+
+ from spacedrums.contracts import HandId
+
+ from spacedrums.ui.canvas import Canvas
+
+ from spacedrums.ui.preview import mirror_preview
+
++from spacedrums.ui.theme import DEFAULT_THEME
+
++
+
++REJECT_SHORT = {"OFF_COLOUR": "OFF", "TOO_LARGE": "LARGE", "TOO_ELONGATED": "LONG"}
+
++SHORT_STATE = {"OBSERVED": "OBS", "WEAK": "WEAK", "DARK": "DARK", "AMBIGUOUS": "AMBIG", "CLIPPED": "EDGE",
+
++               "WEAK_LIMIT": "WEAK!", "PREDICTED": "PRED", "NO_TRACK": "--"}
+
++INSET = (160, 120)
+
+ 
+
+ 
+
+ def draw_status(img, lines):
+
+@@ -33,9 +46,13 @@ class DemoOverlay:
+
+         self.trails = {h: deque(maxlen=8) for h in HandId}
+
+         self.times = deque(maxlen=60)
+
+         self.last_hit = None
+
++        self.tip_frames = 0
+
++        self.tip_measured = Counter()
+
+ 
+
+     def render(self, full, roi, registry, evidence, result, *, dropped, perception_ms, audio_state,
+
+-               stroke_diagnostics, cue=None):
+
++               stroke_diagnostics, cue=None, tip_diagnostics=None, px_scale=1.0):
+
++        """``full``/``roi`` may be the native-resolution preview and the ROI scaled to it; ``px_scale``
+
++        (display / tracking pixels) then maps the red-tip tracker's ROI-pixel coordinates."""
+
+         t = result.sample.t_capture
+
+         self.times.append(t)
+
+         fps = (len(self.times) - 1) / (t - self.times[0]) if len(self.times) > 1 else 0
+
+@@ -62,6 +79,8 @@ class DemoOverlay:
+
+         elif self.last_hit is not None:
+
+             name = registry[self.last_hit].name.upper()
+
+             lines.append(f"HIT: {name} {self.counts[self.last_hit]}")
+
++        if tip_diagnostics is not None:
+
++            lines.extend(self._tip_lines(tip_diagnostics, stroke_diagnostics))
+
+         # Draw first so measured stick tips/trails and drum outlines stay visible.
+
+         draw_status(img, lines)
+
+         for zone in registry:
+
+@@ -86,4 +105,73 @@ class DemoOverlay:
+
+                 scene.line(px(a), px(b), (100, 200, 100), 1, cv2.LINE_AA)
+
+             scene.line(px(e.origin), px(e.tip), (140, 190, 225), 2, cv2.LINE_AA)
+
+             scene.circle(px(e.tip), 5, (60, 255, 100), -1, cv2.LINE_AA)
+
++        if tip_diagnostics is not None:
+
++            self._draw_tips(img, scene, roi, tip_diagnostics, result, px_scale)
+
+         return img
+
++
+
++    def _tip_lines(self, d, stroke_diagnostics):
+
++        self.tip_frames += 1
+
++        parts, strokes = [], []
+
++        for hand in HandId:
+
++            st = d.slots[hand]
+
++            self.tip_measured[hand] += st.measured
+
++            ident = f"#{st.track_id}" if st.track_id is not None else ""
+
++            share = 100 * self.tip_measured[hand] / self.tip_frames
+
++            parts.append(f"{str(hand)[0]} {SHORT_STATE[st.state]}{ident} {share:.0f}%")
+
++            reason = (stroke_diagnostics or {}).get(hand, {}).get("reason", "-")
+
++            strokes.append(f"{str(hand)[0]} {reason}")
+
++        flags = " AMBIG" if d.ambiguous else ""
+
++        flags += " RESET " + "".join(str(h)[0] for h in sorted(d.resets)) if d.resets else ""
+
++        return [f"RED {d.ms:.1f}ms | " + " | ".join(parts) + flags, "STROKE " + " | ".join(strokes)]
+
++
+
++    def _draw_tips(self, img, scene, roi, d, result, scale=1.0):
+
++        def px(p):  # tracker ROI pixels -> display ROI pixels
+
++            return round(p[0] * scale), round(p[1] * scale)
+
++
+
++        def label(p, text, color):
+
++            q = scene.point(px(p))
+
++            cv2.putText(scene.image, text, (q[0] + 9, q[1] - 9), cv2.FONT_HERSHEY_SIMPLEX, 0.38, color, 1,
+
++                        cv2.LINE_AA)
+
++
+
++        for b in d.rejected:  # grey ring + why (OFF = off colour, LARGE, LONG)
+
++            scene.circle(px(b.center), 7, (130, 130, 130), 1, cv2.LINE_AA)
+
++            label(b.center, REJECT_SHORT.get(b.reason, str(b.reason)), (150, 150, 150))
+
++        for b in d.candidates:  # ring = cap point (yellow red paint, violet dark paint + its context share)
+
++            colour = (255, 120, 200) if b.dark else (0, 220, 255)
+
++            scene.circle(px(b.center), 11, colour, 1, cv2.LINE_AA)
+
++            if b.dark and b.surround is not None:
+
++                label(b.center, f"ctx {b.surround:.2f}", colour)
+
++            if b.region_center is not None and math.dist(b.region_center, b.center) > 2:
+
++                scene.circle(px(b.region_center), 3, (160, 160, 160), -1, cv2.LINE_AA)
+
++        for hf in result.hands.values():
+
++            for c in hf.candidates:  # normalised -> already display ROI pixels
+
++                x, y = c.impact_position[0] * roi.w, c.impact_position[1] * roi.h
+
++                scene.line((round(x - 6), round(y)), (round(x + 6), round(y)), (255, 0, 255), 2, cv2.LINE_AA)
+
++                scene.line((round(x), round(y - 6)), (round(x), round(y + 6)), (255, 0, 255), 2, cv2.LINE_AA)
+
++        for hand, st in d.slots.items():
+
++            color = DEFAULT_THEME.left if hand is HandId.LEFT else DEFAULT_THEME.right
+
++            name = f"{str(hand)[0]}#{st.track_id}"
+
++            if st.measured:
+
++                scene.circle(px(st.tip), 7, color, -1, cv2.LINE_AA)
+
++                label(st.tip, f"{name} {SHORT_STATE[st.state]} {st.confidence:.2f}", color)
+
++            elif st.tip is not None:  # seen but not trusted: no stroke uses it
+
++                scene.circle(px(st.tip), 8, (0, 140, 255), 2, cv2.LINE_AA)
+
++                label(st.tip, f"{name} {SHORT_STATE[st.state]}", (0, 140, 255))
+
++            elif st.predicted is not None:  # coasting prediction: drawn, never measured
+
++                scene.circle(px(st.predicted), 9, color, 1, cv2.LINE_AA)
+
++                label(st.predicted, f"{name} PRED {st.misses}", color)
+
++        w, h = INSET
+
++        rows, cols = img.shape[:2]
+
++        if d.mask is not None and rows > h + 16 and cols > w + 16:
+
++            # INTER_AREA keeps a small blob visible after the 4x reduction; the display is mirrored.
+
++            inset = cv2.flip(cv2.resize(d.mask, INSET, interpolation=cv2.INTER_AREA), 1)
+
++            y0, x0 = rows - h - 8, cols - w - 8
+
++            patch = img[y0:y0 + h, x0:x0 + w]
+
++            patch[:] = patch // 3
+
++            if d.region is not None:  # growth near seeds (dark red), seeds = paint core (red)
+
++                grown = cv2.flip(cv2.resize(d.region, INSET, interpolation=cv2.INTER_AREA), 1)
+
++                patch[grown > 0] = (40, 40, 140)
+
++            patch[inset > 0] = (60, 60, 255)
+
++            cv2.rectangle(img, (x0 - 1, y0 - 1), (x0 + w, y0 + h), (200, 200, 200), 1)
+
++            cv2.putText(img, "RED MASK", (x0 + 4, y0 + 14), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (235, 235, 235), 1,
+
++                        cv2.LINE_AA)
+
+diff --git a/src/spacedrums/ui/kit.py b/src/spacedrums/ui/kit.py
+
+index 0b59075..2a9c191 100644
+
+--- a/src/spacedrums/ui/kit.py
+
++++ b/src/spacedrums/ui/kit.py
+
+@@ -31,9 +31,12 @@ def pad_texture(width, height, cymbal):
+
+     return np.clip(base, 0, 255).astype(np.uint8)
+
+ 
+
+ 
+
+-def render_kit(full, roi, registry=None, *, sticks=(), body=None, message="", target=None, mirror=True):
+
++def render_kit(full, roi, registry=None, *, sticks=(), body=None, message="", target=None, mirror=True,
+
++               dim=0.60, lift=4):
+
++    """``dim``/``lift`` darken the camera image (``dim=1.0, lift=0`` shows it unchanged; ADR-0048)."""
+
+     img = mirror_preview(full) if mirror else full.copy()
+
+-    img = cv2.convertScaleAbs(img, alpha=0.60, beta=4)
+
++    if dim != 1.0 or lift:
+
++        img = cv2.convertScaleAbs(img, alpha=dim, beta=lift)
+
+     canvas = Canvas.for_display(img, mirror)
+
+     scene = canvas.roi(roi)
+
+     w, h = roi.w, roi.h
+
+diff --git a/src/spacedrums/ui/stage.py b/src/spacedrums/ui/stage.py
+
+index ceef46f..a1f6738 100644
+
+--- a/src/spacedrums/ui/stage.py
+
++++ b/src/spacedrums/ui/stage.py
+
+@@ -142,8 +142,12 @@ def blit(img, sprite, mask, x, y):
+
+ 
+
+ 
+
+ class StageRenderer:
+
+-    def __init__(self, scale: float = SCALE):
+
++    def __init__(self, scale: float = SCALE, dim: float = DIM, vignette: bool = True):
+
++        """``dim``/``vignette`` darken the camera image (artistic; ``product.preview``, ADR-0048).
+
++        ``dim=1.0, vignette=False`` shows the camera pixels unchanged."""
+
+         self.scale = scale
+
++        self.dim = dim
+
++        self.vignette = vignette
+
+         self.pads: dict[str, Pad] = {}
+
+         self._key = None
+
+         self._vignette = {}
+
+@@ -187,10 +191,15 @@ class StageRenderer:
+
+             h, w = shape[:2]
+
+             yy, xx = np.mgrid[0:h, 0:w]
+
+             d = np.sqrt(((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2)
+
+-            v = np.clip(1.15 - 0.45 * d**2, 0.45, 1.0) * DIM
+
++            v = np.clip(1.15 - 0.45 * d**2, 0.45, 1.0) if self.vignette else np.ones((h, w))
+
++            v = v * self.dim
+
+             self._vignette[shape] = np.repeat((v * 255).astype(np.uint8)[..., None], 3, axis=2)
+
+         return self._vignette[shape]
+
+ 
+
++    @property
+
++    def _darkens(self):
+
++        return self.vignette or self.dim < 1.0
+
++
+
+     # -- drawing -------------------------------------------------------------------------------
+
+     @staticmethod
+
+     def _panel(img, x0, y0, x1, y1, alpha=0.6):
+
+@@ -340,16 +349,27 @@ class StageRenderer:
+
+         count = f"HITS {self.total}"
+
+         self._text(img, count, (w - 14 - cv2.getTextSize(count, FONT, 0.4, 1)[0][0], h - 9), 0.4, MUTED)
+
+ 
+
+-    def render(self, full, roi, registry, evidence, result, *, audio=None, latency_ms=None):
+
++    def render(self, full, roi, registry, evidence, result, *, audio=None, latency_ms=None, preview=None):
+
++        """``preview``: the same field of view at native resolution (``LiveFrameSource.preview_image``).
+
++        When given, it replaces the 1.5x upscale of ``full``; every overlay coordinate is unchanged."""
+
+         t = result.sample.t_capture
+
+         self.times.append(t)
+
+         span = t - self.times[0]
+
+         fps = (len(self.times) - 1) / span if span > 0 else 0.0
+
+         frame_w = full.shape[1]
+
+-        small = cv2.flip(full, 1)
+
+-        cv2.multiply(small, self._vignette_for(small.shape), dst=small, scale=1 / 255)  # dim + vignette
+
+-        size = (round(small.shape[1] * self.scale), round(small.shape[0] * self.scale))
+
+-        img = cv2.resize(small, size, interpolation=cv2.INTER_LINEAR)
+
++        size = (round(full.shape[1] * self.scale), round(full.shape[0] * self.scale))
+
++        if preview is None:
+
++            small = cv2.flip(full, 1)
+
++            if self._darkens:  # dim + vignette
+
++                cv2.multiply(small, self._vignette_for(small.shape), dst=small, scale=1 / 255)
+
++            img = cv2.resize(small, size, interpolation=cv2.INTER_LINEAR)
+
++        else:
+
++            img = cv2.flip(preview, 1)
+
++            if (img.shape[1], img.shape[0]) != size:
+
++                shrink = img.shape[1] > size[0]
+
++                img = cv2.resize(img, size, interpolation=cv2.INTER_AREA if shrink else cv2.INTER_LINEAR)
+
++            if self._darkens:
+
++                cv2.multiply(img, self._vignette_for(img.shape), dst=img, scale=1 / 255)  # dim + vignette
+
+         self._layout(registry, roi, frame_w)
+
+         self._hits(result, registry, evidence, roi, frame_w, t)
+
+         self._draw_pads(img, t)
+

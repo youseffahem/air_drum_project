@@ -31,9 +31,12 @@ def pad_texture(width, height, cymbal):
     return np.clip(base, 0, 255).astype(np.uint8)
 
 
-def render_kit(full, roi, registry=None, *, sticks=(), body=None, message="", target=None, mirror=True):
+def render_kit(full, roi, registry=None, *, sticks=(), body=None, message="", target=None, mirror=True,
+               dim=0.60, lift=4):
+    """``dim``/``lift`` darken the camera image (``dim=1.0, lift=0`` shows it unchanged; ADR-0048)."""
     img = mirror_preview(full) if mirror else full.copy()
-    img = cv2.convertScaleAbs(img, alpha=0.60, beta=4)
+    if dim != 1.0 or lift:
+        img = cv2.convertScaleAbs(img, alpha=dim, beta=lift)
     canvas = Canvas.for_display(img, mirror)
     scene = canvas.roi(roi)
     w, h = roi.w, roi.h

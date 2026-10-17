@@ -1,0 +1,6 @@
+src\spacedrums\stick\visible.py:245:111: E501 Line too long (113 > 110)
+
+Found 1 error.
+
+EXIT_CODE=1
+

@@ -1,0 +1,32 @@
+{
+
+  "assets": "HASH_VERIFIED",
+
+  "hands_sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+
+  "samples": [
+
+    "salamander-crash",
+
+    "salamander-ride",
+
+    "salamander-tom1",
+
+    "salamander-tom2",
+
+    "salamander-hihat",
+
+    "salamander-snare",
+
+    "salamander-floor-tom"
+
+  ],
+
+  "camera_opened": false,
+
+  "audio_opened": false,
+
+  "live_verified": false
+
+}
+

@@ -142,8 +142,12 @@ def blit(img, sprite, mask, x, y):
 
 
 class StageRenderer:
-    def __init__(self, scale: float = SCALE):
+    def __init__(self, scale: float = SCALE, dim: float = DIM, vignette: bool = True):
+        """``dim``/``vignette`` darken the camera image (artistic; ``product.preview``, ADR-0048).
+        ``dim=1.0, vignette=False`` shows the camera pixels unchanged."""
         self.scale = scale
+        self.dim = dim
+        self.vignette = vignette
         self.pads: dict[str, Pad] = {}
         self._key = None
         self._vignette = {}
@@ -187,9 +191,14 @@ class StageRenderer:
             h, w = shape[:2]
             yy, xx = np.mgrid[0:h, 0:w]
             d = np.sqrt(((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2)
-            v = np.clip(1.15 - 0.45 * d**2, 0.45, 1.0) * DIM
+            v = np.clip(1.15 - 0.45 * d**2, 0.45, 1.0) if self.vignette else np.ones((h, w))
+            v = v * self.dim
             self._vignette[shape] = np.repeat((v * 255).astype(np.uint8)[..., None], 3, axis=2)
         return self._vignette[shape]
+
+    @property
+    def _darkens(self):
+        return self.vignette or self.dim < 1.0
 
     # -- drawing -------------------------------------------------------------------------------
     @staticmethod
@@ -340,16 +349,27 @@ class StageRenderer:
         count = f"HITS {self.total}"
         self._text(img, count, (w - 14 - cv2.getTextSize(count, FONT, 0.4, 1)[0][0], h - 9), 0.4, MUTED)
 
-    def render(self, full, roi, registry, evidence, result, *, audio=None, latency_ms=None):
+    def render(self, full, roi, registry, evidence, result, *, audio=None, latency_ms=None, preview=None):
+        """``preview``: the same field of view at native resolution (``LiveFrameSource.preview_image``).
+        When given, it replaces the 1.5x upscale of ``full``; every overlay coordinate is unchanged."""
         t = result.sample.t_capture
         self.times.append(t)
         span = t - self.times[0]
         fps = (len(self.times) - 1) / span if span > 0 else 0.0
         frame_w = full.shape[1]
-        small = cv2.flip(full, 1)
-        cv2.multiply(small, self._vignette_for(small.shape), dst=small, scale=1 / 255)  # dim + vignette
-        size = (round(small.shape[1] * self.scale), round(small.shape[0] * self.scale))
-        img = cv2.resize(small, size, interpolation=cv2.INTER_LINEAR)
+        size = (round(full.shape[1] * self.scale), round(full.shape[0] * self.scale))
+        if preview is None:
+            small = cv2.flip(full, 1)
+            if self._darkens:  # dim + vignette
+                cv2.multiply(small, self._vignette_for(small.shape), dst=small, scale=1 / 255)
+            img = cv2.resize(small, size, interpolation=cv2.INTER_LINEAR)
+        else:
+            img = cv2.flip(preview, 1)
+            if (img.shape[1], img.shape[0]) != size:
+                shrink = img.shape[1] > size[0]
+                img = cv2.resize(img, size, interpolation=cv2.INTER_AREA if shrink else cv2.INTER_LINEAR)
+            if self._darkens:
+                cv2.multiply(img, self._vignette_for(img.shape), dst=img, scale=1 / 255)  # dim + vignette
         self._layout(registry, roi, frame_w)
         self._hits(result, registry, evidence, roi, frame_w, t)
         self._draw_pads(img, t)

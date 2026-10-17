@@ -1,5 +1,30 @@
 # spacedrums.app
 
+## Camera brightness (2026-10-16, ADR-0048)
+
+`--preview natural|raw|legacy` (display only; natural = no darkening + auto gamma), the native fragment's
+exposure guard (`report.json -> capture.capture_mode.exposure`), and opt-in `--tracking-tone auto` (hand model
+only; refused with `--red-tips`). Evidence: [`docs/perf/camera-brightness.md`](../../../docs/perf/camera-brightness.md).
+
+## Camera mode (2026-10-16, ADR-0047)
+
+`play.py --camera native` (default) merges `configs/camera/hw01-native-720p.candidate.yaml`. The webcam is
+captured at its native 1280x720 mode, and tracking still receives a 640x480 frame with the same field of
+view. Every view draws on `LiveFrameSource.preview_image` (the native 960x720 window), so the 960x720
+window shows it 1:1. If the mode is not delivered, the run falls back to 640x480, prints why, and records
+it in `report.json -> capture.capture_mode`. `--camera standard` restores the previous capture with a
+byte-identical config. `--exposure auto|VALUE` overrides the profile exposure for one launch. Guide:
+[`docs/perf/camera-quality-native-720p.md`](../../../docs/perf/camera-quality-native-720p.md).
+
+## Red painted stick tips (2026-10-16, ADR-0046)
+
+`play.py --red-tips` replaces `main.Perception` with `red_tip_perception.RedTipPerception`. The interface
+is the same, but it reads only the painted tips (`stick.red_tip*`, a MARKER condition), and the hand model runs
+only with `--hand-assist`. Each frame, the play loop calls `DecisionPipeline.reset_hand` for every hand
+whose tip identity started or may have swapped, before `step`. The pipeline accepts `MARKER` product
+endpoints next to `AXIS_REFINED`; everything else in the decision path is unchanged. Guide:
+[`docs/perf/red-tip-stick-mode.md`](../../../docs/perf/red-tip-stick-mode.md).
+
 ## Phase 14 calibration
 
 Status: IMPLEMENTED development machinery; developer live calibration PENDING.

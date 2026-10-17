@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-17",
+  "pptx_sha256": "2b8dbe5f1ff831303c2e76271fccf42444aefe12a2237b45b9e26158ddf9d6cd",
+  "pptx_bytes": 443442,
+  "slides": 15,
+  "slide_previews": 15,
+  "scripts": 7,
+  "role_checks": {
+    "AI and Computer Vision": true,
+    "Strike Detection and Motion Analysis": true,
+    "Frontend and User Experience": true,
+    "Backend and Core Processing": true,
+    "Audio and Music Engine": true,
+    "Mobile Application Development": true
+  },
+  "zip_crc_check": "pass",
+  "finalizer_hash_matches": true,
+  "private_path_and_secret_pattern_scan_findings": [],
+  "scan_limit": "Limited known-pattern scan plus visual inspection; not exhaustive secret detection.",
+  "native_powerpoint_opened": false,
+  "native_powerpoint_limitation": "Computer Use stopped with Escape; no further application control attempted."
+}

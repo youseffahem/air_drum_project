@@ -1,0 +1,3217 @@
+[
+  {
+    "source": "data/dev-product/dev-product-20261003-231005-90f09808/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 0,
+    "commits_by_drum": null,
+    "live_unique_fps": 26.71936738678711,
+    "source_timeline_fps": 26.71936738678711,
+    "error": null,
+    "acceptance": "CALIBRATION_INCOMPLETE",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 23.63859999604756,
+        "p95": 38.359799997124355,
+        "max": 95.83289999864064
+      },
+      "perception_ms": {
+        "p50": 27.014999999664724,
+        "p95": 45.06857999949716,
+        "max": 114.70700000063516
+      },
+      "pose_inference_ms": {
+        "p50": 21.236800002952805,
+        "p95": 37.358574997779215,
+        "max": 59.6709000019473
+      },
+      "decision_ms": {
+        "p50": 0.0005999972927384079,
+        "p95": 0.0010000003385357559,
+        "max": 0.019599996448960155
+      },
+      "queue_age_ms": {
+        "p50": 4.691900001489557,
+        "p95": 28.64354000193998,
+        "max": 41.54489999928046
+      },
+      "capture_to_decision_ms": {
+        "p50": 38.475300003483426,
+        "p95": 72.56477999762862,
+        "max": 145.41089999693213
+      },
+      "frame_work_ms": {
+        "p50": 32.342700000299374,
+        "p95": 58.191389999046805,
+        "max": 199.74830000137445
+      }
+    },
+    "calibration_state": "STAND",
+    "red_tip_slots": null,
+    "audio_state": null,
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -6
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 2189,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261003-231045-ec97f821/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 0,
+    "commits_by_drum": null,
+    "live_unique_fps": null,
+    "source_timeline_fps": null,
+    "error": "RuntimeError: cannot open camera index 0 on backend DSHOW",
+    "acceptance": "CALIBRATION_INCOMPLETE",
+    "action_to_sound_ms": null,
+    "latency_ms": {},
+    "calibration_state": "STAND",
+    "red_tip_slots": null,
+    "audio_state": null,
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -6
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 0,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261003-231240-7f5b69d3/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 0,
+    "commits_by_drum": null,
+    "live_unique_fps": 26.33673868975493,
+    "source_timeline_fps": 26.33673868975493,
+    "error": null,
+    "acceptance": "CALIBRATION_INCOMPLETE",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 23.812999999790918,
+        "p95": 40.43651000101816,
+        "max": 63.841499999398366
+      },
+      "perception_ms": {
+        "p50": 27.101899999252055,
+        "p95": 47.551580001891125,
+        "max": 80.25800000177696
+      },
+      "pose_inference_ms": {
+        "p50": 20.65000000584405,
+        "p95": 31.479750003200024,
+        "max": 51.73219999414869
+      },
+      "decision_ms": {
+        "p50": 0.0005999972927384079,
+        "p95": 0.0010000003385357559,
+        "max": 0.02409999433439225
+      },
+      "queue_age_ms": {
+        "p50": 3.552599999238737,
+        "p95": 28.60912999967695,
+        "max": 40.04079999867827
+      },
+      "capture_to_decision_ms": {
+        "p50": 36.750500003108755,
+        "p95": 78.48178000203916,
+        "max": 110.21660000551492
+      },
+      "frame_work_ms": {
+        "p50": 31.140300001425203,
+        "p95": 62.35596500337126,
+        "max": 95.77990000252612
+      }
+    },
+    "calibration_state": "STAND",
+    "red_tip_slots": null,
+    "audio_state": null,
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -6
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 655,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261003-235503-7548897c/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 2,
+    "commits_by_drum": {
+      "snare": 0,
+      "crash_ride": 2,
+      "hihat": 0,
+      "tom1": 0
+    },
+    "live_unique_fps": 26.18793616906326,
+    "source_timeline_fps": 26.18793616906326,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 27.406900000642054,
+        "p95": 46.64589000458363,
+        "max": 178.59380000300007
+      },
+      "perception_ms": {
+        "p50": 31.71009999641683,
+        "p95": 51.22926000040024,
+        "max": 179.87790000188397
+      },
+      "decision_ms": {
+        "p50": 0.1790999958757311,
+        "p95": 0.40501000548829325,
+        "max": 7.215500001620967
+      },
+      "queue_age_ms": {
+        "p50": 6.866099996841513,
+        "p95": 28.687260005244752,
+        "max": 45.136200002161786
+      },
+      "capture_to_decision_ms": {
+        "p50": 42.62729999754811,
+        "p95": 73.80449999982375,
+        "max": 183.2663000022876
+      },
+      "frame_work_ms": {
+        "p50": 33.96844999952009,
+        "p95": 54.23262500335113,
+        "max": 183.43560000357684
+      },
+      "audio_schedule_ms": {
+        "p50": 0.1416000013705343,
+        "p95": 0.14618999703088775,
+        "max": 0.1466999965487048
+      },
+      "capture_to_schedule_ms": {
+        "p50": 54.631550003250595,
+        "p95": 65.67081500033964,
+        "max": 66.8974000000162
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -6
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 2999,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261004-014614-63d7cb87/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 7,
+    "commits_by_drum": {
+      "snare": 0,
+      "crash_ride": 6,
+      "hihat": 1,
+      "tom1": 0
+    },
+    "live_unique_fps": 21.292719817645114,
+    "source_timeline_fps": 21.292719817645114,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 34.44504999788478,
+        "p95": 55.86050000092654,
+        "max": 89.85090000351192
+      },
+      "perception_ms": {
+        "p50": 42.80490000019199,
+        "p95": 64.92611999710788,
+        "max": 120.21549999917625
+      },
+      "decision_ms": {
+        "p50": 0.22249999892665073,
+        "p95": 0.6243750027351778,
+        "max": 7.479599997168407
+      },
+      "queue_age_ms": {
+        "p50": 12.765450002916623,
+        "p95": 30.95738999982131,
+        "max": 47.68809999950463
+      },
+      "capture_to_decision_ms": {
+        "p50": 58.682050002971664,
+        "p95": 88.55113000136042,
+        "max": 140.04120000026887
+      },
+      "frame_work_ms": {
+        "p50": 45.560200000181794,
+        "p95": 68.32006000186084,
+        "max": 124.11229999997886
+      },
+      "audio_schedule_ms": {
+        "p50": 0.167500002135057,
+        "p95": 0.827119999303249,
+        "max": 1.0913000005530193
+      },
+      "capture_to_schedule_ms": {
+        "p50": 72.36310000007506,
+        "p95": 86.66829999710899,
+        "max": 89.14089999598218
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1114,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261004-014805-41a39fb6/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 1,
+    "commits_by_drum": {
+      "snare": 0,
+      "crash_ride": 1,
+      "hihat": 0,
+      "tom1": 0
+    },
+    "live_unique_fps": 18.568917111426835,
+    "source_timeline_fps": 18.568917111426835,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 38.0795000019134,
+        "p95": 58.20039999525761,
+        "max": 95.07819999998901
+      },
+      "perception_ms": {
+        "p50": 50.06429999775719,
+        "p95": 69.1616000040085,
+        "max": 104.12209999776678
+      },
+      "decision_ms": {
+        "p50": 0.3282999969087541,
+        "p95": 0.7544000036432408,
+        "max": 1.6629000019747764
+      },
+      "queue_age_ms": {
+        "p50": 14.827999999397434,
+        "p95": 30.602800004999153,
+        "max": 49.319600002490915
+      },
+      "capture_to_decision_ms": {
+        "p50": 67.42439999652561,
+        "p95": 91.75320000213105,
+        "max": 136.80390000081388
+      },
+      "frame_work_ms": {
+        "p50": 52.984350000770064,
+        "p95": 72.74220500257798,
+        "max": 165.791999999783
+      },
+      "audio_schedule_ms": {
+        "p50": 0.2629000009619631,
+        "p95": 0.2629000009619631,
+        "max": 0.2629000009619631
+      },
+      "capture_to_schedule_ms": {
+        "p50": 82.39920000050915,
+        "p95": 82.39920000050915,
+        "max": 82.39920000050915
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1521,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261007-233803-6965ae89/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 3,
+    "commits_by_drum": {
+      "snare": 0,
+      "crash_ride": 3,
+      "hihat": 0,
+      "tom1": 0
+    },
+    "live_unique_fps": 28.16509653487842,
+    "source_timeline_fps": 28.16509653487842,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 16.966700000921264,
+        "p95": 36.0216200031573,
+        "max": 63.87630000244826
+      },
+      "perception_ms": {
+        "p50": 17.24879999528639,
+        "p95": 45.16792999638711,
+        "max": 92.4207999923965
+      },
+      "decision_ms": {
+        "p50": 0.15100000018719584,
+        "p95": 0.3342600000905805,
+        "max": 5.608999999822117
+      },
+      "queue_age_ms": {
+        "p50": 0.11940000695176423,
+        "p95": 24.6223700043629,
+        "max": 43.978499990771525
+      },
+      "capture_to_decision_ms": {
+        "p50": 18.03720000316389,
+        "p95": 67.41536999761593,
+        "max": 114.04440000478644
+      },
+      "frame_work_ms": {
+        "p50": 19.331550000060815,
+        "p95": 47.68727499031229,
+        "max": 122.33260000357404
+      },
+      "audio_schedule_ms": {
+        "p50": 0.14449999434873462,
+        "p95": 0.15133999404497445,
+        "max": 0.15209999401122332
+      },
+      "capture_to_schedule_ms": {
+        "p50": 67.53820000449196,
+        "p95": 68.3104900046601,
+        "max": 68.39630000467878
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 2603,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261008-001139-1517e75a/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": "hand",
+    "tip_method": null,
+    "commits": 0,
+    "commits_by_drum": {
+      "snare": 0,
+      "crash_ride": 0,
+      "hihat": 0,
+      "tom1": 0
+    },
+    "live_unique_fps": 29.70563732103996,
+    "source_timeline_fps": 29.70563732103996,
+    "error": null,
+    "acceptance": "CALIBRATION_INCOMPLETE",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 25.68384999904083,
+        "p95": 36.53963500401005,
+        "max": 67.07679999817628
+      },
+      "perception_ms": {
+        "p50": 26.145349998841994,
+        "p95": 37.093184994591866,
+        "max": 68.02240000979509
+      },
+      "pose_inference_ms": {
+        "p50": 15.026599998236634,
+        "p95": 23.286760001792572,
+        "max": 37.86150000814814
+      },
+      "decision_ms": {
+        "p50": 0.000500003807246685,
+        "p95": 0.00100000761449337,
+        "max": 0.019000013708136976
+      },
+      "queue_age_ms": {
+        "p50": 0.1582000040798448,
+        "p95": 18.284164999931804,
+        "max": 33.397099992726
+      },
+      "capture_to_decision_ms": {
+        "p50": 29.992300005687866,
+        "p95": 51.88357000006363,
+        "max": 84.80609999969602
+      },
+      "frame_work_ms": {
+        "p50": 27.893000005860813,
+        "p95": 44.968850001168896,
+        "max": 85.7114999962505
+      }
+    },
+    "calibration_state": "STAND",
+    "red_tip_slots": null,
+    "audio_state": null,
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -6
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 828,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261010-010756-8f3e05da/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 184,
+    "commits_by_drum": {
+      "snare": 30,
+      "crash_ride": 44,
+      "hihat": 60,
+      "tom1": 50
+    },
+    "live_unique_fps": 29.55416668067261,
+    "source_timeline_fps": 29.55416668067261,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 25.699949997942895,
+        "p95": 35.79386497440279,
+        "max": 52.6143999886699
+      },
+      "perception_ms": {
+        "p50": 26.514199969824404,
+        "p95": 37.205330023425624,
+        "max": 53.02519997349009
+      },
+      "decision_ms": {
+        "p50": 0.48619997687637806,
+        "p95": 0.900769990403205,
+        "max": 1.7288999515585601
+      },
+      "queue_age_ms": {
+        "p50": 0.16174998017959297,
+        "p95": 22.578894987236705,
+        "max": 38.60600001644343
+      },
+      "capture_to_decision_ms": {
+        "p50": 28.418750007404014,
+        "p95": 55.51608497917186,
+        "max": 79.73719999426976
+      },
+      "frame_work_ms": {
+        "p50": 29.394100012723356,
+        "p95": 41.42299998784438,
+        "max": 118.31330001587048
+      },
+      "audio_schedule_ms": {
+        "p50": 0.16649998724460602,
+        "p95": 0.3402550210012123,
+        "max": 0.508400029502809
+      },
+      "capture_to_schedule_ms": {
+        "p50": 32.31414998299442,
+        "p95": 56.77764000720344,
+        "max": 74.46380000328645
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1622,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261010-010946-83d99512/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 35,
+    "commits_by_drum": {
+      "snare": 6,
+      "crash_ride": 8,
+      "hihat": 8,
+      "tom1": 13
+    },
+    "live_unique_fps": 20.39299725396271,
+    "source_timeline_fps": 20.39299725396271,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 41.140500048641115,
+        "p95": 61.86306001618503,
+        "max": 114.71049999818206
+      },
+      "perception_ms": {
+        "p50": 42.177600029390305,
+        "p95": 62.54633999196811,
+        "max": 115.2200999786146
+      },
+      "decision_ms": {
+        "p50": 0.5631999811157584,
+        "p95": 1.086320023750886,
+        "max": 2.673399983905256
+      },
+      "queue_age_ms": {
+        "p50": 16.319099988322705,
+        "p95": 30.292339978041127,
+        "max": 44.352500000968575
+      },
+      "capture_to_decision_ms": {
+        "p50": 61.82740000076592,
+        "p95": 88.86101999087259,
+        "max": 116.22890003491193
+      },
+      "frame_work_ms": {
+        "p50": 46.01079999702051,
+        "p95": 68.34172502567526,
+        "max": 132.33160000527278
+      },
+      "audio_schedule_ms": {
+        "p50": 0.17389998538419604,
+        "p95": 0.34710997133515764,
+        "max": 0.4697999684140086
+      },
+      "capture_to_schedule_ms": {
+        "p50": 53.48469997989014,
+        "p95": 79.37328999978489,
+        "max": 88.44249998219311
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 387,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261010-015648-5bd59cf8/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 246,
+    "commits_by_drum": {
+      "crash": 19,
+      "tom1": 50,
+      "tom2": 45,
+      "ride": 23,
+      "hihat": 41,
+      "snare": 47,
+      "floor_tom": 21
+    },
+    "live_unique_fps": 25.583592737915808,
+    "source_timeline_fps": 25.583592737915808,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 26.981150032952428,
+        "p95": 35.51089497341307,
+        "max": 64.50999999651685
+      },
+      "perception_ms": {
+        "p50": 27.818549977382645,
+        "p95": 36.47244501626115,
+        "max": 65.49519998952746
+      },
+      "decision_ms": {
+        "p50": 0.5899500101804733,
+        "p95": 1.0884050221648058,
+        "max": 2.514599997084588
+      },
+      "queue_age_ms": {
+        "p50": 15.915750002022833,
+        "p95": 30.673370001022704,
+        "max": 45.810299983713776
+      },
+      "capture_to_decision_ms": {
+        "p50": 45.479350024834275,
+        "p95": 61.749884978053124,
+        "max": 102.30349999619648
+      },
+      "capture_to_schedule_ms": {
+        "p50": 45.51149997860193,
+        "p95": 61.23800000932533,
+        "max": 77.5302000110969
+      },
+      "render_ms": {
+        "p50": 7.10719998460263,
+        "p95": 9.477945018443277,
+        "max": 86.43199998186901
+      },
+      "frame_work_ms": {
+        "p50": 37.60769998189062,
+        "p95": 47.95865999767557,
+        "max": 129.83449996681884
+      },
+      "audio_schedule_ms": {
+        "p50": 0.23530004546046257,
+        "p95": 0.4128500004298985,
+        "max": 0.7755000260658562
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 2290,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-001915-1f70da36/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 0,
+    "commits_by_drum": {
+      "hihat": 0,
+      "snare": 0,
+      "tom1": 0,
+      "crash_ride": 0
+    },
+    "live_unique_fps": 23.983128545070155,
+    "source_timeline_fps": 23.983128545070155,
+    "error": null,
+    "acceptance": "CALIBRATION_INCOMPLETE",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 29.044249968137592,
+        "p95": 44.57162498729303,
+        "max": 52.30340000707656
+      },
+      "perception_ms": {
+        "p50": 29.42814998095855,
+        "p95": 52.08035502000712,
+        "max": 61.53649999760091
+      },
+      "pose_inference_ms": {
+        "p50": 23.715000017546117,
+        "p95": 34.55275002634153,
+        "max": 42.78579994570464
+      },
+      "decision_ms": {
+        "p50": 0.000900006853044033,
+        "p95": 0.001400010660290718,
+        "max": 0.0032999087125062943
+      },
+      "queue_age_ms": {
+        "p50": 10.190050001256168,
+        "p95": 28.33945495658554,
+        "max": 44.09440001472831
+      },
+      "capture_to_decision_ms": {
+        "p50": 45.8180999266915,
+        "p95": 84.44554498419166,
+        "max": 116.76500004250556
+      },
+      "render_ms": {
+        "p50": 0.7931000436656177,
+        "p95": 1.1859249498229474,
+        "max": 40.12170003261417
+      },
+      "frame_work_ms": {
+        "p50": 34.47569999843836,
+        "p95": 69.9786200420931,
+        "max": 114.93909999262542
+      }
+    },
+    "calibration_state": "STAND",
+    "red_tip_slots": null,
+    "audio_state": null,
+    "lead_s": 0,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -6
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 260,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-002539-2bcc20ad/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 46,
+    "commits_by_drum": {
+      "crash_ride": 16,
+      "hihat": 13,
+      "snare": 3,
+      "tom1": 14
+    },
+    "live_unique_fps": 26.99549061596154,
+    "source_timeline_fps": 26.99549061596154,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 31.301399983931333,
+        "p95": 41.062604961916804,
+        "max": 60.43209997005761
+      },
+      "perception_ms": {
+        "p50": 32.20430004876107,
+        "p95": 42.11566493031569,
+        "max": 61.80480006150901
+      },
+      "decision_ms": {
+        "p50": 0.5773499724455178,
+        "p95": 1.2354149774182588,
+        "max": 2.3274000268429518
+      },
+      "queue_age_ms": {
+        "p50": 13.724049960728735,
+        "p95": 29.81328500318341,
+        "max": 41.78580001462251
+      },
+      "capture_to_decision_ms": {
+        "p50": 47.225700051058084,
+        "p95": 67.31023000902496,
+        "max": 86.80510008707643
+      },
+      "render_ms": {
+        "p50": 1.2707499554380774,
+        "p95": 3.3971699478570376,
+        "max": 35.97910003736615
+      },
+      "frame_work_ms": {
+        "p50": 36.140099982731044,
+        "p95": 47.08885997533797,
+        "max": 76.14649995230138
+      },
+      "audio_schedule_ms": {
+        "p50": 0.2130499924533069,
+        "p95": 0.4268750490155071,
+        "max": 0.6401999853551388
+      },
+      "capture_to_schedule_ms": {
+        "p50": 50.77650002203882,
+        "p95": 68.45177500508726,
+        "max": 71.80289993993938
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 350,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-002630-ee7374ad/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 0,
+    "commits_by_drum": {
+      "crash_ride": 0,
+      "hihat": 0,
+      "snare": 0,
+      "tom1": 0
+    },
+    "live_unique_fps": 28.628190379102595,
+    "source_timeline_fps": 28.628190379102595,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 25.168999971356243,
+        "p95": 40.72906994842925,
+        "max": 48.50750009063631
+      },
+      "perception_ms": {
+        "p50": 25.555850006639957,
+        "p95": 41.152960003819324,
+        "max": 49.00160001125187
+      },
+      "decision_ms": {
+        "p50": 0.25895005092024803,
+        "p95": 0.5203100387006998,
+        "max": 1.2546000070869923
+      },
+      "queue_age_ms": {
+        "p50": 1.821399957407266,
+        "p95": 26.151535019744188,
+        "max": 30.96700005698949
+      },
+      "capture_to_decision_ms": {
+        "p50": 32.622599974274635,
+        "p95": 58.362489950377494,
+        "max": 62.00389994774014
+      },
+      "render_ms": {
+        "p50": 1.1282999766990542,
+        "p95": 3.3148700138553977,
+        "max": 27.508400031365454
+      },
+      "frame_work_ms": {
+        "p50": 29.382599983364344,
+        "p95": 46.96253989823162,
+        "max": 71.17240002844483
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 44,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-003025-66fbf03b/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 118,
+    "commits_by_drum": {
+      "crash": 17,
+      "ride": 7,
+      "tom1": 35,
+      "tom2": 20,
+      "hihat": 12,
+      "snare": 13,
+      "floor_tom": 14
+    },
+    "live_unique_fps": 28.34079698439181,
+    "source_timeline_fps": 28.34079698439181,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 17.792950035072863,
+        "p95": 32.20407993067056,
+        "max": 52.51189996488392
+      },
+      "perception_ms": {
+        "p50": 18.103650014381856,
+        "p95": 32.72841998259537,
+        "max": 53.50709997583181
+      },
+      "decision_ms": {
+        "p50": 0.1727000344544649,
+        "p95": 0.6639800325501706,
+        "max": 1.703200046904385
+      },
+      "queue_age_ms": {
+        "p50": 0.13619998935610056,
+        "p95": 26.657954958500337,
+        "max": 41.36069992091507
+      },
+      "capture_to_decision_ms": {
+        "p50": 19.401750003453344,
+        "p95": 58.19695006357506,
+        "max": 89.24010000191629
+      },
+      "capture_to_schedule_ms": {
+        "p50": 49.304649990517646,
+        "p95": 60.81993995467201,
+        "max": 81.31619996856898
+      },
+      "render_ms": {
+        "p50": 6.151699984911829,
+        "p95": 9.211815061280502,
+        "max": 67.2174000646919
+      },
+      "frame_work_ms": {
+        "p50": 26.575799915008247,
+        "p95": 43.209550029132515,
+        "max": 105.66619993187487
+      },
+      "audio_schedule_ms": {
+        "p50": 0.17799995839595795,
+        "p95": 0.33512497320771195,
+        "max": 0.5317999748513103
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 4564,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-003327-975be6cd/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 178,
+    "commits_by_drum": {
+      "crash": 19,
+      "ride": 18,
+      "tom1": 38,
+      "tom2": 37,
+      "hihat": 12,
+      "snare": 33,
+      "floor_tom": 21
+    },
+    "live_unique_fps": 25.104927414148705,
+    "source_timeline_fps": 25.104927414148705,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 26.30170003976673,
+        "p95": 36.5653200307861,
+        "max": 80.53030003793538
+      },
+      "perception_ms": {
+        "p50": 27.09270000923425,
+        "p95": 37.546340026892715,
+        "max": 81.5005999756977
+      },
+      "decision_ms": {
+        "p50": 0.606900081038475,
+        "p95": 1.2236200040206313,
+        "max": 3.53520002681762
+      },
+      "queue_age_ms": {
+        "p50": 13.872699928469956,
+        "p95": 30.53278001025319,
+        "max": 44.9949000030756
+      },
+      "capture_to_decision_ms": {
+        "p50": 43.102300027385354,
+        "p95": 61.20658002328126,
+        "max": 100.98170000128448
+      },
+      "capture_to_schedule_ms": {
+        "p50": 46.494350011926144,
+        "p95": 60.67562000826002,
+        "max": 68.71060002595186
+      },
+      "render_ms": {
+        "p50": 8.69859999511391,
+        "p95": 11.699060001410542,
+        "max": 75.35429997369647
+      },
+      "frame_work_ms": {
+        "p50": 38.9342000707984,
+        "p95": 50.240890076383934,
+        "max": 116.91670003347099
+      },
+      "audio_schedule_ms": {
+        "p50": 0.23609999334439635,
+        "p95": 0.5325249803718181,
+        "max": 0.6906000198796391
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1073,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-004503-5b22ce86/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 168,
+    "commits_by_drum": {
+      "crash": 27,
+      "ride": 28,
+      "tom1": 37,
+      "tom2": 46,
+      "hihat": 7,
+      "snare": 14,
+      "floor_tom": 9
+    },
+    "live_unique_fps": 24.901674633089335,
+    "source_timeline_fps": 24.901674633089335,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 26.476699975319207,
+        "p95": 36.20645003393294,
+        "max": 56.560699944384396
+      },
+      "perception_ms": {
+        "p50": 27.307750075124204,
+        "p95": 37.32288998435252,
+        "max": 57.66980000771582
+      },
+      "decision_ms": {
+        "p50": 0.5939500406384468,
+        "p95": 1.2825399870052934,
+        "max": 97.30529994703829
+      },
+      "queue_age_ms": {
+        "p50": 12.24239997100085,
+        "p95": 30.866715003503487,
+        "max": 43.7293000286445
+      },
+      "capture_to_decision_ms": {
+        "p50": 41.876049945130944,
+        "p95": 61.83235993376002,
+        "max": 117.59170005097985
+      },
+      "capture_to_schedule_ms": {
+        "p50": 44.39230001298711,
+        "p95": 58.44676001579501,
+        "max": 72.06989999394864
+      },
+      "render_ms": {
+        "p50": 8.698649995494634,
+        "p95": 11.791889928281309,
+        "max": 147.56710000801831
+      },
+      "frame_work_ms": {
+        "p50": 39.353500003926456,
+        "p95": 50.70929997600615,
+        "max": 179.96730003505945
+      },
+      "audio_schedule_ms": {
+        "p50": 0.2316000172868371,
+        "p95": 0.5271700560115278,
+        "max": 0.9127999655902386
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1162,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-133130-6a049ca7/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 176,
+    "commits_by_drum": {
+      "crash": 15,
+      "ride": 12,
+      "tom1": 42,
+      "tom2": 32,
+      "hihat": 12,
+      "snare": 39,
+      "floor_tom": 24
+    },
+    "live_unique_fps": 24.50593484453456,
+    "source_timeline_fps": 24.50593484453456,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 27.751449961215258,
+        "p95": 39.023730065673575,
+        "max": 51.687999977730215
+      },
+      "perception_ms": {
+        "p50": 28.571700036991388,
+        "p95": 39.895130001241334,
+        "max": 53.63450001459569
+      },
+      "decision_ms": {
+        "p50": 0.5278500029817224,
+        "p95": 1.0164949577301738,
+        "max": 2.925500040873885
+      },
+      "queue_age_ms": {
+        "p50": 11.858250014483929,
+        "p95": 30.282405047910284,
+        "max": 47.53610002808273
+      },
+      "capture_to_decision_ms": {
+        "p50": 43.61960000824183,
+        "p95": 64.54981503193264,
+        "max": 80.62949997838587
+      },
+      "capture_to_schedule_ms": {
+        "p50": 48.70104999281466,
+        "p95": 67.66855000751093,
+        "max": 80.50109993200749
+      },
+      "render_ms": {
+        "p50": 7.803049928043038,
+        "p95": 11.11662497860379,
+        "max": 75.18880011048168
+      },
+      "frame_work_ms": {
+        "p50": 40.010099997743964,
+        "p95": 52.20772000029684,
+        "max": 110.86880008224398
+      },
+      "audio_schedule_ms": {
+        "p50": 0.20949996542185545,
+        "p95": 0.4183000128250569,
+        "max": 0.5888999439775944
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1418,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-134001-1604cebd/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 93,
+    "commits_by_drum": {
+      "crash": 1,
+      "ride": 11,
+      "tom1": 17,
+      "tom2": 27,
+      "hihat": 9,
+      "snare": 11,
+      "floor_tom": 17
+    },
+    "live_unique_fps": 25.164273567532685,
+    "source_timeline_fps": 25.164273567532685,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 27.537349960766733,
+        "p95": 41.78969998611137,
+        "max": 69.15620004292578
+      },
+      "perception_ms": {
+        "p50": 28.309699962846935,
+        "p95": 42.55687506520189,
+        "max": 70.04679995588958
+      },
+      "decision_ms": {
+        "p50": 0.4631499759852886,
+        "p95": 0.862625049194321,
+        "max": 2.3050999734550714
+      },
+      "queue_age_ms": {
+        "p50": 10.689549962989986,
+        "p95": 30.06160003133118,
+        "max": 44.95170002337545
+      },
+      "capture_to_decision_ms": {
+        "p50": 42.64395002974197,
+        "p95": 65.20665000425652,
+        "max": 92.61149994563311
+      },
+      "capture_to_schedule_ms": {
+        "p50": 45.8870999282226,
+        "p95": 62.41518000606447,
+        "max": 65.26619999203831
+      },
+      "render_ms": {
+        "p50": 6.91974995424971,
+        "p95": 9.61387500865385,
+        "max": 81.79869991727173
+      },
+      "frame_work_ms": {
+        "p50": 39.140400011092424,
+        "p95": 53.10817998833954,
+        "max": 114.69610000494868
+      },
+      "audio_schedule_ms": {
+        "p50": 0.22529996931552887,
+        "p95": 0.4541199654340744,
+        "max": 0.6033999379724264
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1746,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-134746-0aeeef05/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 24,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 3,
+      "tom1": 8,
+      "tom2": 7,
+      "hihat": 0,
+      "snare": 1,
+      "floor_tom": 5
+    },
+    "live_unique_fps": 30.15833755982498,
+    "source_timeline_fps": 30.15833755982498,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 3.8958999793976545,
+        "p95": 6.369200011249632,
+        "max": 28.346899896860123
+      },
+      "red_tip_ms": {
+        "p50": 3.8389000110328197,
+        "p95": 6.301499961409718,
+        "max": 28.295400086790323
+      },
+      "decision_ms": {
+        "p50": 0.526099931448698,
+        "p95": 0.9014999959617853,
+        "max": 2.81209999229759
+      },
+      "queue_age_ms": {
+        "p50": 0.09869993664324284,
+        "p95": 0.15330000314861536,
+        "max": 17.069000052288175
+      },
+      "capture_to_decision_ms": {
+        "p50": 4.692799993790686,
+        "p95": 7.535350043326616,
+        "max": 35.393500002101064
+      },
+      "capture_to_schedule_ms": {
+        "p50": 5.069750011898577,
+        "p95": 8.301810058765112,
+        "max": 9.727400029078126
+      },
+      "render_ms": {
+        "p50": 6.101400009356439,
+        "p95": 8.447599946521223,
+        "max": 66.08679995406419
+      },
+      "frame_work_ms": {
+        "p50": 12.567500001750886,
+        "p95": 17.54056002246215,
+        "max": 83.34800007287413
+      },
+      "audio_schedule_ms": {
+        "p50": 0.22149994038045406,
+        "p95": 0.3335549961775541,
+        "max": 0.6310000317171216
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 2711,
+        "measured_frames": 1772,
+        "measured_share": 0.6536333456289192,
+        "loss_rate_after_first": 0.34515890613451594,
+        "states": {
+          "NO_TRACK": 1,
+          "CLIPPED": 299,
+          "OBSERVED": 1484,
+          "AMBIGUOUS": 44,
+          "WEAK": 288,
+          "PREDICTED": 56,
+          "WEAK_LIMIT": 539
+        },
+        "gap_frames": {
+          "n": 121,
+          "p50": 2.0,
+          "p95": 30.0,
+          "max": 123.0
+        },
+        "open_gap_frames": 0,
+        "track_ids": 1
+      },
+      "RIGHT": {
+        "frames": 2711,
+        "measured_frames": 1785,
+        "measured_share": 0.6584286241239395,
+        "loss_rate_after_first": 0.3388888888888889,
+        "states": {
+          "NO_TRACK": 25,
+          "CLIPPED": 514,
+          "OBSERVED": 1582,
+          "PREDICTED": 72,
+          "AMBIGUOUS": 37,
+          "WEAK": 203,
+          "WEAK_LIMIT": 278
+        },
+        "gap_frames": {
+          "n": 133,
+          "p50": 1.0,
+          "p95": 25.59999999999988,
+          "max": 292.0
+        },
+        "open_gap_frames": 0,
+        "track_ids": 2
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 2711,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-152425-f8b7225e/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 10,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 0,
+      "tom1": 4,
+      "tom2": 3,
+      "hihat": 0,
+      "snare": 2,
+      "floor_tom": 1
+    },
+    "live_unique_fps": 20.282804209194243,
+    "source_timeline_fps": 20.282804209194243,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 4.1554500930942595,
+        "p95": 10.239625058602542,
+        "max": 27.838799986056983
+      },
+      "red_tip_ms": {
+        "p50": 4.0911000105552375,
+        "p95": 9.866724984021857,
+        "max": 27.714800089597702
+      },
+      "decision_ms": {
+        "p50": 0.39950001519173384,
+        "p95": 1.2224749953020364,
+        "max": 2.95709993224591
+      },
+      "queue_age_ms": {
+        "p50": 0.11769996490329504,
+        "p95": 0.4860250046476722,
+        "max": 41.54879995621741
+      },
+      "capture_to_decision_ms": {
+        "p50": 9.148749988526106,
+        "p95": 21.676050004316494,
+        "max": 51.00229999516159
+      },
+      "capture_to_schedule_ms": {
+        "p50": 8.59449990093708,
+        "p95": 12.212444940814748,
+        "max": 12.386999907903373
+      },
+      "render_ms": {
+        "p50": 6.278700020629913,
+        "p95": 13.944824982900172,
+        "max": 112.11029998958111
+      },
+      "frame_work_ms": {
+        "p50": 12.829100014641881,
+        "p95": 29.955190047621723,
+        "max": 137.48370006214827
+      },
+      "audio_schedule_ms": {
+        "p50": 0.21124997874721885,
+        "p95": 0.48344998504035136,
+        "max": 0.6494999397546053
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 816,
+        "measured_frames": 205,
+        "measured_share": 0.2512254901960784,
+        "loss_rate_after_first": 0.7484662576687117,
+        "states": {
+          "NO_TRACK": 125,
+          "OBSERVED": 171,
+          "WEAK": 34,
+          "PREDICTED": 33,
+          "AMBIGUOUS": 12,
+          "CLIPPED": 29,
+          "WEAK_LIMIT": 412
+        },
+        "gap_frames": {
+          "n": 15,
+          "p50": 2.0,
+          "p95": 219.2999999999997,
+          "max": 416.0
+        },
+        "open_gap_frames": 9,
+        "track_ids": 2
+      },
+      "RIGHT": {
+        "frames": 816,
+        "measured_frames": 432,
+        "measured_share": 0.5294117647058824,
+        "loss_rate_after_first": 0.4699386503067484,
+        "states": {
+          "NO_TRACK": 1,
+          "OBSERVED": 371,
+          "AMBIGUOUS": 11,
+          "PREDICTED": 59,
+          "WEAK": 61,
+          "WEAK_LIMIT": 242,
+          "CLIPPED": 71
+        },
+        "gap_frames": {
+          "n": 23,
+          "p50": 1.0,
+          "p95": 89.29999999999987,
+          "max": 121.0
+        },
+        "open_gap_frames": 113,
+        "track_ids": 1
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 816,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-175133-93f3685f/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 7,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 0,
+      "tom1": 0,
+      "tom2": 0,
+      "hihat": 0,
+      "snare": 7,
+      "floor_tom": 0
+    },
+    "live_unique_fps": 30.049726853934363,
+    "source_timeline_fps": 30.049726853934363,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 3.1412000535055995,
+        "p95": 4.854334943229333,
+        "max": 28.515700018033385
+      },
+      "red_tip_ms": {
+        "p50": 3.0874499934725463,
+        "p95": 4.777385044144466,
+        "max": 28.466399991884828
+      },
+      "decision_ms": {
+        "p50": 0.2758000046014786,
+        "p95": 0.6470200372859836,
+        "max": 1.1935000075027347
+      },
+      "queue_age_ms": {
+        "p50": 0.14714995631948113,
+        "p95": 0.40618494967930013,
+        "max": 49.9769999878481
+      },
+      "capture_to_decision_ms": {
+        "p50": 7.7758500701747835,
+        "p95": 10.460640024393797,
+        "max": 58.492799988016486
+      },
+      "preview_tone_ms": {
+        "p50": 1.4868000289425254,
+        "p95": 2.8468400181736793,
+        "max": 6.2096999026834965
+      },
+      "capture_to_schedule_ms": {
+        "p50": 8.450699970126152,
+        "p95": 9.718800056725739,
+        "max": 10.116000077687204
+      },
+      "render_ms": {
+        "p50": 6.185899954289198,
+        "p95": 8.264964947011322,
+        "max": 41.955099906772375
+      },
+      "frame_work_ms": {
+        "p50": 11.293599964119494,
+        "p95": 15.782000077888362,
+        "max": 107.22300002817065
+      },
+      "audio_schedule_ms": {
+        "p50": 0.2340000355616212,
+        "p95": 0.3417099826037883,
+        "max": 0.3648999845609069
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 840,
+        "measured_frames": 205,
+        "measured_share": 0.24404761904761904,
+        "loss_rate_after_first": 0.7414880201765448,
+        "states": {
+          "NO_TRACK": 47,
+          "OBSERVED": 70,
+          "WEAK": 135,
+          "WEAK_LIMIT": 549,
+          "PREDICTED": 5,
+          "CLIPPED": 34
+        },
+        "gap_frames": {
+          "n": 30,
+          "p50": 4.0,
+          "p95": 30.39999999999992,
+          "max": 403.0
+        },
+        "open_gap_frames": 7,
+        "track_ids": 3
+      },
+      "RIGHT": {
+        "frames": 840,
+        "measured_frames": 265,
+        "measured_share": 0.31547619047619047,
+        "loss_rate_after_first": 0.6499339498018495,
+        "states": {
+          "NO_TRACK": 145,
+          "OBSERVED": 153,
+          "CLIPPED": 134,
+          "WEAK": 112,
+          "WEAK_LIMIT": 266,
+          "PREDICTED": 30
+        },
+        "gap_frames": {
+          "n": 30,
+          "p50": 3.5,
+          "p95": 77.55,
+          "max": 104.0
+        },
+        "open_gap_frames": 26,
+        "track_ids": 3
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 840,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-175235-51f7fe04/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 74,
+    "commits_by_drum": {
+      "crash": 6,
+      "ride": 11,
+      "tom1": 15,
+      "tom2": 19,
+      "hihat": 7,
+      "snare": 10,
+      "floor_tom": 6
+    },
+    "live_unique_fps": 27.216296697194952,
+    "source_timeline_fps": 27.216296697194952,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 24.272250069770962,
+        "p95": 30.832030047895383,
+        "max": 52.708699950017035
+      },
+      "perception_ms": {
+        "p50": 25.017049920279533,
+        "p95": 31.627485010540106,
+        "max": 53.87299996800721
+      },
+      "decision_ms": {
+        "p50": 0.5262999329715967,
+        "p95": 0.9800850064493714,
+        "max": 2.3453000467270613
+      },
+      "queue_age_ms": {
+        "p50": 9.697899979073554,
+        "p95": 29.829564999090508,
+        "max": 37.51409996766597
+      },
+      "capture_to_decision_ms": {
+        "p50": 41.40360001474619,
+        "p95": 60.91590505093335,
+        "max": 79.55090003088117
+      },
+      "preview_tone_ms": {
+        "p50": 1.5297000063583255,
+        "p95": 3.184379916638136,
+        "max": 5.49809995573014
+      },
+      "capture_to_schedule_ms": {
+        "p50": 48.0679499451071,
+        "p95": 61.237190006067976,
+        "max": 70.77570003457367
+      },
+      "render_ms": {
+        "p50": 7.4628000147640705,
+        "p95": 10.88225495186634,
+        "max": 43.21829997934401
+      },
+      "frame_work_ms": {
+        "p50": 35.833199974149466,
+        "p95": 44.321109971497215,
+        "max": 76.25169993843883
+      },
+      "audio_schedule_ms": {
+        "p50": 0.22514996817335486,
+        "p95": 0.3974749997723847,
+        "max": 0.6503999466076493
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 740,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-225255-f92bbf83/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 0,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 0,
+      "tom1": 0,
+      "tom2": 0,
+      "hihat": 0,
+      "snare": 0,
+      "floor_tom": 0
+    },
+    "live_unique_fps": 30.10450261064768,
+    "source_timeline_fps": 30.10450261064768,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 2.799800015054643,
+        "p95": 4.318300052545965,
+        "max": 12.255299952812493
+      },
+      "red_tip_ms": {
+        "p50": 2.7523000026121736,
+        "p95": 4.246999975293875,
+        "max": 12.091499986127019
+      },
+      "decision_ms": {
+        "p50": 0.1449999399483204,
+        "p95": 0.25949999690055847,
+        "max": 0.6684999680146575
+      },
+      "queue_age_ms": {
+        "p50": 0.12330000754445791,
+        "p95": 0.32379990443587303,
+        "max": 33.917600056156516
+      },
+      "capture_to_decision_ms": {
+        "p50": 7.134200073778629,
+        "p95": 10.533099994063377,
+        "max": 42.02249995432794
+      },
+      "preview_tone_ms": {
+        "p50": 1.5138000017032027,
+        "p95": 2.842299989424646,
+        "max": 5.21530001424253
+      },
+      "capture_to_schedule_ms": null,
+      "render_ms": {
+        "p50": 6.266999989748001,
+        "p95": 8.874999941326678,
+        "max": 40.96380004193634
+      },
+      "frame_work_ms": {
+        "p50": 11.04314997792244,
+        "p95": 16.04101007105782,
+        "max": 60.45400002039969
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 461,
+        "measured_frames": 0,
+        "measured_share": 0.0,
+        "loss_rate_after_first": null,
+        "states": {
+          "NO_TRACK": 461
+        },
+        "gap_frames": null,
+        "open_gap_frames": 0,
+        "track_ids": 0
+      },
+      "RIGHT": {
+        "frames": 461,
+        "measured_frames": 0,
+        "measured_share": 0.0,
+        "loss_rate_after_first": null,
+        "states": {
+          "NO_TRACK": 461
+        },
+        "gap_frames": null,
+        "open_gap_frames": 0,
+        "track_ids": 0
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 461,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-225326-c0ec7e14/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": null,
+    "commits": 17,
+    "commits_by_drum": {
+      "crash": 2,
+      "ride": 0,
+      "tom1": 4,
+      "tom2": 4,
+      "hihat": 2,
+      "snare": 1,
+      "floor_tom": 4
+    },
+    "live_unique_fps": 24.90665747603947,
+    "source_timeline_fps": 24.90665747603947,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 28.20810000412166,
+        "p95": 40.752995072398335,
+        "max": 51.3247000053525
+      },
+      "perception_ms": {
+        "p50": 28.695349988993257,
+        "p95": 41.32381500094197,
+        "max": 52.25930002052337
+      },
+      "decision_ms": {
+        "p50": 0.36194996209815145,
+        "p95": 0.6176149297971278,
+        "max": 1.1045000283047557
+      },
+      "queue_age_ms": {
+        "p50": 11.419000045862049,
+        "p95": 30.047165014548224,
+        "max": 45.302300015464425
+      },
+      "capture_to_decision_ms": {
+        "p50": 46.46049998700619,
+        "p95": 67.43049998185597,
+        "max": 89.9652000516653
+      },
+      "preview_tone_ms": {
+        "p50": 1.7173999804072082,
+        "p95": 3.3029600162990387,
+        "max": 5.0033999141305685
+      },
+      "capture_to_schedule_ms": {
+        "p50": 54.372600046917796,
+        "p95": 69.92981999646872,
+        "max": 76.11550006549805
+      },
+      "render_ms": {
+        "p50": 7.579849974717945,
+        "p95": 10.1119949540589,
+        "max": 47.20669996459037
+      },
+      "frame_work_ms": {
+        "p50": 39.24459998961538,
+        "p95": 51.49009998422116,
+        "max": 81.04469999670982
+      },
+      "audio_schedule_ms": {
+        "p50": 0.16359996516257524,
+        "p95": 0.25079993065446615,
+        "max": 0.25479996111243963
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": null,
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 272,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-225435-80f3552c/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": true,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 0,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 0,
+      "tom1": 0,
+      "tom2": 0,
+      "hihat": 0,
+      "snare": 0,
+      "floor_tom": 0
+    },
+    "live_unique_fps": 25.364364197232234,
+    "source_timeline_fps": 25.364364197232234,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "frame_recording_ms": {
+        "p50": 23.107799992430955,
+        "p95": 27.27358999545686,
+        "max": 30.262200045399368
+      },
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 4.113599949050695,
+        "p95": 6.2186199764255425,
+        "max": 8.05850001052022
+      },
+      "red_tip_ms": {
+        "p50": 4.028499941341579,
+        "p95": 6.114240002352743,
+        "max": 7.986300042830408
+      },
+      "decision_ms": {
+        "p50": 0.2732499851845205,
+        "p95": 0.5464949703309684,
+        "max": 1.7291000112891197
+      },
+      "queue_age_ms": {
+        "p50": 13.054099981673062,
+        "p95": 29.99998508603311,
+        "max": 43.6053000157699
+      },
+      "capture_to_decision_ms": {
+        "p50": 47.41485003614798,
+        "p95": 66.81004998390561,
+        "max": 77.30610005091876
+      },
+      "preview_tone_ms": {
+        "p50": 2.421199984382838,
+        "p95": 3.9693399623502033,
+        "max": 5.483799963258207
+      },
+      "capture_to_schedule_ms": null,
+      "render_ms": {
+        "p50": 8.582749986089766,
+        "p95": 13.07895994395949,
+        "max": 38.84639998432249
+      },
+      "frame_work_ms": {
+        "p50": 38.902350002899766,
+        "p95": 47.78817998012528,
+        "max": 72.97530001960695
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 622,
+        "measured_frames": 0,
+        "measured_share": 0.0,
+        "loss_rate_after_first": null,
+        "states": {
+          "NO_TRACK": 622
+        },
+        "gap_frames": null,
+        "open_gap_frames": 0,
+        "track_ids": 0
+      },
+      "RIGHT": {
+        "frames": 622,
+        "measured_frames": 0,
+        "measured_share": 0.0,
+        "loss_rate_after_first": null,
+        "states": {
+          "NO_TRACK": 622
+        },
+        "gap_frames": null,
+        "open_gap_frames": 0,
+        "track_ids": 0
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 622,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261016-225536-a07e63cd/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 39,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 3,
+      "tom1": 12,
+      "tom2": 10,
+      "hihat": 0,
+      "snare": 9,
+      "floor_tom": 5
+    },
+    "live_unique_fps": 30.166651961243424,
+    "source_timeline_fps": 30.166651961243424,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 4.712299967650324,
+        "p95": 7.119554962264374,
+        "max": 42.71730000618845
+      },
+      "red_tip_ms": {
+        "p50": 4.656000004615635,
+        "p95": 7.048740022582932,
+        "max": 42.649999959394336
+      },
+      "decision_ms": {
+        "p50": 0.2001000102609396,
+        "p95": 0.6084249762352556,
+        "max": 2.47450009919703
+      },
+      "queue_age_ms": {
+        "p50": 0.1464500674046576,
+        "p95": 0.35316501162014896,
+        "max": 24.3680999847129
+      },
+      "capture_to_decision_ms": {
+        "p50": 9.273150004446507,
+        "p95": 12.88877002079971,
+        "max": 49.29160000756383
+      },
+      "preview_tone_ms": {
+        "p50": 1.536899944767356,
+        "p95": 2.8888899949379256,
+        "max": 6.945300032384694
+      },
+      "capture_to_schedule_ms": {
+        "p50": 9.528900031000376,
+        "p95": 11.980220046825707,
+        "max": 12.102299951948225
+      },
+      "render_ms": {
+        "p50": 6.585799972526729,
+        "p95": 9.41925491206348,
+        "max": 41.026399936527014
+      },
+      "frame_work_ms": {
+        "p50": 13.696099980734289,
+        "p95": 19.213770038913943,
+        "max": 60.46160007826984
+      },
+      "audio_schedule_ms": {
+        "p50": 0.15660002827644348,
+        "p95": 0.2512400387786329,
+        "max": 0.273900106549263
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 2324,
+        "measured_frames": 477,
+        "measured_share": 0.20524956970740102,
+        "loss_rate_after_first": 0.7874331550802139,
+        "states": {
+          "NO_TRACK": 74,
+          "CLIPPED": 1632,
+          "OBSERVED": 413,
+          "WEAK": 64,
+          "PREDICTED": 13,
+          "WEAK_LIMIT": 128
+        },
+        "gap_frames": {
+          "n": 17,
+          "p50": 2.0,
+          "p95": 370.1999999999999,
+          "max": 491.0
+        },
+        "open_gap_frames": 702,
+        "track_ids": 1
+      },
+      "RIGHT": {
+        "frames": 2324,
+        "measured_frames": 491,
+        "measured_share": 0.2112736660929432,
+        "loss_rate_after_first": 0.7384123601491742,
+        "states": {
+          "NO_TRACK": 447,
+          "OBSERVED": 312,
+          "WEAK": 179,
+          "WEAK_LIMIT": 417,
+          "PREDICTED": 30,
+          "CLIPPED": 939
+        },
+        "gap_frames": {
+          "n": 66,
+          "p50": 5.0,
+          "p95": 64.75,
+          "max": 376.0
+        },
+        "open_gap_frames": 228,
+        "track_ids": 2
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": null,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 2324,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261017-002205-c24bb114/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 294,
+    "commits_by_drum": {
+      "crash": 8,
+      "ride": 28,
+      "tom1": 71,
+      "tom2": 77,
+      "hihat": 9,
+      "snare": 58,
+      "floor_tom": 43
+    },
+    "live_unique_fps": 30.17018894933562,
+    "source_timeline_fps": 30.17018894933562,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 4.273399943485856,
+        "p95": 6.689599948003888,
+        "max": 28.621999896131456
+      },
+      "red_tip_ms": {
+        "p50": 4.211499937810004,
+        "p95": 6.624000030569732,
+        "max": 28.571000089868903
+      },
+      "decision_ms": {
+        "p50": 0.4965999396517873,
+        "p95": 0.8251999970525503,
+        "max": 3.2616000389680266
+      },
+      "queue_age_ms": {
+        "p50": 0.15980005264282227,
+        "p95": 0.42070006020367146,
+        "max": 34.557599923573434
+      },
+      "capture_to_decision_ms": {
+        "p50": 9.123500087298453,
+        "p95": 12.258399976417422,
+        "max": 43.531499919481575
+      },
+      "preview_tone_ms": {
+        "p50": 1.4784999657422304,
+        "p95": 2.9027999844402075,
+        "max": 8.749400032684207
+      },
+      "capture_to_schedule_ms": {
+        "p50": 9.454999992158264,
+        "p95": 12.436574994353572,
+        "max": 22.6473999209702
+      },
+      "render_ms": {
+        "p50": 6.585200084373355,
+        "p95": 9.043600060977042,
+        "max": 42.38100000657141
+      },
+      "frame_work_ms": {
+        "p50": 13.150550017599016,
+        "p95": 17.87697502295485,
+        "max": 78.15519999712706
+      },
+      "audio_schedule_ms": {
+        "p50": 0.18054997781291604,
+        "p95": 0.31222000834532077,
+        "max": 0.6682999664917588
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 9081,
+        "measured_frames": 5885,
+        "measured_share": 0.6480563814557868,
+        "loss_rate_after_first": 0.2877889386421396,
+        "states": {
+          "NO_TRACK": 1199,
+          "OBSERVED": 5052,
+          "WEAK": 833,
+          "CLIPPED": 146,
+          "WEAK_LIMIT": 1578,
+          "AMBIGUOUS": 34,
+          "PREDICTED": 239
+        },
+        "gap_frames": {
+          "n": 146,
+          "p50": 3.0,
+          "p95": 55.25,
+          "max": 466.0
+        },
+        "open_gap_frames": 232,
+        "track_ids": 11
+      },
+      "RIGHT": {
+        "frames": 9081,
+        "measured_frames": 5804,
+        "measured_share": 0.6391366589582645,
+        "loss_rate_after_first": 0.3240158397391102,
+        "states": {
+          "NO_TRACK": 740,
+          "OBSERVED": 4922,
+          "WEAK": 882,
+          "WEAK_LIMIT": 2032,
+          "PREDICTED": 214,
+          "AMBIGUOUS": 26,
+          "CLIPPED": 265
+        },
+        "gap_frames": {
+          "n": 166,
+          "p50": 3.0,
+          "p95": 82.25,
+          "max": 348.0
+        },
+        "open_gap_frames": 0,
+        "track_ids": 13
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": false,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 9081,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261017-005144-7f73c486/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 9,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 1,
+      "tom1": 0,
+      "tom2": 4,
+      "hihat": 0,
+      "snare": 0,
+      "floor_tom": 4
+    },
+    "live_unique_fps": 30.130788005637292,
+    "source_timeline_fps": 30.130788005637292,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 4.541149944998324,
+        "p95": 9.113475010963157,
+        "max": 32.75369992479682
+      },
+      "red_tip_ms": {
+        "p50": 4.485949990339577,
+        "p95": 9.057775023393333,
+        "max": 32.69800008274615
+      },
+      "decision_ms": {
+        "p50": 0.35734998527914286,
+        "p95": 0.7124249823391438,
+        "max": 1.4094000216573477
+      },
+      "queue_age_ms": {
+        "p50": 0.1418499741703272,
+        "p95": 0.3315249632578343,
+        "max": 46.75390000920743
+      },
+      "capture_to_decision_ms": {
+        "p50": 9.043350000865757,
+        "p95": 14.43337503587827,
+        "max": 55.824599927291274
+      },
+      "preview_tone_ms": {
+        "p50": 1.5042999293655157,
+        "p95": 2.7434749354142696,
+        "max": 6.599800079129636
+      },
+      "capture_to_schedule_ms": {
+        "p50": 9.236100013367832,
+        "p95": 11.734139965847135,
+        "max": 12.05429993569851
+      },
+      "render_ms": {
+        "p50": 6.244100048206747,
+        "p95": 8.235675020841882,
+        "max": 40.16649990808219
+      },
+      "frame_work_ms": {
+        "p50": 13.162099989131093,
+        "p95": 18.640880030579865,
+        "max": 61.87129998579621
+      },
+      "audio_schedule_ms": {
+        "p50": 0.18480001017451286,
+        "p95": 0.21884008310735226,
+        "max": 0.2256000880151987
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 876,
+        "measured_frames": 330,
+        "measured_share": 0.3767123287671233,
+        "loss_rate_after_first": 0.357976653696498,
+        "states": {
+          "NO_TRACK": 362,
+          "OBSERVED": 220,
+          "WEAK": 110,
+          "WEAK_LIMIT": 173,
+          "PREDICTED": 7,
+          "CLIPPED": 4
+        },
+        "gap_frames": {
+          "n": 17,
+          "p50": 4.0,
+          "p95": 34.19999999999994,
+          "max": 103.0
+        },
+        "open_gap_frames": 0,
+        "track_ids": 1
+      },
+      "RIGHT": {
+        "frames": 876,
+        "measured_frames": 243,
+        "measured_share": 0.2773972602739726,
+        "loss_rate_after_first": 0.6707317073170731,
+        "states": {
+          "NO_TRACK": 195,
+          "OBSERVED": 139,
+          "WEAK": 104,
+          "WEAK_LIMIT": 215,
+          "PREDICTED": 31,
+          "CLIPPED": 192
+        },
+        "gap_frames": {
+          "n": 21,
+          "p50": 7.0,
+          "p95": 54.0,
+          "max": 196.0
+        },
+        "open_gap_frames": 36,
+        "track_ids": 2
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": false,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 876,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261017-005436-a8eb2370/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": true,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 6,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 0,
+      "tom1": 0,
+      "tom2": 0,
+      "hihat": 0,
+      "snare": 0,
+      "floor_tom": 6
+    },
+    "live_unique_fps": 24.064516379106166,
+    "source_timeline_fps": 24.064516379106166,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "frame_recording_ms": {
+        "p50": 22.56019995547831,
+        "p95": 26.4338799752295,
+        "max": 30.294899945147336
+      },
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 6.792900036089122,
+        "p95": 10.649880021810533,
+        "max": 29.741400037892163
+      },
+      "red_tip_ms": {
+        "p50": 6.693699979223311,
+        "p95": 10.509740049019456,
+        "max": 29.657999984920025
+      },
+      "decision_ms": {
+        "p50": 0.25949999690055847,
+        "p95": 0.8947800612077118,
+        "max": 1.5301000094041228
+      },
+      "queue_age_ms": {
+        "p50": 13.746700016781688,
+        "p95": 31.053539947606627,
+        "max": 44.27029995713383
+      },
+      "capture_to_decision_ms": {
+        "p50": 49.314800067804754,
+        "p95": 67.93666002340615,
+        "max": 87.1593999909237
+      },
+      "preview_tone_ms": {
+        "p50": 2.082900027744472,
+        "p95": 3.993600024841726,
+        "max": 5.370700033381581
+      },
+      "capture_to_schedule_ms": {
+        "p50": 46.10720003256574,
+        "p95": 55.96624992904253,
+        "max": 57.88489989936352
+      },
+      "render_ms": {
+        "p50": 8.546199998818338,
+        "p95": 12.644879915751519,
+        "max": 42.428200016729534
+      },
+      "frame_work_ms": {
+        "p50": 40.96739995293319,
+        "p95": 50.43661997187883,
+        "max": 79.23789997585118
+      },
+      "audio_schedule_ms": {
+        "p50": 0.20910007879137993,
+        "p95": 0.42069991468451917,
+        "max": 0.42869988828897476
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 589,
+        "measured_frames": 15,
+        "measured_share": 0.025466893039049237,
+        "loss_rate_after_first": 0.7916666666666666,
+        "states": {
+          "NO_TRACK": 517,
+          "OBSERVED": 3,
+          "WEAK": 12,
+          "WEAK_LIMIT": 52,
+          "PREDICTED": 5
+        },
+        "gap_frames": {
+          "n": 2,
+          "p50": 22.5,
+          "p95": 26.55,
+          "max": 27.0
+        },
+        "open_gap_frames": 12,
+        "track_ids": 1
+      },
+      "RIGHT": {
+        "frames": 589,
+        "measured_frames": 109,
+        "measured_share": 0.18505942275042445,
+        "loss_rate_after_first": 0.42328042328042326,
+        "states": {
+          "NO_TRACK": 400,
+          "OBSERVED": 93,
+          "WEAK": 16,
+          "WEAK_LIMIT": 80
+        },
+        "gap_frames": {
+          "n": 1,
+          "p50": 37.0,
+          "p95": 37.0,
+          "max": 37.0
+        },
+        "open_gap_frames": 43,
+        "track_ids": 1
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": false,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 589,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261017-005615-e6326dc7/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": true,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 0,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 0,
+      "tom1": 0,
+      "tom2": 0,
+      "hihat": 0,
+      "snare": 0,
+      "floor_tom": 0
+    },
+    "live_unique_fps": 24.049566361061473,
+    "source_timeline_fps": 24.049566361061473,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "frame_recording_ms": {
+        "p50": 23.963899991940707,
+        "p95": 28.791915072361007,
+        "max": 34.2859000666067
+      },
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 4.947300010826439,
+        "p95": 8.559840003727,
+        "max": 14.320899965241551
+      },
+      "red_tip_ms": {
+        "p50": 4.873499972745776,
+        "p95": 8.348674973240122,
+        "max": 14.215900097042322
+      },
+      "decision_ms": {
+        "p50": 0.2297000028192997,
+        "p95": 0.5960349983070046,
+        "max": 1.262799953110516
+      },
+      "queue_age_ms": {
+        "p50": 13.604699983261526,
+        "p95": 31.5850600018166,
+        "max": 47.16539999935776
+      },
+      "capture_to_decision_ms": {
+        "p50": 49.83904998516664,
+        "p95": 68.47738496144302,
+        "max": 85.86300001479685
+      },
+      "preview_tone_ms": {
+        "p50": 2.4114499683491886,
+        "p95": 4.449710046174004,
+        "max": 5.955500062555075
+      },
+      "capture_to_schedule_ms": null,
+      "render_ms": {
+        "p50": 8.75050004106015,
+        "p95": 13.724010012811048,
+        "max": 45.97560002002865
+      },
+      "frame_work_ms": {
+        "p50": 40.884200017899275,
+        "p95": 50.4991099704057,
+        "max": 90.07309994194657
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 588,
+        "measured_frames": 0,
+        "measured_share": 0.0,
+        "loss_rate_after_first": null,
+        "states": {
+          "NO_TRACK": 588
+        },
+        "gap_frames": null,
+        "open_gap_frames": 0,
+        "track_ids": 0
+      },
+      "RIGHT": {
+        "frames": 588,
+        "measured_frames": 3,
+        "measured_share": 0.00510204081632653,
+        "loss_rate_after_first": 0.0,
+        "states": {
+          "NO_TRACK": 585,
+          "OBSERVED": 3
+        },
+        "gap_frames": null,
+        "open_gap_frames": 0,
+        "track_ids": 1
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": false,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 588,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261017-005812-ccdb76de/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": true,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 1,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 0,
+      "tom1": 0,
+      "tom2": 0,
+      "hihat": 0,
+      "snare": 0,
+      "floor_tom": 1
+    },
+    "live_unique_fps": 23.338065497408525,
+    "source_timeline_fps": 23.338065497408525,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "frame_recording_ms": {
+        "p50": 24.27619998343289,
+        "p95": 28.8832550344523,
+        "max": 34.3637999612838
+      },
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 5.4191999370232224,
+        "p95": 8.783264976227649,
+        "max": 11.595700052566826
+      },
+      "red_tip_ms": {
+        "p50": 5.322450015228242,
+        "p95": 8.699049957795065,
+        "max": 11.507999966852367
+      },
+      "decision_ms": {
+        "p50": 0.2800499787554145,
+        "p95": 0.7038099516648786,
+        "max": 1.7191000515595078
+      },
+      "queue_age_ms": {
+        "p50": 14.09815001534298,
+        "p95": 30.85787502350285,
+        "max": 47.21989994868636
+      },
+      "capture_to_decision_ms": {
+        "p50": 50.9039499447681,
+        "p95": 69.52892495319246,
+        "max": 90.60660004615784
+      },
+      "preview_tone_ms": {
+        "p50": 2.485250006429851,
+        "p95": 4.611835011746734,
+        "max": 5.508499918505549
+      },
+      "capture_to_schedule_ms": {
+        "p50": 61.906600021757185,
+        "p95": 61.906600021757185,
+        "max": 61.906600021757185
+      },
+      "render_ms": {
+        "p50": 9.394700056873262,
+        "p95": 13.768035068642336,
+        "max": 40.82070000004023
+      },
+      "frame_work_ms": {
+        "p50": 42.376750032417476,
+        "p95": 51.07150000403635,
+        "max": 77.02319999225438
+      },
+      "audio_schedule_ms": {
+        "p50": 0.1996000064536929,
+        "p95": 0.1996000064536929,
+        "max": 0.1996000064536929
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 572,
+        "measured_frames": 39,
+        "measured_share": 0.06818181818181818,
+        "loss_rate_after_first": 0.8686868686868687,
+        "states": {
+          "NO_TRACK": 517,
+          "OBSERVED": 32,
+          "WEAK": 7,
+          "WEAK_LIMIT": 7,
+          "PREDICTED": 9
+        },
+        "gap_frames": {
+          "n": 1,
+          "p50": 258.0,
+          "p95": 258.0,
+          "max": 258.0
+        },
+        "open_gap_frames": 0,
+        "track_ids": 2
+      },
+      "RIGHT": {
+        "frames": 572,
+        "measured_frames": 9,
+        "measured_share": 0.015734265734265736,
+        "loss_rate_after_first": 0.9692832764505119,
+        "states": {
+          "NO_TRACK": 279,
+          "OBSERVED": 5,
+          "WEAK": 4,
+          "PREDICTED": 8,
+          "WEAK_LIMIT": 243,
+          "CLIPPED": 33
+        },
+        "gap_frames": {
+          "n": 1,
+          "p50": 1.0,
+          "p95": 1.0,
+          "max": 1.0
+        },
+        "open_gap_frames": 283,
+        "track_ids": 1
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": false,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 572,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  },
+  {
+    "source": "data/dev-product/dev-product-20261017-010510-6b507f56/report.json",
+    "provenance": "DEVELOPER_LIVE",
+    "record_frames": false,
+    "mode": null,
+    "tip_method": "MARKER",
+    "commits": 56,
+    "commits_by_drum": {
+      "crash": 0,
+      "ride": 12,
+      "tom1": 16,
+      "tom2": 3,
+      "hihat": 3,
+      "snare": 2,
+      "floor_tom": 20
+    },
+    "live_unique_fps": 30.142405531878268,
+    "source_timeline_fps": 30.142405531878268,
+    "error": null,
+    "acceptance": "DEVELOPER_DEMO_AWAITING_PHYSICAL_VERIFICATION",
+    "action_to_sound_ms": null,
+    "latency_ms": {
+      "hand_inference_ms": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "perception_ms": {
+        "p50": 11.499500018544495,
+        "p95": 16.70651993481442,
+        "max": 35.749100032262504
+      },
+      "red_tip_ms": {
+        "p50": 11.407500016503036,
+        "p95": 16.583479917608194,
+        "max": 35.6948000844568
+      },
+      "decision_ms": {
+        "p50": 0.5824998952448368,
+        "p95": 1.1374800466001032,
+        "max": 2.276599989272654
+      },
+      "queue_age_ms": {
+        "p50": 0.11220003943890333,
+        "p95": 0.4222899675369261,
+        "max": 31.258100061677396
+      },
+      "capture_to_decision_ms": {
+        "p50": 16.40429999679327,
+        "p95": 24.383150006178756,
+        "max": 59.61800005752593
+      },
+      "preview_tone_ms": {
+        "p50": 1.7293000128120184,
+        "p95": 3.1527100130915637,
+        "max": 6.25089998356998
+      },
+      "capture_to_schedule_ms": {
+        "p50": 17.08835002500564,
+        "p95": 31.27435001078993,
+        "max": 43.43909991439432
+      },
+      "render_ms": {
+        "p50": 6.837499910034239,
+        "p95": 9.309989993926138,
+        "max": 46.06329998932779
+      },
+      "frame_work_ms": {
+        "p50": 21.121500059962273,
+        "p95": 28.348404989810657,
+        "max": 66.84550002682954
+      },
+      "audio_schedule_ms": {
+        "p50": 0.20855001639574766,
+        "p95": 0.2774249587673694,
+        "max": 0.42669998947530985
+      }
+    },
+    "calibration_state": null,
+    "red_tip_slots": {
+      "LEFT": {
+        "frames": 1879,
+        "measured_frames": 1486,
+        "measured_share": 0.7908461947844598,
+        "loss_rate_after_first": 0.20788912579957353,
+        "states": {
+          "NO_TRACK": 3,
+          "DARK": 1074,
+          "CLIPPED": 85,
+          "PREDICTED": 219,
+          "AMBIGUOUS": 50,
+          "WEAK": 74,
+          "OBSERVED": 338,
+          "WEAK_LIMIT": 36
+        },
+        "gap_frames": {
+          "n": 215,
+          "p50": 1.0,
+          "p95": 4.299999999999983,
+          "max": 36.0
+        },
+        "open_gap_frames": 0,
+        "track_ids": 12
+      },
+      "RIGHT": {
+        "frames": 1879,
+        "measured_frames": 1289,
+        "measured_share": 0.6860031931878658,
+        "loss_rate_after_first": 0.30958757364756295,
+        "states": {
+          "NO_TRACK": 18,
+          "DARK": 741,
+          "PREDICTED": 132,
+          "CLIPPED": 304,
+          "AMBIGUOUS": 48,
+          "WEAK": 96,
+          "WEAK_LIMIT": 88,
+          "OBSERVED": 452
+        },
+        "gap_frames": {
+          "n": 149,
+          "p50": 1.0,
+          "p95": 6.0,
+          "max": 107.0
+        },
+        "open_gap_frames": 173,
+        "track_ids": 7
+      }
+    },
+    "audio_state": "RUNNING",
+    "lead_s": 0.033,
+    "dark_paint": true,
+    "exposure": {
+      "mode": "MANUAL",
+      "value": -5,
+      "guard": {
+        "min_fps": 24,
+        "window_s": 2.0,
+        "settle_s": 4.0,
+        "fallback_value": -5,
+        "max_actions": 10
+      }
+    },
+    "sample_rate_hz": 48000,
+    "buffer_frames": 128,
+    "delivered_frames": 1879,
+    "mode_field_note": "Top-level mode is absent in some source reports; consult source config and calibration."
+  }
+]
