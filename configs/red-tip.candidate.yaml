@@ -1,0 +1,110 @@
+# Loaded ONLY by app.play --red-tips, after the product (and demo) fragments. Fingertip and visible-stick
+# runs never see this block, so their configuration and config hash are unchanged.
+# Red painted stick tips are a coloured MARKER condition (integrity I-7, REQ-211): every record carries
+# method_id MARKER and no result from this mode may be presented as markerless.
+# Every value is a developer candidate for the integrated webcam's 640 x 480 tracking frame, not a
+# calibration. Tune on your own recorded frames with scripts/tune_red_tips.py, which writes
+# configs/red-tip.tuned.yaml; play with --stick-tip-config configs/red-tip.tuned.yaml.
+product:
+  stick_tip:
+    # Detector. redness (default): candidates are small blobs redder than their surround, verified by a
+    # logistic cap score and tracked by evidence (stick/red_tip_caps.py, stick/red_tip_evidence.py).
+    # colour: the HSV segmentation + tracker below (bright light, close range). On the owner's labelled
+    # recordings at playing distance the colour detector found almost none of the caps; held-out numbers
+    # for both are in docs/perf/red-tip-stick-mode.md section 11. The HSV keys below apply to colour only.
+    detector: redness
+    redness_sigmas: [2.5, 4.5, 8.0]  # DoG scales in half-resolution px (cap radii ~7-23 px full res)
+    redness_threshold: 3.0  # DoG response floor; redness = min(R - G, R - B + 12)
+    redness_candidates: 12  # strongest candidates kept per frame
+    region_level: 0.25     # a candidate's region: redness above surround + 25 % of (peak - surround)
+    merge_reach_px: 60.0   # ball + painted neck, or a ball split by its highlight, within 60 px: one end
+    merge_level: 0.15
+    merge_score_margin: 0.4
+    verifier: null         # null = built-in cap score (stick/red_tip_caps.py DEFAULT_VERIFIER: response,
+                           #   contrast, darkness, saturation, gloss, hue); analyze_red_tips.py
+                           #   fit-verifier refits it from your own labelled frames
+    birth_quality: 0.35    # verifier quality that starts a track
+    instant_quality: 0.8   # a tip this certain where a slot last measured is retaken on its first frame
+    evidence_alpha: 0.3    # evidence = running average of the quality (one frame's score flickers)
+    bind_evidence: 0.35
+    release_evidence: 0.12
+    measure_evidence: 0.35  # measured (strikes possible) only with this evidence and this frame's
+    measure_quality: 0.25  #   quality; else LOW_EVIDENCE (shown, never used)
+    challenge_margin: 0.15  # a clearly better unbound tip replaces the weaker bound one after 3 frames
+    challenge_frames: 3
+    clip_release_frames: 8  # a tip cut by the border for 8 frames frees its slot
+    takeover_s: 0.07       # a slot coasting 2 frames may be taken by a live tip (fast reacquisition)
+    identity_memory_s: 1.5  # one returning tip takes the slot that last measured near it
+    identity_memory_px: 120.0
+    still_s: 2.0           # a tip that has not moved for 2 s loses slot rank over 3 s (to 0.3): a static
+    still_decay_s: 3.0     #   red object yields to a played stick (measurement is unaffected)
+    still_floor: 0.3
+    # Segmentation, OpenCV HSV units (H 0-179, S/V 0-255). Red wraps around hue 0: two bands.
+    # Owner photo of the painted sticks (2026-10-16): paint H 177-1 (median 179), S median 190; the skin,
+    # ear and lips sit at H 4-13 with S ~130, a paint run down the shaft at H ~5 / S ~144, the wood at
+    # H 12-17. Hue separates them; saturation alone does not.
+    hue_low_max: 4         # core band: H <= 4 or H >= 170
+    hue_high_min: 170
+    s_min: 145             # seed floors: a region needs these paint-core pixels. S >= 170 lost the real
+    v_min: 60              #   tips live (their strong blobs had a median area of 22 px^2); 145 is the
+                           #   lowest floor with no accepted blob in data/dev-captures (unpainted sticks)
+    s_min_weak: 70         # growth floors near seeds, and blur re-detection inside a tracked tip's gate
+    v_min_weak: 40
+    hue_margin_weak: 3     # growth / blur band = core band widened by 3 hue units each side
+    open_px: 3             # seeds opened 3 x 3 first: scattered skin / sensor-noise seeds never anchor growth
+    grow_px: 4             # growth and reflections stay within 4 px of a seed (never a whole face or hand)
+    v_highlight: 190       # glossy reflection: V >= 190 and S <= 80 near a seed joins the tip's outline
+    s_highlight_max: 80    #   (only inside the paint's convex hull); 0 disables
+    close_px: 5            # joins paint split by the reflection
+    merge_px: 3.0          # fragment merge gap; kept small so two tips close together in a roll stay two
+    min_area_px: 30.0      # filled-region floor; a cap at the photo's distance is ~1000 px^2
+    max_area_px: 4000.0    # large red surfaces are not a tip
+    max_elongation: 12.0
+    min_seed_px: 6
+    min_seed_fraction: 0.45  # photo: caps 0.77-0.85, ear 0.32, lips 0.21 (OFF_COLOUR below this)
+    head_length_factor: 1.2  # cap point: centre of the more saturated end (1.2 widths long) of a long region
+    head_contrast: 0.08    #   when the ends' mean S differ by >= 8 % (photo cap vs paint run: 12.5 %)
+    reference_area_px: 300.0
+    # Dark paint (dim light at playing distance), OFF by default. The owner's 2026-10-16 recording at exposure
+    # -5 shows the caps ~11 px across, dark and toward magenta (H -61..-9 signed, S 52-144, V 27-58): the red
+    # seeds above find 0.3 % of their pixels. Calibrate from YOUR clicked caps with
+    # scripts/tune_red_tips.py <session> --calibrate-dark <labels.json>, which writes these keys and sets
+    # dark_paint: true in configs/red-tip.tuned.yaml. The values below come from that recording.
+    dark_paint: false
+    dark_hue_min: -60      # pixel band, signed hue (0 = red, negative = toward magenta)
+    dark_hue_max: 5
+    dark_s_min: 60
+    dark_v_min: 20
+    dark_v_max: 110
+    dark_rg_min: 6         # R - G of a pixel
+    dark_hue_mean_max: -20.0   # blob averages: hue, R - B, S, V must match the paint
+    dark_rb_mean_max: 4.0
+    dark_s_mean_min: 85.0
+    dark_v_mean_min: 32.0
+    dark_min_area_px: 15.0     # a dark cap is ~90 px^2 at playing distance
+    dark_max_area_px: 250.0
+    dark_max_elongation: 3.5
+    dark_birth_surround: 0.65  # a dark blob starts a track only when it stands out from a brighter surround
+    dark_birth_frames: 4   # a track born from a dark blob is used only after 4 consecutive frames
+    dark_confidence: 0.8
+    ignore_regions: []     # [x0, y0, x1, y1] ROI-normalised CAMERA coordinates (not the mirrored display)
+    # Tracking (ROI px, seconds). Predictions gate association only; they never reach the pipeline.
+    max_tracks: 6          # both sticks plus red distractors; a better new blob evicts an idle unbound one
+    birth_frames: 2        # a new tip needs two consecutive frames (applies to new tracks only)
+    gate_px: 28.0
+    gate_speed_gain: 1.0
+    gate_growth_px_s: 600.0
+    gate_max_px: 140.0
+    max_predict_s: 0.1
+    max_coast_s: 0.25
+    velocity_alpha: 0.6
+    ambiguity_margin: 0.35
+    reset_after_ambiguity: true
+    max_weak_frames: 4
+    static_window_s: 4.0
+    move_px: 20.0
+    # Evidence classes (not probabilities); tracking.c_valid is 0.6, so both are VALID downstream.
+    observed_confidence: 0.9
+    weak_confidence: 0.75
+    hand_assist: false     # true (or --hand-assist) also runs the MediaPipe hand model, ~27 ms per frame
+    hand_reach_spans: 14.0

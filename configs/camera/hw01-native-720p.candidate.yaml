@@ -1,0 +1,34 @@
+# HW-01 integrated webcam: native 1280x720 capture with an unchanged 640x480 tracking frame (ADR-0047).
+#
+# Merged by app.play unless --camera standard (after prototype/product/demo/red-tip fragments). Research
+# entry points (app.main, the calibration wizard, the Phase 02-19 scripts) never load it, so their
+# configuration and config hash are unchanged.
+#
+# Why (docs/perf/camera-quality-native-720p.md, development evidence, 2026-10-16):
+# - The 640x480 driver mode is the centre 960x720 window of the 1280x720 sensor image scaled by 2/3
+#   in the camera (ECC registration: scale 1.500-1.501, x offset 158.8-159.0 px, y < 0.3 px).
+# - On DSHOW only a 1920x1080 request reaches 1280x720 at 30 unique FPS (compressed); a 1280x720
+#   request negotiates YUY2 and delivers 10 FPS; an MJPG FOURCC request is not honoured by OpenCV here.
+# - MSMF delivers 720p at ~29 FPS but pads with duplicate frames and hands frames over ~40-50 ms late.
+# Tracking keeps resolution_px [640, 480], the ROI, zones and every pixel threshold; only the display
+# gets the native 960x720 window (1:1 in the 960x720 window instead of a 1.5x upscale).
+camera_profile:
+  native_capture:
+    request_px: [1920, 1080]   # REQUESTED; the driver falls back to its largest mode (verified below)
+    expect_px: [1280, 720]     # every probe frame must have this size, else fallback
+    crop_px: [159, 0, 960, 720]  # MEASURED window of the 640x480 mode (ECC x offset 158.8-159.0)
+    min_fps: 25                # unique FPS the open probe must reach under MANUAL exposure
+    probe_frames: 20
+    fallback: STANDARD         # reopen the 640x480 mode and record why
+  exposure:
+    # Measured-rate guard (ADR-0048). Opening Windows Camera while SpaceDrums runs switches the shared
+    # device to auto exposure: 30 -> 15 FPS, and it stays there after Windows Camera closes, while the
+    # driver still reads back the requested value. MANUAL: re-apply when the rate falls below min_fps.
+    # AUTO (--exposure auto): after settle_s, switch once to fallback_value if the light forces < min_fps.
+    # -5 (31 ms) is the brightest fixed exposure MEASURED to keep ~30 FPS (-4 and -4.5 give 16 FPS).
+    guard:
+      min_fps: 24
+      window_s: 2.0
+      settle_s: 4.0
+      fallback_value: -5
+      max_actions: 10

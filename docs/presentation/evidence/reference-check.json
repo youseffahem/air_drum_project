@@ -1,0 +1,687 @@
+{
+  "checked_count": 136,
+  "references": [
+    {
+      "document": "project-audit.md",
+      "reference": "evidence/repository-snapshot.json",
+      "resolved": "docs/presentation/evidence/repository-snapshot.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "evidence/source-inventory.json",
+      "resolved": "docs/presentation/evidence/source-inventory.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "src/spacedrums/app/play.py",
+      "resolved": "src/spacedrums/app/play.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/main.py",
+      "resolved": "src/spacedrums/app/main.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/calibrate.py",
+      "resolved": "src/spacedrums/app/calibrate.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "README.md",
+      "resolved": "docs/presentation/README.md"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "src/spacedrums/README.md",
+      "resolved": "src/spacedrums/README.md"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "docs/reports/phase-18-final-evaluation.md",
+      "resolved": "docs/reports/phase-18-final-evaluation.md"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "docs/gates/phase-19-gate.md",
+      "resolved": "docs/gates/phase-19-gate.md"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "docs/requirements/out-of-scope.md",
+      "resolved": "docs/requirements/out-of-scope.md"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/play.py:play_config",
+      "resolved": "src/spacedrums/app/play.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "play-spacedrums.ps1",
+      "resolved": "play-spacedrums.ps1"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "demo-spacedrums.ps1",
+      "resolved": "demo-spacedrums.ps1"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "demo-sticks-spacedrums.ps1",
+      "resolved": "demo-sticks-spacedrums.ps1"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "capture/backend.py:OpenCvCamera",
+      "resolved": "src/spacedrums/capture/backend.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "capture/source.py:LiveFrameSource",
+      "resolved": "src/spacedrums/capture/source.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "capture/native.py:NativeCapture",
+      "resolved": "src/spacedrums/capture/native.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "capture/exposure.py",
+      "resolved": "src/spacedrums/capture/exposure.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/main.py:Perception",
+      "resolved": "src/spacedrums/app/main.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "hands/landmarker.py:HandLandmarker",
+      "resolved": "src/spacedrums/hands/landmarker.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "stick/visible.py:FingertipEndpointEstimator",
+      "resolved": "src/spacedrums/stick/visible.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/red_tip_perception.py:RedTipPerception",
+      "resolved": "src/spacedrums/app/red_tip_perception.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/pipeline.py:DecisionPipeline.step",
+      "resolved": "src/spacedrums/app/pipeline.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "tracking/tracker.py:CausalTracker",
+      "resolved": "src/spacedrums/tracking/tracker.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "geometry/strokes.py:MeasuredStrokeGeometry.observe",
+      "resolved": "src/spacedrums/geometry/strokes.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "commit/policy.py:PerHandCommitPolicy.step",
+      "resolved": "src/spacedrums/commit/policy.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/audio_out.py:AudioOutput.play",
+      "resolved": "src/spacedrums/app/audio_out.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "audio/scheduler.py:AudioScheduler.schedule",
+      "resolved": "src/spacedrums/audio/scheduler.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "ui/stage.py:StageRenderer",
+      "resolved": "src/spacedrums/ui/stage.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "ui/developer_demo.py:DemoOverlay",
+      "resolved": "src/spacedrums/ui/developer_demo.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "ui/kit.py:render_kit",
+      "resolved": "src/spacedrums/ui/kit.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "ui/preview_tone.py:PreviewTone",
+      "resolved": "src/spacedrums/ui/preview_tone.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/arms.py",
+      "resolved": "src/spacedrums/app/arms.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "prediction/model_arm.py",
+      "resolved": "src/spacedrums/prediction/model_arm.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "stick/visible.py:VisibleEndpointEstimator",
+      "resolved": "src/spacedrums/stick/visible.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "calib/automatic.py:AutomaticCalibration",
+      "resolved": "src/spacedrums/calib/automatic.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "calib/reach.py:fit_reach",
+      "resolved": "src/spacedrums/calib/reach.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "configs/demo.professor.candidate.yaml",
+      "resolved": "configs/demo.professor.candidate.yaml"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "assets/samples/acoustic-manifest.json",
+      "resolved": "assets/samples/acoustic-manifest.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "assets/samples/recorded-manifest.json",
+      "resolved": "assets/samples/recorded-manifest.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "audio/bank.py:SampleBank.load",
+      "resolved": "src/spacedrums/audio/bank.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "audio/variants.py:VariantSelector.pick",
+      "resolved": "src/spacedrums/audio/variants.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "validation-results.md",
+      "resolved": "docs/presentation/validation-results.md"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "tests/product/test_full_kit.py::test_a_run_around_the_kit_sounds_each_piece_in_order",
+      "resolved": "tests/product/test_full_kit.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "src/spacedrums/stick/visible.py:245",
+      "resolved": "src/spacedrums/stick/visible.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "evidence/environment.json",
+      "resolved": "docs/presentation/evidence/environment.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "experiments/camera-quality-20261016-compare-exp5-redtips/report.json",
+      "resolved": "experiments/camera-quality-20261016-compare-exp5-redtips/report.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "docs/perf/camera-quality-native-720p.md",
+      "resolved": "docs/perf/camera-quality-native-720p.md"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "experiments/red-tip-lit/summary.json",
+      "resolved": "experiments/red-tip-lit/summary.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "experiments/red-tip-dark/summary.json",
+      "resolved": "experiments/red-tip-dark/summary.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "data/dev-product/dev-product-20261017-005812-ccdb76de/report.json",
+      "resolved": "data/dev-product/dev-product-20261017-005812-ccdb76de/report.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "data/dev-product/dev-product-20261017-010510-6b507f56/report.json",
+      "resolved": "data/dev-product/dev-product-20261017-010510-6b507f56/report.json"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "demo-spacedrums.ps1",
+      "resolved": "demo-spacedrums.ps1"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "app/arms.py",
+      "resolved": "src/spacedrums/app/arms.py"
+    },
+    {
+      "document": "project-audit.md",
+      "reference": "tests/app/test_per_arm_settings.py",
+      "resolved": "tests/app/test_per_arm_settings.py"
+    },
+    {
+      "document": "rehearsal-and-live-demo.md",
+      "reference": "app/play.py:main",
+      "resolved": "src/spacedrums/app/play.py"
+    },
+    {
+      "document": "rehearsal-and-live-demo.md",
+      "reference": "assets/hand-replay-window.jpg",
+      "resolved": "docs/presentation/assets/hand-replay-window.jpg"
+    },
+    {
+      "document": "rehearsal-and-live-demo.md",
+      "reference": "hand-diagnostics-window.jpg",
+      "resolved": "docs/presentation/assets/hand-diagnostics-window.jpg"
+    },
+    {
+      "document": "rehearsal-and-live-demo.md",
+      "reference": "stick-diagnostics-window.jpg",
+      "resolved": "docs/presentation/assets/stick-diagnostics-window.jpg"
+    },
+    {
+      "document": "rehearsal-and-live-demo.md",
+      "reference": "recorded-four-pad-preview.png",
+      "resolved": "docs/presentation/assets/recorded-four-pad-preview.png"
+    },
+    {
+      "document": "rehearsal-and-live-demo.md",
+      "reference": "SpaceDrums-Team-Presentation.pptx",
+      "resolved": "docs/presentation/SpaceDrums-Team-Presentation.pptx"
+    },
+    {
+      "document": "rehearsal-and-live-demo.md",
+      "reference": "project-audit.md",
+      "resolved": "docs/presentation/project-audit.md"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "app/main.py:Perception",
+      "resolved": "src/spacedrums/app/main.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "hands/landmarker.py:HandLandmarker",
+      "resolved": "src/spacedrums/hands/landmarker.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "hands/identity.py",
+      "resolved": "src/spacedrums/hands/identity.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "stick/visible.py:FingertipEndpointEstimator",
+      "resolved": "src/spacedrums/stick/visible.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "app/red_tip_perception.py:RedTipPerception",
+      "resolved": "src/spacedrums/app/red_tip_perception.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "stick/red_tip.py:RedTipDetector",
+      "resolved": "src/spacedrums/stick/red_tip.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "red_tip_tracker.py:RedTipTracker",
+      "resolved": "src/spacedrums/stick/red_tip_tracker.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "red_tip_estimator.py:RedTipEndpointEstimator",
+      "resolved": "src/spacedrums/stick/red_tip_estimator.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "geometry/strokes.py:MeasuredStrokeGeometry.observe",
+      "resolved": "src/spacedrums/geometry/strokes.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "geometry/impact.py:segment_surface",
+      "resolved": "src/spacedrums/geometry/impact.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "geometry/zones.py:ZoneRegistry",
+      "resolved": "src/spacedrums/geometry/zones.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "commit/policy.py:PerHandCommitPolicy",
+      "resolved": "src/spacedrums/commit/policy.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "commit/state_machine.py",
+      "resolved": "src/spacedrums/commit/state_machine.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "tests/product/test_four_pad_product.py",
+      "resolved": "tests/product/test_four_pad_product.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "tests/product/test_red_tip_play.py",
+      "resolved": "tests/product/test_red_tip_play.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "ui/stage.py:StageRenderer",
+      "resolved": "src/spacedrums/ui/stage.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "ui/developer_demo.py:DemoOverlay",
+      "resolved": "src/spacedrums/ui/developer_demo.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "ui/kit.py:render_kit",
+      "resolved": "src/spacedrums/ui/kit.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "ui/layout_preview.py:LayoutPreview",
+      "resolved": "src/spacedrums/ui/layout_preview.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "ui/preview_tone.py:PreviewTone",
+      "resolved": "src/spacedrums/ui/preview_tone.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "ui/dashboard.py",
+      "resolved": "src/spacedrums/ui/dashboard.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "ui/wizard_views.py",
+      "resolved": "src/spacedrums/ui/wizard_views.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "app/play.py:run",
+      "resolved": "src/spacedrums/app/play.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "app/pipeline.py:DecisionPipeline",
+      "resolved": "src/spacedrums/app/pipeline.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "capture/source.py:LiveFrameSource",
+      "resolved": "src/spacedrums/capture/source.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "capture/replay.py:ReplayFrameSource",
+      "resolved": "src/spacedrums/capture/replay.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "contracts/records.py",
+      "resolved": "src/spacedrums/contracts/records.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "contracts/perception.py",
+      "resolved": "src/spacedrums/contracts/perception.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "config/loader.py",
+      "resolved": "src/spacedrums/config/loader.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "app/arms.py",
+      "resolved": "src/spacedrums/app/arms.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "project-discovery.md",
+      "resolved": "project-discovery.md"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "docs/requirements/out-of-scope.md",
+      "resolved": "docs/requirements/out-of-scope.md"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "app/audio_out.py:AudioOutput",
+      "resolved": "src/spacedrums/app/audio_out.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "audio/bank.py:SampleBank",
+      "resolved": "src/spacedrums/audio/bank.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "audio/gain.py:GainCurve",
+      "resolved": "src/spacedrums/audio/gain.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "audio/variants.py:VariantSelector",
+      "resolved": "src/spacedrums/audio/variants.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "audio/scheduler.py:AudioScheduler",
+      "resolved": "src/spacedrums/audio/scheduler.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "audio/mixer.py:CallbackMixer",
+      "resolved": "src/spacedrums/audio/mixer.py"
+    },
+    {
+      "document": "team-contributions-and-roadmap.md",
+      "reference": "audio/device.py:SoundDeviceOutput",
+      "resolved": "src/spacedrums/audio/device.py"
+    },
+    {
+      "document": "validation-results.md",
+      "reference": "src/spacedrums/stick/visible.py:245",
+      "resolved": "src/spacedrums/stick/visible.py"
+    },
+    {
+      "document": "validation-results.md",
+      "reference": "tests/product/test_full_kit.py::test_a_run_around_the_kit_sounds_each_piece_in_order",
+      "resolved": "tests/product/test_full_kit.py"
+    },
+    {
+      "document": "validation-results.md",
+      "reference": "tests/capture/test_hardware_capture.py:28",
+      "resolved": "tests/capture/test_hardware_capture.py"
+    },
+    {
+      "document": "validation-results.md",
+      "reference": "evidence/presentation-validation.json",
+      "resolved": "docs/presentation/evidence/presentation-validation.json"
+    },
+    {
+      "document": "validation-results.md",
+      "reference": "app/play.py",
+      "resolved": "src/spacedrums/app/play.py"
+    },
+    {
+      "document": "validation-results.md",
+      "reference": "evidence/asset-provenance.json",
+      "resolved": "docs/presentation/evidence/asset-provenance.json"
+    },
+    {
+      "document": "validation-results.md",
+      "reference": "project-audit.md",
+      "resolved": "docs/presentation/project-audit.md"
+    },
+    {
+      "document": "speaker-scripts/00-team-leader-introduction-and-conclusion.md",
+      "reference": "assets/architecture.png",
+      "resolved": "docs/presentation/assets/architecture.png"
+    },
+    {
+      "document": "speaker-scripts/01-ai-computer-vision.md",
+      "reference": "assets/hand-diagnostics-window.jpg",
+      "resolved": "docs/presentation/assets/hand-diagnostics-window.jpg"
+    },
+    {
+      "document": "speaker-scripts/01-ai-computer-vision.md",
+      "reference": "app/red_tip_perception.py:RedTipPerception",
+      "resolved": "src/spacedrums/app/red_tip_perception.py"
+    },
+    {
+      "document": "speaker-scripts/01-ai-computer-vision.md",
+      "reference": "stick/red_tip_estimator.py:_emit",
+      "resolved": "src/spacedrums/stick/red_tip_estimator.py"
+    },
+    {
+      "document": "speaker-scripts/01-ai-computer-vision.md",
+      "reference": "stick/visible.py:FingertipEndpointEstimator.estimate",
+      "resolved": "src/spacedrums/stick/visible.py"
+    },
+    {
+      "document": "speaker-scripts/02-strike-detection.md",
+      "reference": "assets/strike-pipeline.png",
+      "resolved": "docs/presentation/assets/strike-pipeline.png"
+    },
+    {
+      "document": "speaker-scripts/02-strike-detection.md",
+      "reference": "geometry/strokes.py:MeasuredStrokeGeometry.observe",
+      "resolved": "src/spacedrums/geometry/strokes.py"
+    },
+    {
+      "document": "speaker-scripts/02-strike-detection.md",
+      "reference": "commit/policy.py:PerHandCommitPolicy.step",
+      "resolved": "src/spacedrums/commit/policy.py"
+    },
+    {
+      "document": "speaker-scripts/02-strike-detection.md",
+      "reference": "configs/product.candidate.yaml",
+      "resolved": "configs/product.candidate.yaml"
+    },
+    {
+      "document": "speaker-scripts/02-strike-detection.md",
+      "reference": "configs/demo.professor.candidate.yaml",
+      "resolved": "configs/demo.professor.candidate.yaml"
+    },
+    {
+      "document": "speaker-scripts/03-frontend-ui.md",
+      "reference": "assets/hand-replay-window.jpg",
+      "resolved": "docs/presentation/assets/hand-replay-window.jpg"
+    },
+    {
+      "document": "speaker-scripts/03-frontend-ui.md",
+      "reference": "ui/stage.py:StageRenderer",
+      "resolved": "src/spacedrums/ui/stage.py"
+    },
+    {
+      "document": "speaker-scripts/03-frontend-ui.md",
+      "reference": "ui/developer_demo.py:DemoOverlay",
+      "resolved": "src/spacedrums/ui/developer_demo.py"
+    },
+    {
+      "document": "speaker-scripts/03-frontend-ui.md",
+      "reference": "ui/layout_preview.py:LayoutPreview",
+      "resolved": "src/spacedrums/ui/layout_preview.py"
+    },
+    {
+      "document": "speaker-scripts/03-frontend-ui.md",
+      "reference": "ui/preview_tone.py:PreviewTone",
+      "resolved": "src/spacedrums/ui/preview_tone.py"
+    },
+    {
+      "document": "speaker-scripts/04-core-processing.md",
+      "reference": "assets/core-contracts.png",
+      "resolved": "docs/presentation/assets/core-contracts.png"
+    },
+    {
+      "document": "speaker-scripts/04-core-processing.md",
+      "reference": "app/play.py:run",
+      "resolved": "src/spacedrums/app/play.py"
+    },
+    {
+      "document": "speaker-scripts/04-core-processing.md",
+      "reference": "app/pipeline.py:DecisionPipeline.step",
+      "resolved": "src/spacedrums/app/pipeline.py"
+    },
+    {
+      "document": "speaker-scripts/04-core-processing.md",
+      "reference": "capture/source.py:LiveFrameSource",
+      "resolved": "src/spacedrums/capture/source.py"
+    },
+    {
+      "document": "speaker-scripts/04-core-processing.md",
+      "reference": "contracts/records.py",
+      "resolved": "src/spacedrums/contracts/records.py"
+    },
+    {
+      "document": "speaker-scripts/05-mobile-development.md",
+      "reference": "project-discovery.md",
+      "resolved": "project-discovery.md"
+    },
+    {
+      "document": "speaker-scripts/05-mobile-development.md",
+      "reference": "docs/requirements/out-of-scope.md",
+      "resolved": "docs/requirements/out-of-scope.md"
+    },
+    {
+      "document": "speaker-scripts/06-audio-engine.md",
+      "reference": "assets/audio-pipeline.png",
+      "resolved": "docs/presentation/assets/audio-pipeline.png"
+    },
+    {
+      "document": "speaker-scripts/06-audio-engine.md",
+      "reference": "app/audio_out.py:AudioOutput",
+      "resolved": "src/spacedrums/app/audio_out.py"
+    },
+    {
+      "document": "speaker-scripts/06-audio-engine.md",
+      "reference": "audio/scheduler.py:AudioScheduler",
+      "resolved": "src/spacedrums/audio/scheduler.py"
+    },
+    {
+      "document": "speaker-scripts/06-audio-engine.md",
+      "reference": "audio/variants.py:VariantSelector",
+      "resolved": "src/spacedrums/audio/variants.py"
+    },
+    {
+      "document": "speaker-scripts/06-audio-engine.md",
+      "reference": "audio/mixer.py:CallbackMixer",
+      "resolved": "src/spacedrums/audio/mixer.py"
+    },
+    {
+      "document": "speaker-scripts/06-audio-engine.md",
+      "reference": "audio/device.py:SoundDeviceOutput",
+      "resolved": "src/spacedrums/audio/device.py"
+    }
+  ],
+  "unresolved": [],
+  "scope": "Explicit complete file references in prose/scripts; abbreviated directory and ellipsis citations are explained in audit."
+}

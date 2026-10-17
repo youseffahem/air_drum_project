@@ -1,0 +1,140 @@
+[
+  {
+    "file": "assets/architecture.png",
+    "sha256": "de60a3b5203cc5f7caa676dad5bea463e633dcda41e49ad7049a4f12a142d41a",
+    "pixels": [
+      1280,
+      720
+    ],
+    "type": "source-grounded explanatory diagram",
+    "slide": 4,
+    "source": "SpaceDrums-Team-Presentation.pptx; editable native shapes",
+    "byte_identical_to_slide_preview": true
+  },
+  {
+    "file": "assets/audio-pipeline.png",
+    "sha256": "b62ed3552bdbb365d619358d951d53fef186ead0af1c01cefcff7ba1e6978f57",
+    "pixels": [
+      1280,
+      720
+    ],
+    "type": "source-grounded explanatory diagram",
+    "slide": 10,
+    "source": "SpaceDrums-Team-Presentation.pptx; editable native shapes",
+    "byte_identical_to_slide_preview": true
+  },
+  {
+    "file": "assets/core-contracts.png",
+    "sha256": "cb0309f932b17bf2528493ba620939da631021e963ffaf53d8d26bfab8702bec",
+    "pixels": [
+      1280,
+      720
+    ],
+    "type": "source-grounded explanatory diagram",
+    "slide": 9,
+    "source": "SpaceDrums-Team-Presentation.pptx; editable native shapes",
+    "byte_identical_to_slide_preview": true
+  },
+  {
+    "file": "assets/hand-diagnostics-window.jpg",
+    "sha256": "5d26e1ce37d83e912f9c3c26e41e57c87071da860b779a11e00df1e04b918708",
+    "pixels": [
+      1202,
+      940
+    ],
+    "type": "genuine running application-window screenshot",
+    "capture_method": "Computer Use window capture; no compositing or pixel editing",
+    "source_run": "experiments/presentation-build/hand-replay-capture",
+    "input_recording": "data/dev-product/dev-product-20261017-005812-ccdb76de",
+    "audio_enabled": false,
+    "live_camera": false
+  },
+  {
+    "file": "assets/hand-replay-window.jpg",
+    "sha256": "49f7319251d3994b2e0700974a3649d84adc5bd6f864063e7bbf64d95973a475",
+    "pixels": [
+      1202,
+      940
+    ],
+    "type": "genuine running application-window screenshot",
+    "capture_method": "Computer Use window capture; no compositing or pixel editing",
+    "source_run": "experiments/presentation-build/hand-replay-capture",
+    "input_recording": "data/dev-product/dev-product-20261017-005812-ccdb76de",
+    "audio_enabled": false,
+    "live_camera": false
+  },
+  {
+    "file": "assets/recorded-camera-frame-140.png",
+    "sha256": "155d2d0c3cff81073ce782538d450d9df38c602b2ad9becaae5a82f5cfd810ac",
+    "pixels": [
+      640,
+      480
+    ],
+    "type": "existing recorded evidence",
+    "source": "data/dev-product/dev-product-20261017-005812-ccdb76de/frames/frame_000140.png",
+    "source_sha256": "155d2d0c3cff81073ce782538d450d9df38c602b2ad9becaae5a82f5cfd810ac",
+    "byte_identical": true
+  },
+  {
+    "file": "assets/recorded-four-pad-preview.png",
+    "sha256": "a4c026f02b8d4b6cbd9c73fead2680779d90ac3e22733174c13fd2a3ecd31c9e",
+    "pixels": [
+      640,
+      480
+    ],
+    "type": "existing recorded evidence",
+    "source": "experiments/developer-demo-software/RECORDED-demo-preview.png",
+    "source_sha256": "a4c026f02b8d4b6cbd9c73fead2680779d90ac3e22733174c13fd2a3ecd31c9e",
+    "byte_identical": true
+  },
+  {
+    "file": "assets/red-tip-dark-contact-sheet.jpg",
+    "sha256": "9c7c0759a104dad1014c6278a72e620337325975bebad3cf65679ff9c1db0503",
+    "pixels": [
+      1920,
+      1920
+    ],
+    "type": "existing recorded evidence",
+    "source": "experiments/red-tip-dark/contact-sheet.jpg",
+    "source_sha256": "9c7c0759a104dad1014c6278a72e620337325975bebad3cf65679ff9c1db0503",
+    "byte_identical": true
+  },
+  {
+    "file": "assets/red-tip-default-contact-sheet.jpg",
+    "sha256": "373cae69559a1ef16732c022e0f0652c67e40310c114634f711063034e54c544",
+    "pixels": [
+      1920,
+      1920
+    ],
+    "type": "existing recorded evidence",
+    "source": "experiments/red-tip-lit/contact-sheet.jpg",
+    "source_sha256": "373cae69559a1ef16732c022e0f0652c67e40310c114634f711063034e54c544",
+    "byte_identical": true
+  },
+  {
+    "file": "assets/stick-diagnostics-window.jpg",
+    "sha256": "54953d4e6c582b256edac20be8eaa650b2ea7f69ef32f726940238806d1db83f",
+    "pixels": [
+      1202,
+      940
+    ],
+    "type": "genuine running application-window screenshot",
+    "capture_method": "Computer Use window capture; no compositing or pixel editing",
+    "source_run": "experiments/presentation-build/stick-replay-capture",
+    "input_recording": "data/dev-product/dev-product-20261017-005812-ccdb76de",
+    "audio_enabled": false,
+    "live_camera": false
+  },
+  {
+    "file": "assets/strike-pipeline.png",
+    "sha256": "7c9511fa72b17bf766c418481a5ffa9a2a8491390b5caa1521d90fafe5c665f1",
+    "pixels": [
+      1280,
+      720
+    ],
+    "type": "source-grounded explanatory diagram",
+    "slide": 7,
+    "source": "SpaceDrums-Team-Presentation.pptx; editable native shapes",
+    "byte_identical_to_slide_preview": true
+  }
+]

@@ -49,9 +49,22 @@ imports `calib` (independent L7 siblings). Tests: `tests/ui/test_ui_wizard_views
 its accent colour, spring the drum heads, wobble the cymbals, emit ripples and sparks, and feed a hit/combo
 readout; fingertips leave a glowing trail and the strike edge brightens as one approaches. Everything is
 display-only: `StageRenderer.to_display` is the one place that maps ROI-normalised camera coordinates to
-display pixels, and it reads only committed strikes and endpoint evidence from the shared pipeline.
+display pixels, and it reads only committed strikes and endpoint evidence from the shared pipeline. With native capture
+(ADR-0047), `render(..., preview=)` takes the native 960x720 window instead of upscaling the 640x480 frame;
+the pad geometry is unchanged.
+ADR-0048: `preview_tone.PreviewTone` (display-only auto gamma) and `StageRenderer(dim=, vignette=)` /
+`render_kit(dim=, lift=)`; `app.play --preview natural` turns the artistic darkening off (`legacy` restores it). `DemoOverlay.render(..., px_scale=)` and `render_kit` draw on the preview
+with the ROI scaled by 1.5 (`app.play.display_roi`).
 `D` switches to the diagnostic `DemoOverlay`; `--kit four` keeps the 2x2 guide. The renderer costs about
 4 ms per frame (`latency_ms.render_ms` in the run report).
+
+With `--red-tips` (ADR-0046) the diagnostic `DemoOverlay` (`D`, or the default view of `--kit four`) also
+draws the red mask (inset, mirrored like the view: paint seeds, or `REDNESS` candidate regions), candidates
+(yellow; with the redness detector the cap outline, its centre and the verifier quality `q`) and rejected
+candidates (grey, with the reason), each hand's track id, state and confidence (filled dot = measured; ring =
+predicted, never used for a hit; orange ring = seen but untrusted: `AMBIG`, `EDGE`, `LOW`), strike candidates
+(magenta) and two HUD lines: red-tip ms, per-hand state and
+measured share, and each hand's current stroke reason. Without red tips the view is unchanged.
 
 The seven pads are arranged like a drum kit seen from the player's seat (`configs/demo.fullkit.candidate.yaml`,
 profile `full-kit-v2`): crash high left, ride high right, hi-hat left in front of the snare, snare low

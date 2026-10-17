@@ -1,0 +1,659 @@
+{
+  "command": "compare",
+  "exposure": {
+    "mode": "MANUAL",
+    "value": -5.0
+  },
+  "perception": "red-tips",
+  "runs": [
+    {
+      "arm": "standard",
+      "error": null,
+      "perception": "red-tips",
+      "negotiated": {
+        "backend": "DSHOW",
+        "index": 0,
+        "width": 640,
+        "height": 480,
+        "fps_prop": 30.00003000003,
+        "fourcc": "YUY2",
+        "fourcc_raw": 844715353,
+        "auto_exposure_prop": -1.0,
+        "exposure_prop": -5.0,
+        "has_driver_timestamps": false,
+        "buffersize_prop": -1.0,
+        "stamp_after": "RETRIEVE",
+        "grab_probe": {
+          "grab_median_s": 7.500057108700275e-06,
+          "grab_p75_s": 1.2075062841176987e-05,
+          "retrieve_median_s": 0.03208224999252707
+        }
+      },
+      "open_s": 4.144428300089203,
+      "capture_mode": {
+        "mode": "STANDARD",
+        "tracking_px": [
+          640,
+          480
+        ],
+        "controls": [],
+        "conversion_ms": null
+      },
+      "delivered": {
+        "unique_fps": 30.15030095317218,
+        "interval_ms": {
+          "p50": 31.995999976061285,
+          "p95": 47.985700075514615,
+          "max": 53.16839995793998,
+          "std": 4.458836395594085
+        },
+        "stable_fraction": 0.9501661129568106,
+        "gaps_vs_requested": 4
+      },
+      "capture_stats": {
+        "delivered": 322,
+        "dropped": 0,
+        "stalled": 0,
+        "duplicates": 0,
+        "fps_measured": 30.16770991185528,
+        "interval_p50": 0.031999099999666214,
+        "interval_p99": 0.04993970000650734,
+        "clamped_timestamps": 0
+      },
+      "raw_reads": 333,
+      "capture_thread_cpu_fraction": 0.005665368834907769,
+      "process_cpu_percent": 27.086569171031385,
+      "hand_over_lag_ms": {
+        "n": 302,
+        "min": 0.10560010559856892,
+        "p50": 0.13714999658986926,
+        "p95": 0.38234500680118777,
+        "max": 0.7682000286877155,
+        "mean": 0.16915496818055184
+      },
+      "display_prep_ms": {
+        "n": 302,
+        "min": 1.387299969792366,
+        "p50": 1.8968500080518425,
+        "p95": 5.127755075227468,
+        "max": 8.898200001567602,
+        "mean": 2.3114384145827485
+      },
+      "perception_ms": {
+        "n": 302,
+        "min": 1.9407999934628606,
+        "p50": 2.4850500049069524,
+        "p95": 7.734810048714278,
+        "max": 12.213399983011186,
+        "mean": 3.054453312521122
+      },
+      "hands_present_per_frame": 0.0,
+      "tracking_image": {
+        "px": [
+          640,
+          480
+        ],
+        "luminance": {
+          "n": 100,
+          "min": 79.13714192708333,
+          "p50": 79.48653971354167,
+          "p95": 79.79396110026042,
+          "max": 79.95504557291666,
+          "mean": 79.50410498046875
+        },
+        "temporal_noise": {
+          "n": 99,
+          "min": 2.566489822767797,
+          "p50": 2.588128053621957,
+          "p95": 2.605760616297085,
+          "max": 2.6138550456233616,
+          "mean": 2.5881550995232
+        },
+        "detail": {
+          "n": 100,
+          "min": 1097.84228515625,
+          "p50": 1111.4961547851562,
+          "p95": 1119.8480407714844,
+          "max": 1123.52880859375,
+          "mean": 1111.597947998047
+        }
+      },
+      "display_image": {
+        "px": [
+          960,
+          720
+        ],
+        "detail": {
+          "n": 100,
+          "min": 633.5560913085938,
+          "p50": 641.9490051269531,
+          "p95": 646.7087951660156,
+          "max": 649.21826171875,
+          "mean": 641.6861682128906
+        }
+      },
+      "repeat": 0
+    },
+    {
+      "arm": "native",
+      "error": null,
+      "perception": "red-tips",
+      "negotiated": {
+        "backend": "DSHOW",
+        "index": 0,
+        "width": 1280,
+        "height": 720,
+        "fps_prop": 30.00003000003,
+        "fourcc": null,
+        "fourcc_raw": -466162819,
+        "auto_exposure_prop": -1.0,
+        "exposure_prop": -5.0,
+        "has_driver_timestamps": false,
+        "buffersize_prop": -1.0,
+        "stamp_after": "RETRIEVE",
+        "grab_probe": {
+          "grab_median_s": 1.0350020602345467e-05,
+          "grab_p75_s": 1.7900019884109497e-05,
+          "retrieve_median_s": 0.032060650060884655
+        }
+      },
+      "open_s": 4.849272700026631,
+      "capture_mode": {
+        "native_capture": {
+          "request_px": [
+            1920,
+            1080
+          ],
+          "expect_px": [
+            1280,
+            720
+          ],
+          "crop_px": [
+            159,
+            0,
+            960,
+            720
+          ],
+          "min_fps": 25,
+          "probe_frames": 20,
+          "fallback": "STANDARD"
+        },
+        "native_negotiated": {
+          "backend": "DSHOW",
+          "index": 0,
+          "width": 1280,
+          "height": 720,
+          "fps_prop": 30.00003000003,
+          "fourcc": null,
+          "fourcc_raw": -466162819,
+          "auto_exposure_prop": -1.0,
+          "exposure_prop": -5.0,
+          "has_driver_timestamps": false,
+          "buffersize_prop": -1.0,
+          "stamp_after": "RETRIEVE",
+          "grab_probe": {
+            "grab_median_s": 1.0350020602345467e-05,
+            "grab_p75_s": 1.7900019884109497e-05,
+            "retrieve_median_s": 0.032060650060884655
+          }
+        },
+        "probe": {
+          "frames_read": 20,
+          "unique_frames": 20,
+          "unique_fps": 30.34564003296601,
+          "delivered_px": [
+            [
+              1280,
+              720
+            ]
+          ],
+          "rate_checked": true
+        },
+        "mode": "NATIVE_CROP",
+        "tracking_px": [
+          640,
+          480
+        ],
+        "controls": [],
+        "conversion_ms": {
+          "frames": 323,
+          "p50": 3.511899965815246,
+          "p95": 5.591799970716238,
+          "max": 8.981099934317172
+        }
+      },
+      "delivered": {
+        "unique_fps": 30.15514864055892,
+        "interval_ms": {
+          "p50": 32.028699992224574,
+          "p95": 47.85750003065914,
+          "max": 62.217800063081086,
+          "std": 4.935682747012097
+        },
+        "stable_fraction": 0.9534883720930233,
+        "gaps_vs_requested": 3
+      },
+      "capture_stats": {
+        "delivered": 322,
+        "dropped": 0,
+        "stalled": 0,
+        "duplicates": 0,
+        "fps_measured": 30.16925175823793,
+        "interval_p50": 0.032028699992224574,
+        "interval_p99": 0.04987844005227089,
+        "clamped_timestamps": 0
+      },
+      "raw_reads": 333,
+      "capture_thread_cpu_fraction": 0.0396236074284307,
+      "process_cpu_percent": 24.896375959385367,
+      "hand_over_lag_ms": {
+        "n": 302,
+        "min": 3.228600020520389,
+        "p50": 3.729750053025782,
+        "p95": 5.9889750787988305,
+        "max": 9.752199985086918,
+        "mean": 4.132837086410219
+      },
+      "display_prep_ms": {
+        "n": 302,
+        "min": 0.5104999290779233,
+        "p50": 0.7638499955646694,
+        "p95": 1.0312900529243052,
+        "max": 1.945700030773878,
+        "mean": 0.768655629301234
+      },
+      "perception_ms": {
+        "n": 302,
+        "min": 1.9782999297603965,
+        "p50": 2.489450038410723,
+        "p95": 3.68225498823449,
+        "max": 5.92960009817034,
+        "mean": 2.6347076135613516
+      },
+      "hands_present_per_frame": 0.0,
+      "tracking_image": {
+        "px": [
+          640,
+          480
+        ],
+        "luminance": {
+          "n": 100,
+          "min": 69.18918294270833,
+          "p50": 69.5597607421875,
+          "p95": 69.81618603515625,
+          "max": 69.95995442708333,
+          "mean": 69.5574984375
+        },
+        "temporal_noise": {
+          "n": 99,
+          "min": 2.992085058319532,
+          "p50": 3.0280493417051138,
+          "p95": 3.042146892666318,
+          "max": 3.0474503834236937,
+          "mean": 3.026500547992547
+        },
+        "detail": {
+          "n": 100,
+          "min": 1319.129638671875,
+          "p50": 1335.3557739257812,
+          "p95": 1344.844744873047,
+          "max": 1351.0120849609375,
+          "mean": 1334.985360107422
+        }
+      },
+      "display_image": {
+        "px": [
+          960,
+          720
+        ],
+        "detail": {
+          "n": 100,
+          "min": 944.0413208007812,
+          "p50": 956.04541015625,
+          "p95": 964.7134704589844,
+          "max": 967.6979370117188,
+          "mean": 956.2788665771484
+        }
+      },
+      "repeat": 0
+    },
+    {
+      "arm": "native",
+      "error": null,
+      "perception": "red-tips",
+      "negotiated": {
+        "backend": "DSHOW",
+        "index": 0,
+        "width": 1280,
+        "height": 720,
+        "fps_prop": 30.00003000003,
+        "fourcc": null,
+        "fourcc_raw": -466162819,
+        "auto_exposure_prop": -1.0,
+        "exposure_prop": -5.0,
+        "has_driver_timestamps": false,
+        "buffersize_prop": -1.0,
+        "stamp_after": "RETRIEVE",
+        "grab_probe": {
+          "grab_median_s": 4.700035788118839e-06,
+          "grab_p75_s": 5.2000104915350676e-06,
+          "retrieve_median_s": 0.03213265002705157
+        }
+      },
+      "open_s": 4.675887199933641,
+      "capture_mode": {
+        "native_capture": {
+          "request_px": [
+            1920,
+            1080
+          ],
+          "expect_px": [
+            1280,
+            720
+          ],
+          "crop_px": [
+            159,
+            0,
+            960,
+            720
+          ],
+          "min_fps": 25,
+          "probe_frames": 20,
+          "fallback": "STANDARD"
+        },
+        "native_negotiated": {
+          "backend": "DSHOW",
+          "index": 0,
+          "width": 1280,
+          "height": 720,
+          "fps_prop": 30.00003000003,
+          "fourcc": null,
+          "fourcc_raw": -466162819,
+          "auto_exposure_prop": -1.0,
+          "exposure_prop": -5.0,
+          "has_driver_timestamps": false,
+          "buffersize_prop": -1.0,
+          "stamp_after": "RETRIEVE",
+          "grab_probe": {
+            "grab_median_s": 4.700035788118839e-06,
+            "grab_p75_s": 5.2000104915350676e-06,
+            "retrieve_median_s": 0.03213265002705157
+          }
+        },
+        "probe": {
+          "frames_read": 20,
+          "unique_frames": 20,
+          "unique_fps": 30.453198085010328,
+          "delivered_px": [
+            [
+              1280,
+              720
+            ]
+          ],
+          "rate_checked": true
+        },
+        "mode": "NATIVE_CROP",
+        "tracking_px": [
+          640,
+          480
+        ],
+        "controls": [],
+        "conversion_ms": {
+          "frames": 323,
+          "p50": 3.3709999406710267,
+          "p95": 4.3530999682843685,
+          "max": 10.635499958880246
+        }
+      },
+      "delivered": {
+        "unique_fps": 30.145856369400096,
+        "interval_ms": {
+          "p50": 32.05929999239743,
+          "p95": 47.71469999104738,
+          "max": 58.82109992671758,
+          "std": 4.521996310361952
+        },
+        "stable_fraction": 0.9667774086378738,
+        "gaps_vs_requested": 3
+      },
+      "capture_stats": {
+        "delivered": 322,
+        "dropped": 0,
+        "stalled": 0,
+        "duplicates": 0,
+        "fps_measured": 30.167128995841114,
+        "interval_p50": 0.032032999908551574,
+        "interval_p99": 0.049052839982323355,
+        "clamped_timestamps": 0
+      },
+      "raw_reads": 333,
+      "capture_thread_cpu_fraction": 0.008487885275259385,
+      "process_cpu_percent": 18.620908222215828,
+      "hand_over_lag_ms": {
+        "n": 302,
+        "min": 3.3032000064849854,
+        "p50": 3.5996499937027693,
+        "p95": 4.633655014913529,
+        "max": 11.253100004978478,
+        "mean": 3.799387091918793
+      },
+      "display_prep_ms": {
+        "n": 302,
+        "min": 0.6161000346764922,
+        "p50": 0.8565000025555491,
+        "p95": 1.1925450002308935,
+        "max": 1.4401000225916505,
+        "mean": 0.8680377458530595
+      },
+      "perception_ms": {
+        "n": 302,
+        "min": 1.9516999600455165,
+        "p50": 2.230200043413788,
+        "p95": 3.0077499861363317,
+        "max": 6.089299917221069,
+        "mean": 2.3232874150591476
+      },
+      "hands_present_per_frame": 0.0,
+      "tracking_image": {
+        "px": [
+          640,
+          480
+        ],
+        "luminance": {
+          "n": 100,
+          "min": 65.92081705729167,
+          "p50": 66.30753255208333,
+          "p95": 66.57917708333332,
+          "max": 66.63106770833333,
+          "mean": 66.31395986328126
+        },
+        "temporal_noise": {
+          "n": 99,
+          "min": 2.911688895294434,
+          "p50": 2.92786971788579,
+          "p95": 2.9420704682151833,
+          "max": 2.947888033602242,
+          "mean": 2.9290355904126146
+        },
+        "detail": {
+          "n": 100,
+          "min": 1249.551513671875,
+          "p50": 1264.7645874023438,
+          "p95": 1272.9842346191406,
+          "max": 1276.07861328125,
+          "mean": 1264.7184851074219
+        }
+      },
+      "display_image": {
+        "px": [
+          960,
+          720
+        ],
+        "detail": {
+          "n": 100,
+          "min": 892.704345703125,
+          "p50": 903.1714782714844,
+          "p95": 909.92529296875,
+          "max": 912.0238647460938,
+          "mean": 902.7980889892578
+        }
+      },
+      "repeat": 1
+    },
+    {
+      "arm": "standard",
+      "error": null,
+      "perception": "red-tips",
+      "negotiated": {
+        "backend": "DSHOW",
+        "index": 0,
+        "width": 640,
+        "height": 480,
+        "fps_prop": 30.00003000003,
+        "fourcc": "YUY2",
+        "fourcc_raw": 844715353,
+        "auto_exposure_prop": -1.0,
+        "exposure_prop": -5.0,
+        "has_driver_timestamps": false,
+        "buffersize_prop": -1.0,
+        "stamp_after": "RETRIEVE",
+        "grab_probe": {
+          "grab_median_s": 1.2199976481497288e-05,
+          "grab_p75_s": 1.2275006156414747e-05,
+          "retrieve_median_s": 0.03204969997750595
+        }
+      },
+      "open_s": 4.33519850007724,
+      "capture_mode": {
+        "mode": "STANDARD",
+        "tracking_px": [
+          640,
+          480
+        ],
+        "controls": [],
+        "conversion_ms": null
+      },
+      "delivered": {
+        "unique_fps": 30.204861170450883,
+        "interval_ms": {
+          "p50": 31.999550003092736,
+          "p95": 48.01368995686062,
+          "max": 50.737000070512295,
+          "std": 4.219499706665163
+        },
+        "stable_fraction": 0.9470198675496688,
+        "gaps_vs_requested": 1
+      },
+      "capture_stats": {
+        "delivered": 323,
+        "dropped": 0,
+        "stalled": 0,
+        "duplicates": 0,
+        "fps_measured": 30.17982131038985,
+        "interval_p50": 0.031999550003092736,
+        "interval_p99": 0.04908747900044547,
+        "clamped_timestamps": 0
+      },
+      "raw_reads": 335,
+      "capture_thread_cpu_fraction": 0.005635157134080655,
+      "process_cpu_percent": 24.330218529714745,
+      "hand_over_lag_ms": {
+        "n": 303,
+        "min": 0.10080006904900074,
+        "p50": 0.1287000486627221,
+        "p95": 0.25455995928496117,
+        "max": 0.4256999818608165,
+        "mean": 0.14566402404381595
+      },
+      "display_prep_ms": {
+        "n": 303,
+        "min": 1.4621999580413103,
+        "p50": 1.9298000261187553,
+        "p95": 3.850889997556805,
+        "max": 7.099399925209582,
+        "mean": 2.1179735974835925
+      },
+      "perception_ms": {
+        "n": 303,
+        "min": 1.8991000251844525,
+        "p50": 2.3667000932618976,
+        "p95": 4.682280053384601,
+        "max": 9.361100033856928,
+        "mean": 2.6505151790453017
+      },
+      "hands_present_per_frame": 0.0,
+      "tracking_image": {
+        "px": [
+          640,
+          480
+        ],
+        "luminance": {
+          "n": 101,
+          "min": 64.52679036458333,
+          "p50": 64.86356770833333,
+          "p95": 65.16297526041667,
+          "max": 65.26960286458333,
+          "mean": 64.85402517790843
+        },
+        "temporal_noise": {
+          "n": 100,
+          "min": 2.244700650235003,
+          "p50": 2.26980954190811,
+          "p95": 2.283622683483904,
+          "max": 2.2931648701146146,
+          "mean": 2.2693971682883083
+        },
+        "detail": {
+          "n": 101,
+          "min": 824.817138671875,
+          "p50": 835.3934936523438,
+          "p95": 844.7470092773438,
+          "max": 848.8743896484375,
+          "mean": 836.0079400090888
+        }
+      },
+      "display_image": {
+        "px": [
+          960,
+          720
+        ],
+        "detail": {
+          "n": 101,
+          "min": 477.7828674316406,
+          "p50": 484.677490234375,
+          "p95": 489.9023132324219,
+          "max": 492.9368591308594,
+          "mean": 484.87506738039525
+        }
+      },
+      "repeat": 1
+    }
+  ],
+  "fov_registration_standard_to_native": {
+    "ecc": 0.9955267866627677,
+    "scale_x": 1.0000426769256592,
+    "scale_y": 1.0000882148742676,
+    "dx_px": -0.26729831099510193,
+    "dy_px": -0.20146071910858154,
+    "note": "tracking-frame pixels; static scene required; dx/dy ~0 and scale ~1 = same view"
+  },
+  "opencv": "5.0.0",
+  "participant_evidence": false,
+  "argv": [
+    "compare",
+    "--repeats",
+    "2",
+    "--seconds",
+    "10",
+    "--exposure=-5",
+    "--perception",
+    "red-tips",
+    "--output",
+    "experiments/camera-quality-20261016-compare-exp5-redtips"
+  ],
+  "limitations": [
+    "Development evidence on one camera, one room, one session.",
+    "Image metrics depend on the scene; compare arms of the same run only.",
+    "Hand-over lag is t_frame_available - t_capture; t_capture is the DSHOW grab return, so camera/USB/decode latency before it is not measured here."
+  ]
+}

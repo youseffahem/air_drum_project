@@ -14,7 +14,9 @@ from spacedrums.capture.backend import (
     RawFrame,
     SyntheticCamera,
 )
+from spacedrums.capture.exposure import ExposureGuard, ExposureWatch
 from spacedrums.capture.frame_queue import BoundedFrameQueue
+from spacedrums.capture.native import NativeCapture, NativeModeRejected, tracking_frame
 from spacedrums.capture.replay import ReplayFrameSource
 from spacedrums.capture.roi import (
     Roi,
@@ -35,10 +37,14 @@ __all__ = [
     "CaptureSettings",
     "CaptureStats",
     "DriverTimestampMapper",
+    "ExposureGuard",
+    "ExposureWatch",
     "GrabReturnStamper",
     "IntervalStats",
     "LinearMap",
     "LiveFrameSource",
+    "NativeCapture",
+    "NativeModeRejected",
     "NegotiatedMode",
     "OpenCvCamera",
     "RawFrame",
@@ -52,4 +58,5 @@ __all__ = [
     "norm_to_px_point",
     "px_to_norm",
     "px_to_norm_point",
+    "tracking_frame",
 ]

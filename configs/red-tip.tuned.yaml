@@ -1,0 +1,39 @@
+# Tuned with scripts/tune_red_tips.py on data\dev-product\dev-product-20261017-005812-ccdb76de.
+# Developer candidate, not a calibration. Play with:
+#   .\play-spacedrums.ps1 --demo --red-tips --stick-tip-config configs\red-tip.tuned.yaml
+product:
+  stick_tip:
+    hue_low_max: 4
+    hue_high_min: 170
+    hue_margin_weak: 3
+    s_min: 145
+    v_min: 60
+    s_min_weak: 70
+    v_min_weak: 40
+    grow_px: 4
+    min_seed_fraction: 0.45
+    min_area_px: 30.0
+    max_area_px: 4000.0
+    v_highlight: 190
+    s_highlight_max: 80
+    head_length_factor: 1.2
+    head_contrast: 0.08
+    min_seed_px: 6
+    ignore_regions: []
+    dark_paint: true
+    dark_hue_min: -60
+    dark_hue_max: 5
+    dark_s_min: 60
+    dark_v_min: 20
+    dark_v_max: 110
+    dark_rg_min: 6
+    dark_hue_mean_max: -20.0
+    dark_rb_mean_max: 4.0
+    dark_s_mean_min: 85.0
+    dark_v_mean_min: 32.0
+    dark_min_area_px: 15.0
+    dark_max_area_px: 250.0
+    dark_max_elongation: 3.5
+    dark_birth_surround: 0.65
+    dark_birth_frames: 4
+    dark_confidence: 0.8

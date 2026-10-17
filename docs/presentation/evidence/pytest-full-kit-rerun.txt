@@ -1,0 +1,58 @@
+============================= test session starts =============================
+
+platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0 -- <repo>\.venv\Scripts\python.exe
+
+cachedir: .pytest_cache
+
+rootdir: <repo>
+
+configfile: pyproject.toml
+
+collecting ... collected 1 item
+
+tests/product/test_full_kit.py::test_a_run_around_the_kit_sounds_each_piece_in_order FAILED [100%]
+
+================================== FAILURES ===================================
+
+____________ test_a_run_around_the_kit_sounds_each_piece_in_order _____________
+
+cfg = {'meta': {'schema_version': '1.11', 'created': '2026-10-03', 'phase': '17', 'description': 'Standing four-pad product ...dmarker', 'model_asset_id': 'mediapipe-hand-landmarker-float16-v1', 'running_mode': 'VIDEO', 'num_hands': 2, ...}, ...}
+
+    def test_a_run_around_the_kit_sounds_each_piece_in_order(cfg):
+
+        reg = ZoneRegistry.from_config(cfg["zones"])
+
+        swings = [Swing(R if i % 2 else L, z, 0.3 + i * 0.5) for i, z in enumerate(IDS)]
+
+        results, _ = run(cfg, build_sequence(reg, swings, duration_s=0.3 + len(IDS) * 0.5 + 0.5).frames)
+
+>       assert [c.zone_id for r in results for c in r.commits] == IDS
+
+E       AssertionError: assert ['crash', 'to..., 'tom2', ...] == ['crash', 'to... 'snare', ...]
+
+E         
+
+E         At index 5 diff: 'tom2' != 'snare'
+
+E         
+
+E         Full diff:
+
+E           [
+
+E               'crash',
+
+E               'tom1',...
+
+E         
+
+E         ...Full output truncated (7 lines hidden), use '-vv' to show
+
+tests\product\test_full_kit.py:99: AssertionError
+
+=========================== short test summary info ===========================
+
+FAILED tests/product/test_full_kit.py::test_a_run_around_the_kit_sounds_each_piece_in_order
+
+============================== 1 failed in 4.63s ==============================
+

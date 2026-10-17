@@ -10,6 +10,16 @@ meta:
 product:
   enabled: true
   pose_asset_id: mediapipe-pose-landmarker-full-float16-v1
+  # Live window only (ADR-0048): no artistic darkening, gamma toward a natural mean brightness.
+  # Tracking never sees these pixels. app.play --preview raw|legacy selects the camera pixels or the
+  # previous look (stage x0.62 + vignette, kit x0.60).
+  preview:
+    dim: 1.0
+    vignette: false
+    tone: AUTO
+    target_luminance: 115   # MEASURED: Windows Camera's auto exposure gives ~115-122 in the owner's room
+    min_gamma: 0.5
+    smoothing: 0.15
   # Search sweep: 170/650 admitted hand-frames vs 104/650 at 5.5 x 1.6 spans.
   # This is coverage on a developer replay, NOT endpoint accuracy or live acceptance.
   endpoint:

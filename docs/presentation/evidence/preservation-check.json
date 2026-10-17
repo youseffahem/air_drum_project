@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-17",
+  "checked_existing_files": 876,
+  "changed_or_missing_existing_files": [],
+  "status_outside_presentation_unchanged": true,
+  "head_unchanged": true,
+  "initial_modified_entries": 20,
+  "initial_untracked_entries": 34,
+  "scope_note": "Tracked and nonignored untracked files from initial inventory. Ignored experiments contain new build/replay outputs; test caches may change."
+}

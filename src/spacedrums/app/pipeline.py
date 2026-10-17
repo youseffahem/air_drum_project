@@ -57,6 +57,8 @@ from spacedrums.tracking import CausalTracker, TrackerSettings
 
 HANDS = (HandId.LEFT, HandId.RIGHT)
 SUPPORTED_ARMS = (Arm.A, Arm.B, *MODEL_ARMS)
+# Product endpoints: visible stick / fingertip (AXIS_REFINED) or red painted tips (MARKER, play --red-tips).
+PRODUCT_TIP_METHODS = (TipMethod.AXIS_REFINED, TipMethod.MARKER)
 Observations = Mapping[HandId, tuple[HandObservation, StickObservation]]
 
 
@@ -298,6 +300,14 @@ class DecisionPipeline:
             self.policies[arm][h].absorb_suppression(self.policies[previous][h])
         self._skip_commits = True
 
+    def reset_hand(self, hand: HandId | str, reason: ResetReason = ResetReason.LOW_CONFIDENCE) -> None:
+        """External per-hand restart (e.g. a red-tip identity that started or may have swapped).
+
+        The tracker reports ``reason`` on the hand's next ``step``, which resets its stroke geometry,
+        commit machines and anticipator exactly like a tracker-initiated reset; refractory timers persist.
+        """
+        self.trackers[HandId(hand)].reset(reason)
+
     def _fallback(self, reason, t):
         if self.model_error is not None:
             return
@@ -338,13 +348,15 @@ class DecisionPipeline:
                 if (e.frame_id, e.t_capture, e.hand_id) != (sample.frame_id, sample.t_capture, h):
                     raise ValueError("endpoint evidence must belong to this hand and current frame")
                 if e.kind == "MEASURED":
-                    if (not stick.present or stick.method_id is not TipMethod.AXIS_REFINED
+                    if (not stick.present or stick.method_id not in PRODUCT_TIP_METHODS
                             or stick.tip != e.tip or stick.axis_origin != e.origin
                             or stick.tip_confidence != e.confidence):
                         raise ValueError("measured evidence must match the visible endpoint observation")
                 else:
-                    stick = StickObservation.absent(sample.frame_id, sample.t_capture, h,
-                                                    TipMethod.AXIS_REFINED)
+                    # Red painted tips stay labelled MARKER (integrity I-7); every other path as before.
+                    marker = stick.method_id is TipMethod.MARKER
+                    method = TipMethod.MARKER if marker else TipMethod.AXIS_REFINED
+                    stick = StickObservation.absent(sample.frame_id, sample.t_capture, h, method)
                 accepted[h] = (hand, stick)
             observations = accepted
         old = self._previous_sample
@@ -598,4 +610,4 @@ class DecisionPipeline:
         }
 
 
-__all__ = ["HANDS", "SUPPORTED_ARMS", "DecisionPipeline", "FrameResult", "HandFrame"]
+__all__ = ["HANDS", "PRODUCT_TIP_METHODS", "SUPPORTED_ARMS", "DecisionPipeline", "FrameResult", "HandFrame"]

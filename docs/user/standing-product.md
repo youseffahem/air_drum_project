@@ -148,6 +148,41 @@ Each output directory must be new. Raw/diagnostic representative PNGs,
 `observations.jsonl` and `report.json` are saved locally. No profile is adopted
 automatically. See [camera investigation](../reports/camera-quality-20261004.md).
 
+### Camera quality (native 1280x720, ADR-0047)
+
+`app.play` and the launchers capture the webcam's native 1280x720 mode by default. Tracking still gets
+the same 640x480 field of view, and the 960x720 window now shows real camera pixels instead of an
+enlarged 640x480 image. If the mode is not delivered, the console says so and the run continues at
+640x480. Options for one launch:
+
+```powershell
+.\demo-sticks-spacedrums.ps1 --camera standard   # the previous 640x480 capture, unchanged config
+.\demo-sticks-spacedrums.ps1 --exposure -5       # brightest exposure that keeps 30 FPS
+.\.venv\Scripts\python.exe scripts\camera_modes.py compare --perception hands   # A/B, no audio
+```
+
+Native frames are about 3.6 ms later and somewhat darker at the same exposure. Their effect on tracking
+is not yet measured with a player. Evidence, recommended settings and troubleshooting:
+[camera quality](../perf/camera-quality-native-720p.md). `camera_quality_experiment.py` above still
+measures the standard path.
+
+### Image brightness (ADR-0048)
+
+The window no longer darkens the camera image. A display-only gamma brightens it toward the Windows Camera
+level; tracking sees the camera pixels unchanged. If another camera app (for example Windows Camera) changes
+the exposure while SpaceDrums runs, SpaceDrums notices the slower frame rate and restores its exposure within a
+few seconds.
+
+```powershell
+.\demo-sticks-spacedrums.ps1 --preview raw     # camera pixels, no brightening
+.\demo-sticks-spacedrums.ps1 --preview legacy  # the previous dimmed stage look
+.\play-spacedrums.ps1 --exposure -5            # brightest exposure measured to keep ~30 FPS
+.\play-spacedrums.ps1 --exposure auto          # auto exposure; falls back to -5 if it drops below 24 FPS
+```
+
+`--tracking-tone auto` (fingers / visible sticks only) also brightens what the hand model sees. It is opt-in
+and not yet checked live. Details: [camera brightness](../perf/camera-brightness.md).
+
 The isolated short endpoint check uses the developer configuration and never
 constructs a strike decision pipeline or audio output:
 

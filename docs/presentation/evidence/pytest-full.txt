@@ -1,0 +1,294 @@
+.................................................
+
+SYNTHETIC single: truth=1 A: matched=1 FP=0 FN=0 dup=0 zone_acc=1.0 L_pred_med=-0.0394s | B: matched=1 FP=0 FN=0 L_pred_med=-0.006020410288641642
+
+.
+
+SYNTHETIC repeated: truth=4 A: matched=4 FP=0 FN=0 dup=0 zone_acc=1.0 L_pred_med=-0.0394s | B: matched=4 FP=0 FN=0 L_pred_med=-0.00602041028859901
+
+.
+
+SYNTHETIC rapid: truth=6 A: matched=6 FP=0 FN=0 dup=0 zone_acc=1.0 L_pred_med=-0.0394s | B: matched=6 FP=0 FN=0 L_pred_med=-0.006020410288606115
+
+.
+
+SYNTHETIC alternating_one_zone: truth=4 A: matched=4 FP=0 FN=0 dup=0 zone_acc=1.0 L_pred_med=-0.0394s | B: matched=4 FP=0 FN=0 L_pred_med=-0.0060204102886132205
+
+.
+
+SYNTHETIC alternating_two_zones: truth=4 A: matched=4 FP=0 FN=0 dup=0 zone_acc=1.0 L_pred_med=-0.0394s | B: matched=4 FP=0 FN=0 L_pred_med=-0.0060204102886132205
+
+.
+
+SYNTHETIC near_simultaneous: truth=2 A: matched=2 FP=0 FN=0 dup=0 zone_acc=1.0 L_pred_med=-0.0344s | B: matched=2 FP=0 FN=0 L_pred_med=-0.0010204102886390842
+
+.
+
+SYNTHETIC repeated (B active): B matched=4/4 FP=0 FN=0 L_pred vs truth median=-0.0060s TE median=+0.0047s; B-vs-A lead median=+0.0006s (positive fraction 1.0); commit advance median=+0.0333s
+
+.....
+
+SYNTHETIC induced loss RIGHT: VVVVVVVVVVVVDDDIIIIIIIIIVVVVVVVVVVVVVVVVDDVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+
+  resets=[(15, 'GAP_EXCEEDED')] commits=[('B', 'LEFT', 39, 'VALID'), ('B', 'RIGHT', 39, 'VALID'), ('A', 'LEFT', 40, 'VALID'), ('B', 'RIGHT', 63, 'VALID'), ('A', 'RIGHT', 64, 'VALID')]
+
+.
+
+SYNTHETIC non-strike stop_short: A commits=0 B shadow commits=0 (B commits here are false positives by definition: no crossing occurs)
+
+.
+
+SYNTHETIC non-strike hover: A commits=0 B shadow commits=0 (B commits here are false positives by definition: no crossing occurs)
+
+.
+
+SYNTHETIC non-strike lateral: A commits=0 B shadow commits=0 (B commits here are false positives by definition: no crossing occurs)
+
+.
+
+SYNTHETIC non-strike upward: A commits=0 B shadow commits=0 (B commits here are false positives by definition: no crossing occurs)
+
+.
+
+SYNTHETIC non-strike between_zones: A commits=0 B shadow commits=0 (B commits here are false positives by definition: no crossing occurs)
+
+.
+
+SYNTHETIC slow: A commits=1 B commits=0 declines={'INSUFFICIENT_HISTORY': 1, 'LOW_SPEED': 76}
+
+...... [  3%]
+
+........................................................................ [  7%]
+
+........................................................................ [ 10%]
+
+........................................................................ [ 14%]
+
+...............................
+
+TEST-CAUSAL-1 commit-policy SYNTHETIC: |I|=57 kinds=GARBAGE,REMOVED,SHIFTED -> PASS (0 differing tuples); 38 commits in the reference run
+
+.
+
+TEST-CAUSAL-2 commit-policy SYNTHETIC: N_eff=7 frames |I|=73 -> PASS; negative control (window 1) differs in 2/73 cuts
+
+........................................ [ 18%]
+
+........................................................................ [ 21%]
+
+........................................................................ [ 25%]
+
+........................................................................ [ 28%]
+
+........................................................................ [ 32%]
+
+........................................................................ [ 36%]
+
+........................................................................ [ 39%]
+
+........................................................................ [ 43%]
+
+........................................................................ [ 46%]
+
+........................................................................ [ 50%]
+
+........................................................................ [ 54%]
+
+........................................................................ [ 57%]
+
+........................................................................ [ 61%]
+
+.............................................
+
+TEST-CAUSAL-1 rule-based[CV] SYNTHETIC: |I|=11 kinds=GARBAGE,REMOVED,SHIFTED -> PASS (0 differing tuples)
+
+.
+
+TEST-CAUSAL-1 rule-based[CA] SYNTHETIC: |I|=12 kinds=GARBAGE,REMOVED,SHIFTED -> PASS (0 differing tuples)
+
+..
+
+TEST-CAUSAL-2 rule-based[CV] SYNTHETIC: N=3 N_min=2 |I|=23 -> PASS; negative control (window 2) differs in 23/23 cuts (ok)
+
+.
+
+TEST-CAUSAL-2 rule-based[CA] SYNTHETIC: N=3 N_min=2 |I|=23 -> PASS; negative control (window 2) differs in 23/23 cuts (ok)
+
+......
+
+TEST-PRED-1 CA SYNTHETIC parabola: predicted - analytic crossing = -3.56e-04 s (tolerance 0.001, dt_step 1/30 s, linear sub-step interpolation)
+
+TEST-PRED-1 CV SYNTHETIC parabola: predicted - analytic crossing = +1.06e-02 s (tolerance 0.03, dt_step 1/30 s, linear sub-step interpolation)
+
+................. [ 64%]
+
+.............................................................F.......... [ 68%]
+
+........................................................................ [ 72%]
+
+........................................................................ [ 75%]
+
+........................................................................ [ 79%]
+
+........................................................................ [ 82%]
+
+........................................................................ [ 86%]
+
+........................................................................ [ 90%]
+
+...................................................................
+
+TEST-CAUSAL-1 tracker[alpha_beta] SYNTHETIC: |I|=9 kinds=GARBAGE,REMOVED,SHIFTED -> PASS (0 differing tuples)
+
+.
+
+TEST-CAUSAL-1 tracker[kalman_cv] SYNTHETIC: |I|=9 kinds=GARBAGE,REMOVED,SHIFTED -> PASS (0 differing tuples)
+
+.
+
+TEST-CAUSAL-1 tracker[kalman_ca] SYNTHETIC: |I|=9 kinds=GARBAGE,REMOVED,SHIFTED -> PASS (0 differing tuples)
+
+.
+
+TEST-CAUSAL-2 tracker[alpha_beta] SYNTHETIC: N=16 N_eff=290 window=290 N_min=1 |I|=21 tolerance=1e-06 max_dev=3.20e-15 -> PASS; negative control (window 2) max_dev=2.47e-01 differs (ok)
+
+.
+
+TEST-CAUSAL-2 tracker[kalman_cv] SYNTHETIC: N=16 N_eff=35 window=35 N_min=1 |I|=72 tolerance=1e-06 max_dev=1.19e-07 -> PASS; negative control (window 2) max_dev=5.54e-02 differs (ok)
+
+. [ 93%]
+
+TEST-CAUSAL-2 tracker[kalman_ca] SYNTHETIC: N=16 N_eff=134 window=134 N_min=1 |I|=53 tolerance=1e-06 max_dev=2.79e-12 -> PASS; negative control (window 2) max_dev=7.36e-02 differs (ok)
+
+.
+
+TEST-CAUSAL-1 tracker[kalman_cv] dev capture swing-L2-exp-5 (171 frames, RIGHT, 143 VALID): |I|=17 kinds=GARBAGE,REMOVED -> PASS
+
+TEST-CAUSAL-2 tracker[kalman_cv] dev capture: window=35 |I|=14 max_dev=5.61e-07 tolerance=1e-06 -> PASS
+
+..............
+
+SYNTHETIC filter benchmark (noise sigma 0.004 ROI-norm, dt 1/30 s):
+
+  constant_velocity  alpha_beta rmse 0.0040  lag 0 frames
+
+  constant_velocity  kalman_cv  rmse 0.0048  lag 0 frames
+
+  constant_velocity  kalman_ca  rmse 0.0039  lag 0 frames
+
+  parabolic          alpha_beta rmse 0.0120  lag 0 frames
+
+  parabolic          kalman_cv  rmse 0.0054  lag 0 frames
+
+  parabolic          kalman_ca  rmse 0.0041  lag 0 frames
+
+.......................
+
+SYNTHETIC occlusion trace (frames 8-15 absent, g_max 3): V V V V V V V V D D D I I I I I V V V V V V V V
+
+  resets: [(11, 'GAP_EXCEEDED')]
+
+.................................. [ 97%]
+
+......................................................                   [100%]
+
+================================== FAILURES ===================================
+
+____________ test_a_run_around_the_kit_sounds_each_piece_in_order _____________
+
+cfg = {'meta': {'schema_version': '1.11', 'created': '2026-10-03', 'phase': '17', 'description': 'Standing four-pad product ...dmarker', 'model_asset_id': 'mediapipe-hand-landmarker-float16-v1', 'running_mode': 'VIDEO', 'num_hands': 2, ...}, ...}
+
+    def test_a_run_around_the_kit_sounds_each_piece_in_order(cfg):
+
+        reg = ZoneRegistry.from_config(cfg["zones"])
+
+        swings = [Swing(R if i % 2 else L, z, 0.3 + i * 0.5) for i, z in enumerate(IDS)]
+
+        results, _ = run(cfg, build_sequence(reg, swings, duration_s=0.3 + len(IDS) * 0.5 + 0.5).frames)
+
+>       assert [c.zone_id for r in results for c in r.commits] == IDS
+
+E       AssertionError: assert ['crash', 'to..., 'tom2', ...] == ['crash', 'to... 'snare', ...]
+
+E         
+
+E         At index 5 diff: 'tom2' != 'snare'
+
+E         Use -v to get more diff
+
+tests\product\test_full_kit.py:99: AssertionError
+
+============================== warnings summary ===============================
+
+tests/ablation/test_ablation.py: 1 warning
+
+tests/calib/test_calib_model_compat.py: 5 warnings
+
+tests/failure_injection/test_fi_model_audio.py: 15 warnings
+
+tests/parity/test_live_model.py: 27 warnings
+
+tests/parity/test_per_arm_model.py: 2 warnings
+
+tests/temporal/test_ext_training.py: 7 warnings
+
+tests/temporal/test_mt_heads_losses.py: 16 warnings
+
+tests/temporal/test_mt_training.py: 8 warnings
+
+tests/temporal/test_training.py: 4 warnings
+
+  <repo>\.venv\Lib\site-packages\torch\jit\_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+
+    warnings.warn(
+
+tests/ablation/test_ablation.py: 1 warning
+
+tests/calib/test_calib_model_compat.py: 4 warnings
+
+tests/failure_injection/test_fi_model_audio.py: 11 warnings
+
+tests/parity/test_live_model.py: 13 warnings
+
+tests/parity/test_per_arm_model.py: 2 warnings
+
+tests/temporal/test_ext_training.py: 7 warnings
+
+tests/temporal/test_mt_training.py: 8 warnings
+
+tests/temporal/test_training.py: 4 warnings
+
+  <repo>\.venv\Lib\site-packages\torch\jit\_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+
+    warnings.warn(
+
+tests/scripts/test_phase08_scripts.py::test_feature_and_normalization_cli_generate_selftest_folds[False]
+
+tests/scripts/test_phase08_scripts.py::test_feature_and_normalization_cli_generate_selftest_folds[True]
+
+tests/scripts/test_phase08_scripts.py::test_latency_cli_measures_real_times_and_validates_log
+
+  <repo>\scripts\_runlog.py:138: DeprecationWarning: Accessing jsonschema.__version__ is deprecated and will be removed in a future release. Use importlib.metadata directly to query for jsonschema's version.
+
+    libs[mod] = str(getattr(m, "__version__", "?"))
+
+tests/temporal/test_mt_heads_losses.py::test_sample_without_impact_contributes_only_trajectory_and_strike_negative
+
+  <repo>\tests\temporal\test_mt_heads_losses.py:90: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+
+  Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+
+    assert float(zone_loss(outputs["zone"], torch.tensor([1, 2, 0]), empty)) == 0
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+=========================== short test summary info ===========================
+
+SKIPPED [1] tests\capture\test_hardware_capture.py:28: set SPACEDRUMS_HW_TESTS=1 to run against the webcam
+
+FAILED tests/product/test_full_kit.py::test_a_run_around_the_kit_sounds_each_piece_in_order
+
+1 failed, 1997 passed, 1 skipped, 139 warnings in 1020.06s (0:17:00)
+
+EXIT_CODE=1
+

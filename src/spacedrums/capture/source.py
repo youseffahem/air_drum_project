@@ -26,7 +26,20 @@ frames are *not* delivered and are counted in ``CaptureStats.duplicates``; count
 frames would present padded frames as native FPS (integrity I-5). ``frame_id`` is assigned only
 at delivery, so neither duplicates nor dropped frames consume an id (contracts.md section 1).
 
-No frame interpolation, upsampling or resampling happens anywhere in this module.
+No frame interpolation or upsampling happens anywhere in this module. With
+``camera_profile.native_capture`` (ADR-0047) the camera is opened in its native mode, the open is
+verified (negotiated and delivered size, unique-frame rate) and, if it fails, the standard
+``resolution_px`` mode is reopened (``capture_report()["mode"] == "STANDARD_FALLBACK"``). Each
+delivered native frame is then cut to the configured window and area-downscaled to
+``resolution_px`` (``capture.native.tracking_frame``) before ``t_frame_available``, so tracking keeps
+its geometry and the conversion cost is inside the measured hand-over; the native-resolution window
+is kept for display only (:meth:`LiveFrameSource.preview_image`). Duplicates are detected on the
+native frame.
+
+With ``camera_profile.exposure.guard`` (ADR-0048) the capture thread measures the unique-frame rate
+and re-applies the requested exposure (or replaces a too-slow AUTO with the fallback value) when
+another application or the camera changed it; see ``capture.exposure``. The action runs after the
+frame is queued; ``capture_report()["exposure"]`` lists every action.
 """
 
 from __future__ import annotations
@@ -34,14 +47,16 @@ from __future__ import annotations
 import threading
 from collections import Counter, deque
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 import numpy as np
 
 from spacedrums import timing
 from spacedrums.capture.backend import CameraBackend, CameraOpenSpec, NegotiatedMode
+from spacedrums.capture.exposure import ExposureGuard, ExposureWatch
 from spacedrums.capture.frame_queue import BoundedFrameQueue
+from spacedrums.capture.native import NativeCapture, NativeModeRejected, crop_view, tracking_frame
 from spacedrums.capture.roi import Roi, crop_roi
 from spacedrums.capture.stats import CaptureStats, StallDetector, interval_stats
 from spacedrums.capture.timestamps import DriverTimestampMapper, GrabReturnStamper
@@ -63,12 +78,16 @@ class CaptureSettings:
     dedupe: bool = True
     warmup_frames: int = 10
     mapper_warmup_n: int = 60
+    native: NativeCapture | None = None  # None = capture resolution_px directly (the standard mode)
+    exposure_guard: ExposureGuard | None = None  # None = trust the driver (the previous behaviour)
 
     @classmethod
     def from_config(cls, cfg: dict[str, Any], *, dedupe: bool = True) -> CaptureSettings:
         cam = cfg["camera_profile"]
         exp = cam["exposure"]
         bias = cam.get("grab_return_bias_s")
+        native = cam.get("native_capture")
+        guard = exp.get("guard")
         return cls(
             camera_profile_id=cam["profile_id"],
             spec=CameraOpenSpec(
@@ -80,6 +99,7 @@ class CaptureSettings:
                 pixel_format=cam.get("pixel_format"),
                 exposure_mode=exp["mode"],
                 exposure_value=exp["value"],
+                controls=tuple((k, float(v)) for k, v in (cam.get("controls") or {}).items()),
             ),
             roi=Roi.from_rect(cfg["roi"]["px"]) if cfg.get("roi") else None,
             timestamp_source=TimestampSource(cam["timestamp_source"]),
@@ -88,6 +108,8 @@ class CaptureSettings:
             stall_factor=float(cam["queue"]["stall_factor"]),
             nominal_fps=float(cam["requested_fps"]),
             dedupe=dedupe,
+            native=NativeCapture.from_config(native) if native else None,
+            exposure_guard=ExposureGuard.from_config(guard) if guard else None,
         )
 
 
@@ -97,6 +119,7 @@ class _Pending:
     t_capture: float
     t_frame_available: float
     source: TimestampSource
+    preview: np.ndarray | None = None  # native-resolution tracking window (display only)
 
 
 def _same_image(a: np.ndarray, b: np.ndarray) -> bool:
@@ -143,13 +166,27 @@ class LiveFrameSource:
         self._cpu0 = 0.0
         self._wall0 = 0.0
         self._error: BaseException | None = None
+        self._native: NativeCapture | None = None  # set only once a native open is verified
+        self._capture_report: dict[str, Any] = {}
+        self._convert_s: deque[float] = deque(maxlen=900)  # guarded by _lock
+        self._preview: tuple[int, np.ndarray | None] | None = None  # consumer thread only
+        self._watch: ExposureWatch | None = None  # capture thread; read via capture_report()
 
     # -- lifecycle -------------------------------------------------------------------------
     def start(self) -> NegotiatedMode:
         if self._thread is not None:
             raise RuntimeError("already started")
-        self.negotiated = self.camera.open(self.settings.spec)
-        self._frame_size = (self.negotiated.width, self.negotiated.height)
+        if self.settings.native is not None:
+            self.negotiated = self._open_native(self.settings.native)
+        else:
+            self.negotiated = self.camera.open(self.settings.spec)
+            self._capture_report = {"mode": "STANDARD"}
+        if self._native is not None:
+            self._frame_size = (int(self.settings.spec.width), int(self.settings.spec.height))
+        else:
+            self._frame_size = (self.negotiated.width, self.negotiated.height)
+        self._capture_report["tracking_px"] = list(self._frame_size)
+        self._capture_report["controls"] = getattr(self.camera, "controls_report", None)
         if self._roi is None:
             self._roi = Roi.full_frame(*self._frame_size)
         elif not self._roi.fits(*self._frame_size):
@@ -161,6 +198,66 @@ class LiveFrameSource:
         self._thread = threading.Thread(target=self._run, name="spacedrums-capture", daemon=True)
         self._thread.start()
         return self.negotiated
+
+    def _open_native(self, native: NativeCapture) -> NegotiatedMode:
+        """Open the native mode and verify it; reopen the standard mode if it is not delivered."""
+        spec = self.settings.spec
+        if not (spec.width and spec.height):
+            raise ValueError("native_capture needs camera_profile.resolution_px (the tracking size)")
+        native.check((spec.width, spec.height))
+        report: dict[str, Any] = {"native_capture": native.to_dict()}
+        try:
+            try:
+                request = replace(spec, width=native.request_px[0], height=native.request_px[1])
+                mode = self.camera.open(request)
+            except RuntimeError as exc:
+                raise NativeModeRejected(f"native open failed: {exc}") from exc
+            report["native_negotiated"] = mode.to_dict()
+            report["probe"] = self._probe_native(native, mode)
+        except NativeModeRejected as exc:
+            self.camera.close()
+            if native.fallback == "FAIL":
+                raise
+            report.update(mode="STANDARD_FALLBACK", rejected=str(exc), probe=exc.probe)
+            self._capture_report = report
+            return self.camera.open(spec)
+        report["mode"] = "NATIVE_CROP"
+        self._capture_report = report
+        self._native = native
+        return mode
+
+    def _probe_native(self, native: NativeCapture, mode: NegotiatedMode) -> dict[str, Any]:
+        """Read ``probe_frames`` frames: every one must have the expected size, at a unique rate
+        of at least ``min_fps`` when the exposure is MANUAL (under AUTO the rate follows the light
+        in every mode, so it cannot tell modes apart). Driver properties alone prove nothing."""
+        ew, eh = native.expect_px
+        if (mode.width, mode.height) != (ew, eh):
+            raise NativeModeRejected(f"driver reports {mode.width}x{mode.height}, expected {ew}x{eh}")
+        shapes: set[tuple[int, int]] = set()
+        unique_t: list[float] = []
+        prev: np.ndarray | None = None
+        read = 0
+        for _ in range(native.probe_frames):
+            raw = self.camera.read()
+            if raw is None:
+                continue
+            read += 1
+            shapes.add((raw.image.shape[1], raw.image.shape[0]))
+            if prev is None or not _same_image(raw.image, prev):
+                unique_t.append(raw.t_grab_return)
+            prev = raw.image
+        fps = (len(unique_t) - 1) / (unique_t[-1] - unique_t[0]) \
+            if len(unique_t) > 1 and unique_t[-1] > unique_t[0] else None
+        manual = self.settings.spec.exposure_mode.upper() == "MANUAL"
+        probe = {"frames_read": read, "unique_frames": len(unique_t), "unique_fps": fps,
+                 "delivered_px": sorted([list(s) for s in shapes]),
+                 "rate_checked": bool(native.min_fps) and manual}
+        if read < 2 or shapes != {(ew, eh)}:
+            raise NativeModeRejected(f"delivered frames {probe['delivered_px']} (read {read}), "
+                                     f"expected {ew}x{eh}", probe)
+        if probe["rate_checked"] and (fps is None or fps < native.min_fps):
+            raise NativeModeRejected(f"unique-frame rate {fps} below min_fps {native.min_fps}", probe)
+        return probe
 
     def stop(self) -> None:
         self._stop.set()
@@ -225,6 +322,11 @@ class LiveFrameSource:
                     s.spec.exposure_mode, s.spec.exposure_value
                 )
                 exposure_reapplied = True
+                if s.exposure_guard is not None:
+                    watch = ExposureWatch(s.exposure_guard, s.spec.exposure_mode, s.spec.exposure_value,
+                                          raw.t_grab_return)
+                    with self._lock:
+                        self._watch = watch
             if self._stall is not None and self._stall.observe(raw.t_grab_return):
                 with self._lock:
                     self._stalled += 1
@@ -245,6 +347,13 @@ class LiveFrameSource:
                     src = TimestampSource.DRIVER_MAPPED
             if t_cap is None:
                 t_cap = self._grab.to_mono(raw.t_grab_return)
+            image, preview = raw.image, None
+            if self._native is not None:
+                t0 = timing.now()
+                preview = crop_view(raw.image, self._native.crop_px)
+                image = tracking_frame(raw.image, self._native.crop_px, self._frame_size)
+                with self._lock:
+                    self._convert_s.append(timing.now() - t0)
             t_avail = timing.now()
             clamped = 0
             if t_cap > t_avail:
@@ -262,7 +371,12 @@ class LiveFrameSource:
                     self._driver_mapped += 1
                 else:
                     self._grab_return += 1
-            self._queue.put(_Pending(raw.image, t_cap, t_avail, src))
+            self._queue.put(_Pending(image, t_cap, t_avail, src, preview))
+            watch = self._watch
+            if watch is not None:  # after the hand-over: an exposure call costs tens of ms
+                action = watch.observe(raw.t_grab_return, float(raw.image[::16, ::16].mean()))
+                if action is not None:
+                    self.exposure_report = self.camera.apply_exposure(*action)
 
     # -- consumer side ---------------------------------------------------------------------
     def next_frame(self, timeout: float | None = 1.0) -> FrameSample | None:
@@ -281,6 +395,7 @@ class LiveFrameSource:
         frame_id = self._next_frame_id
         self._next_frame_id += 1
         self._recent_t_capture.append(pending.t_capture)
+        self._preview = (frame_id, pending.preview)
         return FrameSample(
             frame_id=frame_id,
             t_capture=pending.t_capture,
@@ -309,6 +424,36 @@ class LiveFrameSource:
         if full is None:
             raise ValueError("sample carries no in-memory image")
         return FrameView(sample=sample, roi=crop_roi(full, Roi.from_rect(sample.roi_px)), full=full)
+
+    def preview_image(self, sample: FrameSample) -> np.ndarray | None:
+        """Native-resolution image of ``sample``'s field of view, for display only.
+
+        ``None`` in the standard mode, after a fallback, or when ``sample`` is not the latest
+        delivered frame. It shares memory with the capture buffer: copy before drawing on it, and
+        never pass it to perception, calibration or a recorder (those use ``view(sample)``).
+        """
+        got = self._preview
+        return got[1] if got is not None and got[0] == sample.frame_id else None
+
+    def capture_report(self) -> dict[str, Any]:
+        """Which capture mode is running and why, the native-open probe, the device controls and
+        the per-frame crop/downscale cost (call from the consumer thread or after stop)."""
+        with self._lock:
+            conv = sorted(self._convert_s)
+        rep = dict(self._capture_report)
+        with self._lock:
+            watch = self._watch
+        rep["exposure"] = {"requested": {"mode": self.settings.spec.exposure_mode,
+                                         "value": self.settings.spec.exposure_value},
+                           "last_apply": self.exposure_report,
+                           "guard": watch.report() if watch is not None else None}
+        rep["conversion_ms"] = {
+            "frames": len(conv),
+            "p50": 1000 * conv[len(conv) // 2],
+            "p95": 1000 * conv[min(len(conv) - 1, int(0.95 * len(conv)))],
+            "max": 1000 * conv[-1],
+        } if conv else None
+        return rep
 
     @property
     def roi(self) -> Roi | None:

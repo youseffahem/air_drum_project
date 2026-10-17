@@ -1,0 +1,2498 @@
+[
+  {
+    "path": "src/spacedrums/__init__.py",
+    "lines": 7,
+    "description": "Space Drums — software-only air-drumming research system.",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/ablation/__init__.py",
+    "lines": 1,
+    "description": "Phase 19 preparation machinery. Synthetic checks are never experimental evidence.",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/ablation/config.py",
+    "lines": 77,
+    "description": "Closed Phase 19 plan validation; no participant defaults or implicit reference.",
+    "symbols": [
+      "model_config",
+      "validate_plan",
+      "read_plan"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ablation/guards.py",
+    "lines": 299,
+    "description": "Fail-closed reference checks and a file allowlist. No approvals or locks are written here.",
+    "symbols": [
+      "DependencyError",
+      "FrozenFiles",
+      "session_scope",
+      "dependency_errors",
+      "refuse_experimental_execution",
+      "load_reference_cv"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ablation/report.py",
+    "lines": 99,
+    "description": "Deterministic report/table/forest-plot data from stored Phase 19 development results.",
+    "symbols": [
+      "render"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ablation/retrack.py",
+    "lines": 85,
+    "description": "Frame-drop/tip-method preparation seam. Labels are never passed to perception or tracking.",
+    "symbols": [
+      "retrack"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ablation/statistics.py",
+    "lines": 85,
+    "description": "Paired participant analysis with folds/seeds aggregated before resampling.",
+    "symbols": [
+      "_index",
+      "seed_band",
+      "compare"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ablation/transforms.py",
+    "lines": 160,
+    "description": "Causal ablation transforms, applied identically during training and replay.",
+    "symbols": [
+      "mask_spec",
+      "mask_normalized",
+      "MaskedAdapter",
+      "drop_frames",
+      "model_variant",
+      "reusable_horizon"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/__init__.py",
+    "lines": 27,
+    "description": "Layer L8 (composition root): the playable prototype (Phase 05, Task 05.5; Phase 13 adds arm C).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/app/arms.py",
+    "lines": 128,
+    "description": "App-level model assembly and explicit runtime arm switching.",
+    "symbols": [
+      "layout_structure",
+      "LayoutAdaptedStats",
+      "build_model_arm",
+      "check_zone_features",
+      "ArmSwitch"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/audio_out.py",
+    "lines": 236,
+    "description": "Audio output wiring for the prototype (Phase 05, Task 05.5): scheduler + bank + mixer + device.",
+    "symbols": [
+      "OutputLatency",
+      "AudioOutput"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/calibrate.py",
+    "lines": 565,
+    "description": "Calibration Wizard application (Phase 14, Q57; Tasks 14.2-14.6; ADR-0037).",
+    "symbols": [
+      "git_state",
+      "base_config",
+      "available_samples",
+      "WizardPerception",
+      "_parse_pairs",
+      "default_output",
+      "build_pipeline",
+      "to_view",
+      "handle_key",
+      "run_autopilot",
+      "check",
+      "run",
+      "build_parser",
+      "main"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/errors.py",
+    "lines": 283,
+    "description": "Error codes, user-facing messages, structured event log and crash reports (Phase 17, Task 17.9).",
+    "symbols": [
+      "Severity",
+      "MessageSpec",
+      "_m",
+      "spec",
+      "ReportedError",
+      "user_text",
+      "EventLog",
+      "write_crash_report"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/faults.py",
+    "lines": 593,
+    "description": "``FaultInjector`` test interface (Phase 17, Tasks 17.3-17.5). **TEST BUILDS ONLY.**",
+    "symbols": [
+      "require_test_build",
+      "FaultEvent",
+      "Stall",
+      "DropBurst",
+      "TimestampJump",
+      "FpsChange",
+      "apply_stream_faults",
+      "rebase",
+      "_box_px",
+      "_copy_view",
+      "mask_region",
+      "adjust_lighting",
+      "drop_hand",
+      "swap_hands",
+      "set_confidence",
+      "translate_hand",
+      "replace_hand",
+      "FaultPlan",
+      "ModelFault",
+      "FaultyCamera",
+      "_Status",
+      "_TimeInfo",
+      "FakeAudioBackend",
+      "FakeOutputStream",
+      "events_overlap"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/health.py",
+    "lines": 238,
+    "description": "Device and pipeline health: ``HealthStatus {camera, tracking, model, audio}`` for the UI (Phase 17).",
+    "symbols": [
+      "Level",
+      "ComponentHealth",
+      "HealthStatus",
+      "HealthSettings",
+      "HealthMonitor"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/invariants.py",
+    "lines": 309,
+    "description": "Runtime safety-invariant monitor for the live loop (Phase 17, Task 17.2).",
+    "symbols": [
+      "InvariantMonitor"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/loss_diagnosis.py",
+    "lines": 453,
+    "description": "Diagnostic attribution of tracking losses and live-loop freshness (live responsiveness, 2026-10-02).",
+    "symbols": [
+      "LossCause",
+      "FrameQuality",
+      "at_roi_edge",
+      "stick_failure",
+      "frame_quality",
+      "majority",
+      "ResetDiagnosis",
+      "_HandState",
+      "LossDiagnosisMonitor",
+      "distribution_ms",
+      "RuntimeDiagnostics"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/main.py",
+    "lines": 858,
+    "description": "Playable prototype application (Phase 05, Task 05.5): capture -> hands -> stick -> tracking -> (A | B) ->",
+    "symbols": [
+      "git_sha",
+      "Perception",
+      "render",
+      "camera_factory",
+      "iter_source",
+      "run",
+      "build_parser",
+      "main",
+      "_health_line"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/pipeline.py",
+    "lines": 613,
+    "description": "The per-frame decision pipeline of the playable prototype (Phase 05, Tasks 05.1 / 05.2 / 05.3 / 05.4).",
+    "symbols": [
+      "HandFrame",
+      "FrameResult",
+      "_arm_of",
+      "DecisionPipeline"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/play.py",
+    "lines": 672,
+    "description": "Standing four-pad product candidate. Run: python -m spacedrums.app.play",
+    "symbols": [
+      "distribution",
+      "stick_tip_override",
+      "exposure_override",
+      "display_roi",
+      "toned_view",
+      "play_config",
+      "missing_samples",
+      "require_samples",
+      "check_assets",
+      "run",
+      "main"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/recorder.py",
+    "lines": 184,
+    "description": "Record mode (Phase 05, Task 05.5; architecture.md section 12.2; Phase 01 Task 01.9).",
+    "symbols": [
+      "SessionRecorder"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/red_tip_perception.py",
+    "lines": 64,
+    "description": "Red-tip STICK perception for ``app.play --red-tips`` (a coloured MARKER condition, integrity I-7).",
+    "symbols": [
+      "NoHands",
+      "RedTipPerception"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/session_summary.py",
+    "lines": 270,
+    "description": "Phase 05 session summaries: counts, timing decomposition, informal B-vs-A comparison, synthetic truth",
+    "symbols": [
+      "load_session",
+      "_greedy_match",
+      "_t_ref",
+      "compare_arms",
+      "evaluate_against_truth",
+      "count_records",
+      "_by_hand_zone",
+      "_status_counts",
+      "commits_during_non_valid",
+      "summarise_session",
+      "commits_from_results"
+    ]
+  },
+  {
+    "path": "src/spacedrums/app/synthetic.py",
+    "lines": 380,
+    "description": "SYNTHETIC observation sequences for deterministic development and unit tests (Phase 05).",
+    "symbols": [
+      "Swing",
+      "TruthEvent",
+      "SyntheticSequence",
+      "_surface_top",
+      "_hand_obs",
+      "_stick_obs",
+      "swing_position",
+      "swing_truth",
+      "swing_crossing_speed",
+      "rest_position",
+      "hand_position",
+      "build_sequence",
+      "scenario"
+    ]
+  },
+  {
+    "path": "src/spacedrums/audio/__init__.py",
+    "lines": 21,
+    "description": "Local-sample audio engine (Phase 04).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/audio/bank.py",
+    "lines": 97,
+    "description": "Manifest-verified local WAV sample bank with deterministic resampling.",
+    "symbols": [
+      "Sample",
+      "_sha256",
+      "SampleBank"
+    ]
+  },
+  {
+    "path": "src/spacedrums/audio/device.py",
+    "lines": 221,
+    "description": "Device-stream clock to project monotonic-clock mapping.",
+    "symbols": [
+      "ClockFit",
+      "DeviceClockMapper",
+      "resolve_output_device",
+      "SoundDeviceOutput"
+    ]
+  },
+  {
+    "path": "src/spacedrums/audio/gain.py",
+    "lines": 47,
+    "description": "Configurable monotone kinematic-intensity-proxy to linear-gain mapping.",
+    "symbols": [
+      "GainCurve"
+    ]
+  },
+  {
+    "path": "src/spacedrums/audio/mixer.py",
+    "lines": 111,
+    "description": "Callback mixer with exact within-buffer start offsets, polyphony and late handling.",
+    "symbols": [
+      "Voice",
+      "AudioStats",
+      "CallbackMixer"
+    ]
+  },
+  {
+    "path": "src/spacedrums/audio/scheduler.py",
+    "lines": 51,
+    "description": "Time-targeted scheduler producing the Phase 01 AudioEvent contract.",
+    "symbols": [
+      "AudioScheduler"
+    ]
+  },
+  {
+    "path": "src/spacedrums/audio/variants.py",
+    "lines": 33,
+    "description": "Velocity layer and round-robin choice for grouped samples, decided only from the event's gain.",
+    "symbols": [
+      "VariantSelector"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/__init__.py",
+    "lines": 66,
+    "description": "Calibration Wizard and calibration file I/O (Phase 14, layer L7; ADR-0037).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/calib/automatic.py",
+    "lines": 189,
+    "description": "Automatic standing/reach/held-out stroke checks, no manual drum placement.",
+    "symbols": [
+      "AutomaticCalibration"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/developer_demo.py",
+    "lines": 63,
+    "description": "Explicit fixed developer guide. Never represents a measured calibration pass.",
+    "symbols": [
+      "check_kit_pads",
+      "DeveloperDemoLayout"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/fit.py",
+    "lines": 490,
+    "description": "Deterministic layout fit (Phase 14, Task 14.4): reach envelope -> scaled/translated Phase 04 layout.",
+    "symbols": [
+      "LayoutError",
+      "Box",
+      "ScaleTranslate",
+      "FitSettings",
+      "FitResult",
+      "zone_bbox",
+      "layout_bbox",
+      "percentile_box",
+      "transform_zone",
+      "transform_layout",
+      "apply_nudges",
+      "apply_sample_overrides",
+      "fit_layout",
+      "zone_outline",
+      "_cross",
+      "_edges",
+      "_points_in_polygon",
+      "polygons_intersect",
+      "_point_segment_distance",
+      "polygon_gap",
+      "overlap_report",
+      "inside_roi_report",
+      "zones_hash",
+      "validate_zones",
+      "compose_layout"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/reach.py",
+    "lines": 180,
+    "description": "Measured stroke evidence -> constrained 2x2 fit, also used by offline simulation.",
+    "symbols": [
+      "ReachSettings",
+      "ReachStroke",
+      "StrokeCollector",
+      "fit_reach"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/schema.py",
+    "lines": 164,
+    "description": "calib-v1: the versioned calibration document (Phase 14, Task 14.1; ADR-0037).",
+    "symbols": [
+      "CalibrationError",
+      "ProvenanceKind",
+      "StepStatus",
+      "schema_errors",
+      "semantic_errors",
+      "validate_document"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/steps.py",
+    "lines": 511,
+    "description": "Wizard step accumulators (Phase 14, Tasks 14.2-14.5): pure consumers of per-frame summaries.",
+    "symbols": [
+      "StickSample",
+      "WizardFrame",
+      "_quantiles",
+      "hand_span_px",
+      "_Collector",
+      "CameraCheck",
+      "PlayingArea",
+      "StickPrior",
+      "ReachSweep",
+      "Cue",
+      "ValidationSchedule",
+      "ValidationStrikes"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/store.py",
+    "lines": 320,
+    "description": "Calibration file I/O, re-calibration triggers and application to the pipeline config",
+    "symbols": [
+      "Trigger",
+      "Calibration",
+      "calibration_hash",
+      "dump_calibration",
+      "load_calibration",
+      "save_calibration",
+      "recalibration_triggers",
+      "calibration_warnings",
+      "apply_calibration",
+      "CalibratedConfig",
+      "_locate",
+      "load_calibrated_config"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/synthetic.py",
+    "lines": 238,
+    "description": "SYNTHETIC wizard actor (Phase 14 self-tests). **Everything here is synthetic - never evidence.**",
+    "symbols": [
+      "SyntheticUser"
+    ]
+  },
+  {
+    "path": "src/spacedrums/calib/wizard.py",
+    "lines": 1031,
+    "description": "Calibration Wizard state machine (Phase 14, Q57; Tasks 14.2-14.6; ADR-0037).",
+    "symbols": [
+      "Step",
+      "Stage",
+      "WizardSettings",
+      "Template",
+      "setup_binding",
+      "CalibrationWizard",
+      "autopilot"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/__init__.py",
+    "lines": 62,
+    "description": "Layer L1: timestamped webcam capture, fixed playing ROI, bounded queue (Phase 02).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/capture/backend.py",
+    "lines": 407,
+    "description": "Camera backends: the OpenCV device wrapper and a synthetic camera for tests (Task 02.1).",
+    "symbols": [
+      "CameraOpenSpec",
+      "NegotiatedMode",
+      "RawFrame",
+      "CameraBackend",
+      "_fourcc_to_str",
+      "backend_constant",
+      "auto_exposure_values",
+      "OpenCvCamera",
+      "SyntheticCamera"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/device.py",
+    "lines": 133,
+    "description": "Device enumeration and mode probing through the capture backend (Task 02.1).",
+    "symbols": [
+      "list_pnp_cameras",
+      "available_backends",
+      "enumerate_devices",
+      "probe_mode"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/exposure.py",
+    "lines": 122,
+    "description": "Exposure guard: keep the requested exposure honest by measuring delivered frames (ADR-0048).",
+    "symbols": [
+      "ExposureGuard",
+      "exposure_seconds",
+      "ExposureWatch"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/frame_queue.py",
+    "lines": 91,
+    "description": "Bounded capture queue with drop-oldest and drop accounting (Task 02.3; ADR-0009 T1).",
+    "symbols": [
+      "BoundedFrameQueue"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/native.py",
+    "lines": 96,
+    "description": "Native-resolution capture with a tracking frame of unchanged geometry (ADR-0047).",
+    "symbols": [
+      "NativeModeRejected",
+      "NativeCapture",
+      "crop_view",
+      "tracking_frame"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/replay.py",
+    "lines": 100,
+    "description": "``ReplayFrameSource`` — the basic replay source of architecture.md section 12 (Phase 05, Task 05.5).",
+    "symbols": [
+      "ReplayFrameSource"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/roi.py",
+    "lines": 101,
+    "description": "Fixed playing ROI and the single px <-> ROI-normalized coordinate mapping (ADR-0005; Task 02.6).",
+    "symbols": [
+      "Roi",
+      "px_to_norm",
+      "norm_to_px",
+      "px_to_norm_point",
+      "norm_to_px_point",
+      "crop_roi"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/source.py",
+    "lines": 513,
+    "description": "``LiveFrameSource``: capture thread -> t_capture -> t_frame_available -> bounded queue -> FrameSample.",
+    "symbols": [
+      "CaptureSettings",
+      "_Pending",
+      "_same_image",
+      "LiveFrameSource"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/stats.py",
+    "lines": 151,
+    "description": "Frame-interval statistics, stall detection and ``CaptureStats`` (Tasks 02.3 / 02.4).",
+    "symbols": [
+      "IntervalStats",
+      "interval_stats",
+      "StallDetector",
+      "CaptureStats"
+    ]
+  },
+  {
+    "path": "src/spacedrums/capture/timestamps.py",
+    "lines": 165,
+    "description": "``t_capture`` policies: driver-timestamp mapping and grab-return stamping (Task 02.2).",
+    "symbols": [
+      "LinearMap",
+      "DriverTimestampMapper",
+      "GrabReturnStamper"
+    ]
+  },
+  {
+    "path": "src/spacedrums/commit/__init__.py",
+    "lines": 37,
+    "description": "Layer L6 (decision): per-hand commit state machine, refractory, duplicate suppression, safety",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/commit/invariants.py",
+    "lines": 262,
+    "description": "Commit-stream safety auditor (Phase 17, Task 17.2): invariants I1, I3 and I4.",
+    "symbols": [
+      "Violation",
+      "InvariantViolation",
+      "_Pending",
+      "CommitAuditor"
+    ]
+  },
+  {
+    "path": "src/spacedrums/commit/policy.py",
+    "lines": 369,
+    "description": "``CommitPolicy`` implementation (Phase 05, Task 05.3): per hand, per frame, source-agnostic.",
+    "symbols": [
+      "frames_missing",
+      "Decision",
+      "GateTrace",
+      "CommitSettings",
+      "PerHandCommitPolicy"
+    ]
+  },
+  {
+    "path": "src/spacedrums/commit/refractory.py",
+    "lines": 69,
+    "description": "Refractory timers (Phase 05, Task 05.3): the only commit state that persists across resets.",
+    "symbols": [
+      "RefractoryTimers"
+    ]
+  },
+  {
+    "path": "src/spacedrums/commit/state_machine.py",
+    "lines": 158,
+    "description": "Per-(hand, zone) commit state machine (Phase 05, Task 05.3) — pure transition logic.",
+    "symbols": [
+      "CommitPhase",
+      "ZoneCommitState",
+      "ZoneCommitMachine"
+    ]
+  },
+  {
+    "path": "src/spacedrums/config/__init__.py",
+    "lines": 31,
+    "description": "Layer L0: schema-validated configuration loading, resolution and hashing (ADR-0010).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/config/loader.py",
+    "lines": 369,
+    "description": "Schema-validated configuration loading, resolution and hashing (ADR-0010; Phase 02 code).",
+    "symbols": [
+      "ConfigError",
+      "ResolvedConfig",
+      "load_yaml",
+      "deep_merge",
+      "_reject_non_finite",
+      "canonical_json",
+      "config_hash",
+      "schema_errors",
+      "validate_blocks",
+      "cross_field_checks",
+      "_calibration_checks",
+      "validate",
+      "resolve",
+      "load_config",
+      "write_resolved"
+    ]
+  },
+  {
+    "path": "src/spacedrums/contracts/__init__.py",
+    "lines": 80,
+    "description": "Type-only layer L0: records, enums, interface Protocols, schema access (ADR-0012).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/contracts/enums.py",
+    "lines": 99,
+    "description": "Shared vocabularies of ``schemas/common.schema.json`` (docs/architecture/contracts.md section 2).",
+    "symbols": [
+      "HandId",
+      "TrackStatus",
+      "TipMethod",
+      "CandidateSource",
+      "CandidateDerivation",
+      "Arm",
+      "TriggerType",
+      "ResetReason",
+      "TimestampSource",
+      "ImageRefKind",
+      "ImageCrop"
+    ]
+  },
+  {
+    "path": "src/spacedrums/contracts/interfaces.py",
+    "lines": 147,
+    "description": "Pluggable interfaces as ``Protocol``s (docs/architecture/architecture.md section 11).",
+    "symbols": [
+      "FrameSource",
+      "TipEstimator",
+      "Tracker",
+      "Geometry",
+      "Anticipator",
+      "CommitPolicy",
+      "AudioScheduler"
+    ]
+  },
+  {
+    "path": "src/spacedrums/contracts/perception.py",
+    "lines": 70,
+    "description": "Additive product evidence; legacy StickObservation remains schema 1.0.",
+    "symbols": [
+      "EndpointEvidence",
+      "BodyReference"
+    ]
+  },
+  {
+    "path": "src/spacedrums/contracts/records.py",
+    "lines": 988,
+    "description": "Record types mirroring ``schemas/*.schema.json`` (docs/architecture/contracts.md section 3).",
+    "symbols": [
+      "ImageRef",
+      "FrameSample",
+      "_point2",
+      "_confidence",
+      "HandObservation",
+      "_unit2",
+      "StickObservation",
+      "HistoryRef",
+      "TrackState",
+      "TrajectoryAux",
+      "TrajectoryPrediction",
+      "StrikeCandidate",
+      "CommittedStrike",
+      "AudioEvent",
+      "TimingRecord"
+    ]
+  },
+  {
+    "path": "src/spacedrums/contracts/schema.py",
+    "lines": 93,
+    "description": "Access to the JSON Schemas that *are* the contracts (ADR-0012).",
+    "symbols": [
+      "repo_root",
+      "schema_dirs",
+      "load_schemas",
+      "registry",
+      "validator",
+      "errors",
+      "validate",
+      "is_valid"
+    ]
+  },
+  {
+    "path": "src/spacedrums/contracts/values.py",
+    "lines": 29,
+    "description": "Interface value types that are never stored (docs/architecture/contracts.md section 7).",
+    "symbols": [
+      "FrameView"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/__init__.py",
+    "lines": 65,
+    "description": "Dataset pipeline: Phase 06 collection (recording protocol, guided recorder hooks, session",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/data/audio_capture.py",
+    "lines": 325,
+    "description": "Microphone capture for the optional practice-pad condition (Phase 06, Task 06.6; ADR-0002).",
+    "symbols": [
+      "sha256_file",
+      "write_wav",
+      "read_wav",
+      "AudioCapture",
+      "detect_onsets",
+      "SyncResult",
+      "sync_check",
+      "onsets_on_t_mono",
+      "synthetic_clicks"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/feature_dataset.py",
+    "lines": 337,
+    "description": "Phase 08 offline composition: verified causal inputs, target-only labels, frozen folds.",
+    "symbols": [
+      "FeatureSession",
+      "_observations",
+      "load_session",
+      "load_dataset",
+      "descriptive_stats",
+      "export_folds"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/__init__.py",
+    "lines": 82,
+    "description": "Offline dataset labelling (Phase 07): rules, non-causal reference smoother, label generator,",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/data/labels/acoustic.py",
+    "lines": 293,
+    "description": "Acoustic onset ground truth on the pad + microphone subset (Phase 07, Task 07.6).",
+    "symbols": [
+      "Pairing",
+      "PairResult",
+      "pad_segments",
+      "pair_onsets",
+      "onsets_on_t_mono",
+      "pair_session",
+      "apply_pairings"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/dataset.py",
+    "lines": 503,
+    "description": "Labelled-dataset manifest and dataset card (Phase 07, Task 07.10).",
+    "symbols": [
+      "manifest_hash",
+      "validate_manifest",
+      "build_manifest",
+      "_totals_label",
+      "_placeholder_machinery",
+      "write_manifest",
+      "read_manifest",
+      "check_manifest_files",
+      "dataset_card",
+      "phys_summary",
+      "n_positive"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/generate.py",
+    "lines": 1272,
+    "description": "Offline label generator (Phase 07, Task 07.3).",
+    "symbols": [
+      "CrossingDiagnostic",
+      "GenerateResult",
+      "read_measurements",
+      "read_causal",
+      "read_runtime_events",
+      "read_quarantine",
+      "count_frames",
+      "_Crossing",
+      "_signed_distances",
+      "_scan_crossings",
+      "_Approach",
+      "_scan_approaches",
+      "_window_quality",
+      "_segment_at",
+      "_frames_around",
+      "_nearest_runtime",
+      "LabelGenerator",
+      "copy_causal_track",
+      "generate_labels",
+      "read_labels",
+      "read_reference_track",
+      "read_label_set"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/interp.py",
+    "lines": 255,
+    "description": "Sub-frame crossing estimators and their comparison (Phase 07, Task 07.4).",
+    "symbols": [
+      "CrossingEstimate",
+      "linear_crossing",
+      "quadratic_crossing",
+      "crossing_time",
+      "find_bracket",
+      "Comparison",
+      "_median",
+      "_iqr",
+      "compare"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/review.py",
+    "lines": 443,
+    "description": "QC / review machinery and inter-annotator agreement (Phase 07, Task 07.5).",
+    "symbols": [
+      "SamplingPlan",
+      "review_queue",
+      "stratum_of",
+      "make_entry",
+      "apply_entry",
+      "write_review_log",
+      "read_review_log",
+      "Agreement",
+      "cohen_kappa",
+      "_quantile",
+      "agreement",
+      "qc_summary"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/rules.py",
+    "lines": 387,
+    "description": "Labelling rules v1.0 (Phase 07, Task 07.1) — the decision functions and their thresholds.",
+    "symbols": [
+      "Thresholds",
+      "rules_hash",
+      "closest_point_on_surface",
+      "distance_to_surface",
+      "signed_distance_to_surface",
+      "inward_speed",
+      "EventEvidence",
+      "classify",
+      "label_confidence",
+      "intensity_proxy_gt"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/schema.py",
+    "lines": 432,
+    "description": "``LabelRecord`` / ``ReferenceTrack`` vocabulary, versioning and construction (Phase 07, Tasks",
+    "symbols": [
+      "LabelClass",
+      "Level",
+      "QCStatus",
+      "ReviewDecision",
+      "Interpolation",
+      "SmootherId",
+      "canonical_json",
+      "sha256_obj",
+      "sha256_file",
+      "sha256_text",
+      "dataset_kind",
+      "admissible_source",
+      "evidence_label",
+      "Provenance",
+      "empty_review",
+      "runtime_reference",
+      "adjustable",
+      "label_id",
+      "validate_label",
+      "validate_reference_header",
+      "_subschema_validator",
+      "validate_reference_sample",
+      "validate_label_set",
+      "validate_review_entry",
+      "label_set_hash"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/smooth.py",
+    "lines": 421,
+    "description": "Offline **non-causal** reference smoother (Phase 07, Task 07.2).",
+    "symbols": [
+      "Measurement",
+      "ReferenceSample",
+      "LossInterval",
+      "SmoothResult",
+      "ReferenceSmoother",
+      "_quality_from_variance",
+      "resample",
+      "speed"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/stats.py",
+    "lines": 246,
+    "description": "Label statistics (Phase 07, Task 07.9).",
+    "symbols": [
+      "_quantiles",
+      "GroupStats",
+      "group_stats",
+      "aggregate",
+      "class_balance",
+      "markdown_table"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/labels/validate.py",
+    "lines": 382,
+    "description": "Label validator (Phase 07, Task 07.7) — machine-checkable integrity before any training.",
+    "symbols": [
+      "Violation",
+      "_v",
+      "validate_labels",
+      "validate_label_dir",
+      "leakage_report"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/manifest.py",
+    "lines": 330,
+    "description": "Raw-dataset manifests (Phase 06, Task 06.9; ``schemas/raw-manifest.schema.json``).",
+    "symbols": [
+      "sha256_file",
+      "manifest_kind",
+      "admissible",
+      "session_files",
+      "build_raw_manifest",
+      "manifest_hash",
+      "validate_manifest",
+      "write_manifest",
+      "read_manifest",
+      "check_manifest_files",
+      "apply_withdrawal"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/metadata.py",
+    "lines": 477,
+    "description": "``SessionMetadata`` (Phase 06, Task 06.4) — the Python mirror of ``schemas/session-metadata.schema.json``.",
+    "symbols": [
+      "SessionKind",
+      "ConsentStatus",
+      "SegmentStatus",
+      "participant_meta_not_collected",
+      "default_lighting",
+      "default_background",
+      "default_sticks",
+      "session_id_for",
+      "participant_id_for",
+      "SessionMetadata",
+      "classification_label",
+      "validate_metadata"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/protocol.py",
+    "lines": 558,
+    "description": "Structured recording protocol (Phase 06, Task 06.2): segment vocabulary, cue definitions, timing",
+    "symbols": [
+      "SegmentType",
+      "SegmentCondition",
+      "Tempo",
+      "zone_name",
+      "hand_name",
+      "SegmentSpec",
+      "Protocol",
+      "participant_seed",
+      "_permute",
+      "build_protocol",
+      "check_segment_markers"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/recorder.py",
+    "lines": 355,
+    "description": "Guided-protocol recorder (Phase 06, Task 06.1) — extends the Phase 05 record mode with segment",
+    "symbols": [
+      "QuickCheckThresholds",
+      "SegmentStats",
+      "quick_check",
+      "GuidedRecorder",
+      "segment_frame_ranges"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/splits.py",
+    "lines": 395,
+    "description": "Participant-level dataset splits (Phase 07, Task 07.8; ADR-0021).",
+    "symbols": [
+      "plan_for",
+      "Roster",
+      "_permute",
+      "_stratified_pick",
+      "leakage_checks",
+      "build_split",
+      "split_hash",
+      "validate_split",
+      "write_split",
+      "read_split",
+      "roster_from_label_sets"
+    ]
+  },
+  {
+    "path": "src/spacedrums/data/validation.py",
+    "lines": 1093,
+    "description": "Post-session verification and the unusable-recording policy (Phase 06, Tasks 06.7 and 06.8).",
+    "symbols": [
+      "VerifyThresholds",
+      "Check",
+      "_Report",
+      "_fraction",
+      "_safe_json",
+      "_validate_records",
+      "_by_hand_zone",
+      "hand_order_flips",
+      "commits_during_non_valid",
+      "_dir_bytes",
+      "verify_session",
+      "_reason_codes",
+      "exclusion_record",
+      "validate_verification",
+      "write_exclusions",
+      "read_exclusions",
+      "format_verdict"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/constants.py",
+    "lines": 16,
+    "description": "Phase 09 evaluation policy. Values are frozen only after participant validation.",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/eval/curves.py",
+    "lines": 94,
+    "description": "Interpolation-free operating-point plots for comparable arm sweeps.",
+    "symbols": [
+      "plot_lead_fp",
+      "plot_result_diagnostics"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/matching.py",
+    "lines": 50,
+    "description": "Deterministic, zone-blind, one-to-one event matching within a time tolerance.",
+    "symbols": [
+      "MatchResult",
+      "match_events",
+      "w_sweep"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/metrics.py",
+    "lines": 125,
+    "description": "Canonical offline event metrics, with explicit denominators and missing values.",
+    "symbols": [
+      "distribution",
+      "_union",
+      "active_seconds",
+      "event_metrics",
+      "trajectory_metrics"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/probabilistic.py",
+    "lines": 64,
+    "description": "Phase 12 evaluation helpers for probabilistic trajectory outputs (E4, E2c).",
+    "symbols": [
+      "AnchorRecorder",
+      "calibration"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/replay.py",
+    "lines": 272,
+    "description": "Frame-ordered replay through the production geometry and commit policy.",
+    "symbols": [
+      "DelayPolicy",
+      "ReplayResult",
+      "replay"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/report.py",
+    "lines": 223,
+    "description": "Session-level evaluation, stratification and machine-readable result writing.",
+    "symbols": [
+      "_in_interval",
+      "_segment",
+      "evaluate_session",
+      "curve_points",
+      "write_result"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/selection.py",
+    "lines": 49,
+    "description": "Validation-only, deterministic selection from achieved operating points.",
+    "symbols": [
+      "select_point",
+      "select_lead_matched"
+    ]
+  },
+  {
+    "path": "src/spacedrums/eval/temporal.py",
+    "lines": 11,
+    "description": "The Phase 10 MODEL-only wrapper; geometry owns every candidate.",
+    "symbols": [
+      "temporal_candidate"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/__init__.py",
+    "lines": 7,
+    "description": "Phase 08 causal features. Offline targets never enter the streaming core.",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/features/batch.py",
+    "lines": 45,
+    "description": "Offline replay of the identical causal core and an allowlisted track loader.",
+    "symbols": [
+      "load_causal_tracks",
+      "build_features"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/core.py",
+    "lines": 191,
+    "description": "Bounded causal feature extraction; no clock, file, label, or dataset access.",
+    "symbols": [
+      "closest_surface_point",
+      "_acceleration",
+      "FeatureCore"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/groups.py",
+    "lines": 12,
+    "description": "Stable feature groups for Phase 19; no data-dependent selection.",
+    "symbols": [
+      "group_indices"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/normalize.py",
+    "lines": 136,
+    "description": "Fold-bound, train-only normalization with explicit evidence provenance.",
+    "symbols": [
+      "FeatureTable",
+      "check_partition",
+      "NormStats",
+      "fit_norm"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/schema.py",
+    "lines": 200,
+    "description": "fs-v1 semantic descriptor, exact ordering and record envelope.",
+    "symbols": [
+      "KinematicFeatures",
+      "FeatureSchema"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/streaming.py",
+    "lines": 57,
+    "description": "Per-hand bounded feature ring and shared history assembly.",
+    "symbols": [
+      "history_arrays",
+      "StreamingFeatures"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/targets.py",
+    "lines": 72,
+    "description": "Offline target-only transforms. No target is passed to the feature core.",
+    "symbols": [
+      "trajectory_target",
+      "auxiliary_target"
+    ]
+  },
+  {
+    "path": "src/spacedrums/features/windows.py",
+    "lines": 170,
+    "description": "Model-ready histories and offline targets with safety-window retention.",
+    "symbols": [
+      "WindowParams",
+      "segment_for",
+      "build_windows",
+      "write_samples"
+    ]
+  },
+  {
+    "path": "src/spacedrums/geometry/__init__.py",
+    "lines": 29,
+    "description": "Deterministic virtual-drum geometry (Phase 04).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/geometry/four_pad.py",
+    "lines": 71,
+    "description": "Four equal pads; camera coordinates, named in the mirrored player's display.",
+    "symbols": [
+      "four_pad_layout",
+      "pad_zone"
+    ]
+  },
+  {
+    "path": "src/spacedrums/geometry/impact.py",
+    "lines": 76,
+    "description": "Robust segment/surface intersections and linear sub-frame timing.",
+    "symbols": [
+      "Crossing",
+      "_cross",
+      "segment_segment",
+      "segment_arc",
+      "segment_surface",
+      "crossing_time"
+    ]
+  },
+  {
+    "path": "src/spacedrums/geometry/intersect.py",
+    "lines": 237,
+    "description": "One deterministic trajectory-to-candidate implementation for all candidate sources.",
+    "symbols": [
+      "TrajectoryPoint",
+      "Impact",
+      "first_impact",
+      "GeometryEngine"
+    ]
+  },
+  {
+    "path": "src/spacedrums/geometry/kit_layout.py",
+    "lines": 146,
+    "description": "Seven-piece kit without a kick: hi-hat, snare, three toms, crash and ride.",
+    "symbols": [
+      "kit_layout",
+      "pad_gaps_px",
+      "pad_clearance_px",
+      "kit_clearance_failures",
+      "transform_pads",
+      "save_pads",
+      "load_pads"
+    ]
+  },
+  {
+    "path": "src/spacedrums/geometry/probabilistic.py",
+    "lines": 247,
+    "description": "Probabilistic companion of the deterministic impact test (Phase 12, E4/E2c; ADR-0034).",
+    "symbols": [
+      "common_draws",
+      "CrossingDistribution",
+      "sample_trajectories",
+      "_weighted_quantiles",
+      "crossing_distribution",
+      "intersect_prob",
+      "CrossingProbabilityGate"
+    ]
+  },
+  {
+    "path": "src/spacedrums/geometry/strokes.py",
+    "lines": 146,
+    "description": "Causal measured-stroke geometry for the four-pad product (ADR-0045).",
+    "symbols": [
+      "StrokeSettings",
+      "MeasuredStrokeGeometry"
+    ]
+  },
+  {
+    "path": "src/spacedrums/geometry/zones.py",
+    "lines": 265,
+    "description": "Zone shapes, impact surfaces and schema-backed candidate layout registry.",
+    "symbols": [
+      "_point",
+      "_local",
+      "_world",
+      "Shape",
+      "Ellipse",
+      "_point_on_segment",
+      "Polygon",
+      "Segment",
+      "Arc",
+      "Zone",
+      "surface_midpoint",
+      "_shape",
+      "_surface",
+      "ZoneRegistry"
+    ]
+  },
+  {
+    "path": "src/spacedrums/hands/__init__.py",
+    "lines": 100,
+    "description": "Layer L2 (perception): hand landmarks -> ``HandObservation`` x2 per frame (Phase 03).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/hands/body.py",
+    "lines": 66,
+    "description": "Pose model used while establishing the standing frame; no strike decisions.",
+    "symbols": [
+      "BodyLandmarker"
+    ]
+  },
+  {
+    "path": "src/spacedrums/hands/coords.py",
+    "lines": 79,
+    "description": "The ``hands`` coordinate boundary: estimator-native landmarks -> ROI-normalized (ADR-0005).",
+    "symbols": [
+      "DetectorInput",
+      "InputFrame",
+      "native_to_full_px",
+      "native_to_roi_norm",
+      "bbox_of"
+    ]
+  },
+  {
+    "path": "src/spacedrums/hands/grip.py",
+    "lines": 175,
+    "description": "Grip reference points (Phase 03, Task 03.3): the anchor for the stick search region and the GEOM tip.",
+    "symbols": [
+      "GripDirectionMethod",
+      "GripSettings",
+      "GripReference",
+      "grip_point",
+      "grip_reference"
+    ]
+  },
+  {
+    "path": "src/spacedrums/hands/identity.py",
+    "lines": 376,
+    "description": "LEFT/RIGHT identity assignment (Phase 03, Task 03.2).",
+    "symbols": [
+      "IdentityMode",
+      "IdentityEventKind",
+      "IdentitySettings",
+      "IdentityCandidate",
+      "IdentityEvent",
+      "HandAssignment",
+      "IdentityFrameResult",
+      "IdentityCounters",
+      "_Memory",
+      "_dist",
+      "_nearest",
+      "IdentityAssigner"
+    ]
+  },
+  {
+    "path": "src/spacedrums/hands/landmarker.py",
+    "lines": 436,
+    "description": "``HandLandmarker``: the hand-landmark estimator wrapper (Phase 03, Task 03.1).",
+    "symbols": [
+      "HandLandmarkerSettings",
+      "RawDetection",
+      "LandmarkBackend",
+      "MediaPipeHandLandmarkerBackend",
+      "HandDetection",
+      "HandsFrameResult",
+      "HandsCounters",
+      "label_to_hand_id",
+      "HandLandmarker",
+      "observations_as_dicts"
+    ]
+  },
+  {
+    "path": "src/spacedrums/hands/model_asset.py",
+    "lines": 90,
+    "description": "Locate and hash-verify the landmark model file pinned in ``assets/models/manifest.json``.",
+    "symbols": [
+      "ModelAssetError",
+      "ModelAsset",
+      "assets_root",
+      "manifest_path",
+      "sha256_file",
+      "resolve_model_asset"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/__init__.py",
+    "lines": 18,
+    "description": "Phase 18 evaluation package: the confirmatory analysis layer and the live-experiment tooling.",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/live_eval/acoustic.py",
+    "lines": 340,
+    "description": "M1: physical action-to-sound latency from one microphone recording of pad and speaker.",
+    "symbols": [
+      "_mono",
+      "normalized_xcorr",
+      "_refine",
+      "locate_template",
+      "subtract_templates",
+      "pad_onsets",
+      "pair_strikes",
+      "click_pair_validation",
+      "rise_time",
+      "m1_uncertainty",
+      "m1_decision"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/arm_settings.py",
+    "lines": 91,
+    "description": "ADR-0036: exact offline-to-live arm settings; no value selection or live evidence.",
+    "symbols": [
+      "locked_arm_settings",
+      "consistency_errors",
+      "live_binding_errors"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/causality.py",
+    "lines": 224,
+    "description": "TEST-CAUSAL-1 on the exact evaluated arm versions (pre-registration §4.4; causality-tests.md §2).",
+    "symbols": [
+      "_frame",
+      "default_cuts",
+      "_garbage",
+      "perturb",
+      "_clean",
+      "_numeric_diff",
+      "compare_prefix",
+      "_changed_after",
+      "causal_check"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/counterbalance.py",
+    "lines": 81,
+    "description": "Arm-order counterbalancing for the live experiment (pre-registration §9).",
+    "symbols": [
+      "williams_sequences",
+      "arm_sequences",
+      "arm_order",
+      "balance_report"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/hypotheses.py",
+    "lines": 302,
+    "description": "The pre-registered decision rules of Phase 18 (``docs/experiments/phase-18-prereg.md`` §3).",
+    "symbols": [
+      "_ci",
+      "decide_greater",
+      "decide_at_most",
+      "decide_reduction",
+      "decide_cb",
+      "_record",
+      "not_testable",
+      "pending",
+      "h1a",
+      "h1b",
+      "cb",
+      "h2",
+      "h3",
+      "delta_te",
+      "h4"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/metadata.py",
+    "lines": 205,
+    "description": "``LiveSessionMetadata`` (Phase 18 Interfaces / Contracts): the Python mirror of",
+    "symbols": [
+      "LiveSessionMetadata",
+      "consistency_errors"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/offline.py",
+    "lines": 384,
+    "description": "Experiment 1 analysis layer on top of the frozen Phase 09 harness (pre-registration §4-§6).",
+    "symbols": [
+      "_median",
+      "spearman",
+      "_metrics",
+      "_index",
+      "participant_metrics",
+      "pooled_metrics",
+      "event_summary",
+      "speed_tercile_edges",
+      "_tercile",
+      "strata",
+      "reference_time_rows",
+      "reference_time_evaluation",
+      "trajectory_errors"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/prereg.py",
+    "lines": 444,
+    "description": "Pre-registration precedence for Phase 18: the hash record, the frozen-inputs locks and the ledger.",
+    "symbols": [
+      "PreregError",
+      "document_digest",
+      "canonical_json",
+      "lock_digest",
+      "file_digest",
+      "read_record",
+      "write_record",
+      "latest_version",
+      "approved",
+      "archive_document",
+      "verify_document",
+      "_placeholders",
+      "_offline_errors",
+      "_live_errors",
+      "lock_errors",
+      "archive_lock",
+      "verify_lock",
+      "Ledger"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/protocol.py",
+    "lines": 295,
+    "description": "Live-session protocol of Experiment 2 (Task 18.4; pre-registration §9).",
+    "symbols": [
+      "ArmBlock",
+      "LiveProtocol",
+      "build_live_protocol",
+      "ArmSwitcher"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/software.py",
+    "lines": 206,
+    "description": "M3: software-stamped timing of a recorded live session (always an estimate; never decides H4).",
+    "symbols": [
+      "read_stream",
+      "clock_consistent",
+      "_summary",
+      "decomposition",
+      "strike_estimates",
+      "load_session_streams"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/stats.py",
+    "lines": 192,
+    "description": "Participant-level statistics of the Phase 18 confirmatory analysis (pre-registration §6).",
+    "symbols": [
+      "_clean",
+      "_percentiles",
+      "_check",
+      "bootstrap_mean",
+      "paired_differences",
+      "bootstrap_paired",
+      "bootstrap_ratio"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/sync.py",
+    "lines": 269,
+    "description": "Alignment of external recordings (microphone, high-frame-rate video) to ``t_mono``.",
+    "symbols": [
+      "ClockMap",
+      "fit_clock_map",
+      "_match",
+      "align_event_trains",
+      "sync_pattern",
+      "detect_flashes",
+      "envelope",
+      "xcorr_lag"
+    ]
+  },
+  {
+    "path": "src/spacedrums/live_eval/video.py",
+    "lines": 169,
+    "description": "M2: impact-to-sound latency from a high-frame-rate video (pre-registration §8).",
+    "symbols": [
+      "brightness_series",
+      "read_impact_annotations",
+      "m2_latency",
+      "m2_validation",
+      "m2_decision"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/__init__.py",
+    "lines": 1,
+    "description": "Learned baseline models.",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/models/gbdt/__init__.py",
+    "lines": 1,
+    "description": "Flattened-window LightGBM baseline (Phase 09).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/models/gbdt/adapter.py",
+    "lines": 84,
+    "description": "Convert GBDT outputs to direct or trajectory-derived model candidates.",
+    "symbols": [
+      "GBDTAdapter"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/gbdt/predict.py",
+    "lines": 55,
+    "description": "Load and run a fold's LightGBM heads with batch-one inputs.",
+    "symbols": [
+      "GBDTPredictor"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/gbdt/train.py",
+    "lines": 183,
+    "description": "Participant-disjoint fold training for the flattened-window baseline.",
+    "symbols": [
+      "load_samples",
+      "flat_features",
+      "_sha",
+      "_fit",
+      "_predict_binary",
+      "train_fold"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/__init__.py",
+    "lines": 5,
+    "description": "Causal trajectory models. Geometry and commit remain external consumers.",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/models/temporal/adapter.py",
+    "lines": 129,
+    "description": "Per-hand Anticipator, shared weights, no direct-head strike path.",
+    "symbols": [
+      "TemporalAnticipator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/config.py",
+    "lines": 142,
+    "description": "Explicit, hashable candidate settings; no participant-selected defaults.",
+    "symbols": [
+      "TemporalConfig",
+      "MultiTaskConfig",
+      "build_model",
+      "build_mt_model"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/consistency.py",
+    "lines": 147,
+    "description": "Post-geometry use of multi-task heads: agreement flags and optional gates (Task 11.5).",
+    "symbols": [
+      "AuxHeadSettings",
+      "consistency_flags",
+      "AuxGate"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/data.py",
+    "lines": 145,
+    "description": "Read already-normalized Phase 08 folds; never refit or normalize them twice.",
+    "symbols": [
+      "sha",
+      "fixed_grid",
+      "read_samples",
+      "load_fold",
+      "epoch_indices"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/decode.py",
+    "lines": 44,
+    "description": "Displacements become a time-stamped trajectory, never a strike.",
+    "symbols": [
+      "decode"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/export.py",
+    "lines": 144,
+    "description": "TorchScript export, fold-sample numerical parity, and CPU batch-one timings.",
+    "symbols": [
+      "load_model",
+      "load_mt_model",
+      "export_model",
+      "latency"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/__init__.py",
+    "lines": 12,
+    "description": "Phase 12 optional trajectory extensions E1-E5 (candidates; nothing is adopted by existing here).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/adapter.py",
+    "lines": 131,
+    "description": "Extension Anticipators: the Phase 10 causal guards and windowing, extension-aware decoding.",
+    "symbols": [
+      "decode_extension",
+      "extension_config",
+      "ExtensionAnticipator",
+      "EnsembleAnticipator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/attention.py",
+    "lines": 38,
+    "description": "Causal multi-head self-attention with a learned relative-position bias (E3).",
+    "symbols": [
+      "CausalSelfAttention"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/config.py",
+    "lines": 218,
+    "description": "Phase 12 extension settings. One structural extension per model unless explicitly combined.",
+    "symbols": [
+      "DataView",
+      "ExtensionConfig"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/decoding.py",
+    "lines": 93,
+    "description": "E5 decoding: residual over the causal constant-velocity/-acceleration extrapolation, and",
+    "symbols": [
+      "ResidualExtrapolation",
+      "_second_differences",
+      "bounded_acceleration",
+      "fit_acceleration_bound"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/long_horizon.py",
+    "lines": 42,
+    "description": "E1 longer horizons: K beyond the Phase 10 grid and a two-rate output grid.",
+    "symbols": [
+      "grid_columns",
+      "select_grid",
+      "error_by_offset"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/model.py",
+    "lines": 72,
+    "description": "Build and load extension models over the unchanged Phase 10 encoders (or the E3 encoder).",
+    "symbols": [
+      "make_head",
+      "build_extension_model",
+      "load_extension_model"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/representations.py",
+    "lines": 122,
+    "description": "E2 trajectory representations and the Phase 10 displacement head in the extension layout.",
+    "symbols": [
+      "DisplacementHead",
+      "IncrementHead",
+      "PolynomialHead",
+      "MixtureHead",
+      "mixture_parts",
+      "_elementwise",
+      "mixture_loss",
+      "mixture_weights"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/tiny_transformer.py",
+    "lines": 53,
+    "description": "E3 Tiny Transformer encoder (arm C-TT): causal, windowed, CPU-sized.",
+    "symbols": [
+      "Block",
+      "TinyTransformerPredictor"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/train.py",
+    "lines": 217,
+    "description": "Extension fold training: the Phase 10 loop with the declared per-extension objective.",
+    "symbols": [
+      "step_weights",
+      "extension_loss",
+      "residual_statistics",
+      "mixture_diagnostics",
+      "validation_report",
+      "train_extension_fold",
+      "training_targets"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/ext/uncertainty.py",
+    "lines": 81,
+    "description": "E4 predictive uncertainty on the model side: a per-step Gaussian head and the reserved layouts.",
+    "symbols": [
+      "GaussianHead",
+      "gaussian_nll",
+      "sigma_rows",
+      "member_rows",
+      "mixture_rows"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/gru.py",
+    "lines": 102,
+    "description": "Unidirectional GRU and exact finite-window recurrent inference.",
+    "symbols": [
+      "GRUPredictor",
+      "MultiTaskGRU",
+      "BoundedGRUState"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/heads.py",
+    "lines": 99,
+    "description": "Displacement head, the Phase 10 optional logit, and the Phase 11 multi-task heads.",
+    "symbols": [
+      "masked_inputs",
+      "TrajectoryHead",
+      "_head",
+      "MultiTaskHead",
+      "decode_heads"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/losses.py",
+    "lines": 165,
+    "description": "Masked primary trajectory objective, optional velocity/auxiliary losses and Phase 11 tasks.",
+    "symbols": [
+      "trajectory_loss",
+      "auxiliary_loss",
+      "_regression",
+      "masked_regression",
+      "tti_loss",
+      "decode_tti",
+      "zone_loss",
+      "TaskWeighting"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/mt_adapter.py",
+    "lines": 119,
+    "description": "Multi-task adapters: heads populate ``aux`` only; the trajectory is decoded as in Phase 10.",
+    "symbols": [
+      "require_live_eligible",
+      "_MultiTaskBase",
+      "MultiTaskAnticipator",
+      "_HeadRunner",
+      "DirectHeadDiagnostic"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/mt_train.py",
+    "lines": 486,
+    "description": "Multi-task fold training over the Phase 10 encoders (Tasks 11.1-11.3).",
+    "symbols": [
+      "MultiTaskLossConfig",
+      "_targets",
+      "_counts",
+      "target_scaling",
+      "load_mt_fold",
+      "task_losses",
+      "encoder_parameters",
+      "last_shared_parameters",
+      "_flat_grad",
+      "_conflicts",
+      "_gradnorm_step",
+      "mt_predictions",
+      "binary_metrics",
+      "agreement",
+      "_distribution",
+      "tti_strata",
+      "task_metrics",
+      "validation_head_loss",
+      "train_mt_fold"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/tcn.py",
+    "lines": 68,
+    "description": "Left-padded residual dilated convolutions, without time-mixing normalization.",
+    "symbols": [
+      "CausalConv",
+      "ResidualBlock",
+      "TCNPredictor",
+      "MultiTaskTCN"
+    ]
+  },
+  {
+    "path": "src/spacedrums/models/temporal/train.py",
+    "lines": 205,
+    "description": "CPU fold training; participant-macro validation ADE selects the checkpoint.",
+    "symbols": [
+      "TrainConfig",
+      "seed_everything",
+      "predictions",
+      "diagnostics",
+      "train_fold"
+    ]
+  },
+  {
+    "path": "src/spacedrums/prediction/__init__.py",
+    "lines": 35,
+    "description": "Layer L5: ``Anticipator`` implementations (Phase 05: rule-based arm B; Phases 09-13: learned C-*).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/prediction/base.py",
+    "lines": 108,
+    "description": "Shared ``Anticipator`` scaffolding (architecture.md section 11; Phase 05, Task 05.2).",
+    "symbols": [
+      "DeclineReason",
+      "AnticipatorBase"
+    ]
+  },
+  {
+    "path": "src/spacedrums/prediction/budget_monitor.py",
+    "lines": 45,
+    "description": "Bounded sliding p95 budgets and a delivered-frame cadence guard (seconds throughout).",
+    "symbols": [
+      "BudgetMonitor",
+      "CadenceMonitor"
+    ]
+  },
+  {
+    "path": "src/spacedrums/prediction/fallback.py",
+    "lines": 23,
+    "description": "Sticky fallback: no automatic retries on the audio thread; restart after correcting the fault.",
+    "symbols": [
+      "FallbackEvent",
+      "fallback_target"
+    ]
+  },
+  {
+    "path": "src/spacedrums/prediction/model_arm.py",
+    "lines": 82,
+    "description": "Causal live wrapper around the injected Phase 10 adapter; shared weights, per-hand windows.",
+    "symbols": [
+      "ModelArm",
+      "check_finite"
+    ]
+  },
+  {
+    "path": "src/spacedrums/prediction/model_loader.py",
+    "lines": 65,
+    "description": "Verify a local package before the app constructs its runtime or feature stream.",
+    "symbols": [
+      "file_hash",
+      "verify_package"
+    ]
+  },
+  {
+    "path": "src/spacedrums/prediction/rule_based.py",
+    "lines": 277,
+    "description": "Baseline B — rule-based kinematic extrapolation (Phase 05, Task 05.2; README section 9 arm B).",
+    "symbols": [
+      "RuleSettings",
+      "_speed",
+      "_cos",
+      "speed_gate",
+      "direction_gate",
+      "validity_gate",
+      "combine_gates",
+      "extrapolate",
+      "RuleBasedAnticipator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/__init__.py",
+    "lines": 61,
+    "description": "Layer L2 (perception): markerless stick detection / axis / tip (Phase 03, Tasks 03.4-03.9).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/stick/axis.py",
+    "lines": 228,
+    "description": "Stick axis estimation (Phase 03, Task 03.6): line fit to candidate pixels, anchored at the grip.",
+    "symbols": [
+      "AxisMethod",
+      "AxisSettings",
+      "AxisEstimate",
+      "_pca_line",
+      "_perp_dist",
+      "_band",
+      "_contiguous_extent",
+      "_finish",
+      "fit_axis"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/estimator.py",
+    "lines": 304,
+    "description": "Shared per-frame stick analysis and the ``TipEstimator`` factory (Phase 03, Checkpoint 03.C).",
+    "symbols": [
+      "GeomSettings",
+      "AxisRefinedSettings",
+      "MarkerSettings",
+      "StickSettings",
+      "StickAnalysis",
+      "analyse",
+      "record_from",
+      "_BaseEstimator",
+      "geom_tip",
+      "make_tip_estimator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/red_tip.py",
+    "lines": 627,
+    "description": "Red-painted stick tips: HSV colour segmentation (a coloured MARKER condition, integrity I-7).",
+    "symbols": [
+      "RedTipSettings",
+      "RedBlob",
+      "RedDetection",
+      "RedTipDetector",
+      "_shape",
+      "_wide_end",
+      "_surround",
+      "_cap_point",
+      "_merge"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/red_tip_estimator.py",
+    "lines": 278,
+    "description": "``MARKER`` endpoint estimator over red-painted stick tips: the bridge into the existing contracts.",
+    "symbols": [
+      "RedTipFrame",
+      "_distribution",
+      "RedTipStats",
+      "RedTipEndpointEstimator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/red_tip_synthetic.py",
+    "lines": 247,
+    "description": "SYNTHETIC red-tip images for unit tests and offline self-checks (integrity I-4).",
+    "symbols": [
+      "hsv_bgr",
+      "background",
+      "_ellipse",
+      "draw_tip",
+      "draw_stick",
+      "_patches",
+      "_band",
+      "draw_blob",
+      "speckles",
+      "occlude",
+      "tip_frames",
+      "path_frames"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/red_tip_tracker.py",
+    "lines": 464,
+    "description": "Two stick tips from red blobs: stable identities, bounded prediction, never a predicted hit.",
+    "symbols": [
+      "Grip",
+      "TipTrack",
+      "SlotState",
+      "TrackerFrame",
+      "recovery_reach",
+      "_assign",
+      "RedTipTracker"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/search_region.py",
+    "lines": 162,
+    "description": "Hand-anchored stick search region (Phase 03, Task 03.4).",
+    "symbols": [
+      "SearchRegionSettings",
+      "SearchRegion",
+      "to_roi_px",
+      "to_roi_norm",
+      "vec_norm_to_px",
+      "unit_px_to_norm",
+      "clip_polygon",
+      "search_region"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/segment.py",
+    "lines": 212,
+    "description": "Stick pixel-candidate extraction (Phase 03, Task 03.5) — classical pipeline, markerless.",
+    "symbols": [
+      "SegmentSettings",
+      "ComponentInfo",
+      "SegmentResult",
+      "_angle_diff_mod_pi",
+      "component_pca",
+      "intensity_span",
+      "contrast_gain",
+      "segment_stick"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/tip_axis_refined.py",
+    "lines": 66,
+    "description": "``AXIS_REFINED`` — visual axis refinement tip (Phase 03, Task 03.8).",
+    "symbols": [
+      "AxisRefinedTipEstimator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/tip_geom.py",
+    "lines": 52,
+    "description": "``GEOM`` — markerless geometric tip (Phase 03, Task 03.7): ``tip = grip_point + L * axis_dir``.",
+    "symbols": [
+      "roi_of",
+      "GeomTipEstimator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/tip_marker.py",
+    "lines": 87,
+    "description": "``MARKER`` — coloured-marker tip: **fallback / benchmark condition only** (Phase 03, Task 03.9).",
+    "symbols": [
+      "MarkerTipEstimator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/stick/visible.py",
+    "lines": 254,
+    "description": "Current-image stick support anchored by hand landmarks, with no length fallback.",
+    "symbols": [
+      "VisibleSettings",
+      "edge_pairs",
+      "VisibleEndpointEstimator",
+      "FingertipEndpointEstimator"
+    ]
+  },
+  {
+    "path": "src/spacedrums/timing/__init__.py",
+    "lines": 92,
+    "description": "The single monotonic clock ``t_mono`` (ADR-0004; architecture.md section 5.1).",
+    "symbols": [
+      "now",
+      "clock_info",
+      "thread_cpu_seconds",
+      "process_cpu_seconds",
+      "sleep_s",
+      "wall_clock_iso",
+      "wall_clock_local_compact"
+    ]
+  },
+  {
+    "path": "src/spacedrums/timing/decomposition.py",
+    "lines": 211,
+    "description": "Latency components from ``TimingRecord``s (README section 5.3; Phase 05, Tasks 05.4 / 05.9).",
+    "symbols": [
+      "Stats",
+      "_percentile",
+      "stats",
+      "frame_components",
+      "strike_components",
+      "decompose",
+      "decomposition_table"
+    ]
+  },
+  {
+    "path": "src/spacedrums/timing/logger.py",
+    "lines": 98,
+    "description": "JSONL record streams with a ``RecordStreamHeader`` first line (contracts.md section 4; Phase 05).",
+    "symbols": [
+      "stream_header",
+      "RecordStreamWriter",
+      "read_record_stream"
+    ]
+  },
+  {
+    "path": "src/spacedrums/timing/records.py",
+    "lines": 136,
+    "description": "``TimingRecord`` collection (Phase 05, Task 05.4; contracts.md section 3.10).",
+    "symbols": [
+      "TimingCollector"
+    ]
+  },
+  {
+    "path": "src/spacedrums/tracking/__init__.py",
+    "lines": 38,
+    "description": "Layer L3: per-hand causal filter + README section 8 state machine (Phase 03, Tasks 03.12-03.13).",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/tracking/filter.py",
+    "lines": 316,
+    "description": "Per-hand causal filters (Phase 03, Task 03.12): alpha-beta, Kalman CV, Kalman CA, scalar angle.",
+    "symbols": [
+      "_declaration_sequence",
+      "FilterOutput",
+      "_Filter2D",
+      "AlphaBetaFilter",
+      "KalmanFilter2D",
+      "ScalarAngleFilter",
+      "make_filter",
+      "FilterBenchmarkResult"
+    ]
+  },
+  {
+    "path": "src/spacedrums/tracking/state_machine.py",
+    "lines": 177,
+    "description": "README section 8 tracking state machine (Phase 03, Task 03.13) — pure transition logic.",
+    "symbols": [
+      "StateMachineSettings",
+      "Decision",
+      "MachineState",
+      "TrackingStateMachine"
+    ]
+  },
+  {
+    "path": "src/spacedrums/tracking/tracker.py",
+    "lines": 220,
+    "description": "``CausalTracker``: the ``Tracker`` implementation (Phase 03, Tasks 03.12 + 03.13).",
+    "symbols": [
+      "TrackReset",
+      "TrackerSettings",
+      "CausalTracker"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/__init__.py",
+    "lines": 61,
+    "description": "Layer L7 tooling: stand-here guide (Phase 02), debug overlay (Phase 03 minimal; full dashboard Phase 15),",
+    "symbols": []
+  },
+  {
+    "path": "src/spacedrums/ui/canvas.py",
+    "lines": 171,
+    "description": "Display-space drawing of camera-space overlays (live mirror previews).",
+    "symbols": [
+      "Canvas"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/dashboard.py",
+    "lines": 426,
+    "description": "Non-blocking record bus and compact timing/diagnostic dashboard.",
+    "symbols": [
+      "DashboardRecord",
+      "Subscription",
+      "RecordBus",
+      "TimingRow",
+      "timing_row",
+      "DashboardModel",
+      "render_dashboard",
+      "_draw_rolling_plot",
+      "DashboardWorker"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/developer_demo.py",
+    "lines": 177,
+    "description": "Camera diagnostics for the explicit developer demo; no event generation here.",
+    "symbols": [
+      "draw_status",
+      "DemoOverlay"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/export.py",
+    "lines": 339,
+    "description": "Reproducible Phase 15 frame, plot, timing-table and summary exports.",
+    "symbols": [
+      "_slug",
+      "ExportIdentity",
+      "identity_for",
+      "_save_figure",
+      "export_annotated_frame",
+      "export_timing_csv",
+      "export_rolling_plots",
+      "export_trajectory_plot",
+      "export_false_positives",
+      "export_session"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/guide.py",
+    "lines": 123,
+    "description": "Playing-area \"stand here\" guide overlay (Task 02.6; REQ-019, REQ-026; prototype quality).",
+    "symbols": [
+      "GuideStyle",
+      "draw_guide",
+      "guide_status_lines"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/kit.py",
+    "lines": 144,
+    "description": "Product view: metallic cymbals, drum heads, wooden sticks and standing guide.",
+    "symbols": [
+      "pad_texture",
+      "render_kit"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/layout_preview.py",
+    "lines": 125,
+    "description": "Developer layout preview for the full-kit demo: see and nudge the kit where you actually stand.",
+    "symbols": [
+      "reach_report",
+      "LayoutPreview"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/overlay.py",
+    "lines": 496,
+    "description": "Minimal per-hand debug overlay (Phase 03, Task 03.15; the full dashboard is Phase 15).",
+    "symbols": [
+      "OverlayStyle",
+      "OverlayConfig",
+      "RuntimeStats",
+      "OverlayRecords",
+      "_pt",
+      "draw_hand",
+      "draw_stick",
+      "draw_track",
+      "draw_debug_overlay",
+      "_bar",
+      "draw_scientific_overlay"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/preview.py",
+    "lines": 27,
+    "description": "Presentation boundary for live camera windows.",
+    "symbols": [
+      "mirror_preview"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/preview_tone.py",
+    "lines": 120,
+    "description": "Preview brightness for the live window only (ADR-0048). Tracking never sees these pixels.",
+    "symbols": [
+      "PreviewSettings",
+      "gamma_lut",
+      "mean_luminance",
+      "PreviewTone"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/replay_viewer.py",
+    "lines": 275,
+    "description": "Frame-id aligned recorded-session viewer with optional Phase 07 ground truth.",
+    "symbols": [
+      "_jsonl",
+      "_match_ids",
+      "ReplaySession",
+      "run_viewer",
+      "main"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/stage.py",
+    "lines": 386,
+    "description": "Animated stage view for the full-kit demo.",
+    "symbols": [
+      "_scaled",
+      "_rounded",
+      "Pad",
+      "_decorate",
+      "build_sprite",
+      "blit",
+      "StageRenderer"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/theme.py",
+    "lines": 37,
+    "description": "Shared, colour-blind-friendly visual theme for the Phase 15 developer UI.",
+    "symbols": [
+      "Theme",
+      "arm_color"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/wizard_views.py",
+    "lines": 168,
+    "description": "Calibration Wizard views (Phase 14, Tasks 14.2-14.5 UI; REQ-019 / REQ-057; layer L7).",
+    "symbols": [
+      "WizardView",
+      "WizardStyle",
+      "_px",
+      "_highlight",
+      "_panel",
+      "draw_wizard"
+    ]
+  },
+  {
+    "path": "src/spacedrums/ui/zones.py",
+    "lines": 95,
+    "description": "Clear geometric zone overlay for Phase 04 (no realistic drum-kit visuals).",
+    "symbols": [
+      "_px",
+      "_arc_pixels",
+      "draw_zones"
+    ]
+  }
+]

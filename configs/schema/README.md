@@ -21,3 +21,17 @@ Schema 1.11 (ADR-0045): optional `product` (`enabled`, `pose_asset_id`) and
 fail explicitly. The product entry point performs automatic calibration before
 constructing the sounding pipeline; legacy `app.main` refuses product configs.
 See `configs/product.candidate.yaml`, merged after `prototype.candidate.yaml`.
+
+Still 1.11, additive (ADR-0046): optional `product.stick_tip` for red painted stick tips
+(`configs/red-tip.candidate.yaml`, merged by `app.play --red-tips` only). HSV floors, blob limits,
+tracking gates and evidence classes; cross-field rules are checked by `RedTipSettings`.
+Revision 2026-10-16 (still additive): `open_px`, `hue_margin_weak`, `grow_px`, `v_highlight`,
+`s_highlight_max`, `min_seed_px`, `min_seed_fraction`, `head_length_factor`, `head_contrast` (seed/growth
+hysteresis, colour share and the cap point).
+
+Still 1.11, additive (ADR-0047): optional `camera_profile.native_capture` (`request_px`, `expect_px`,
+`crop_px`, `min_fps`, `probe_frames`, `fallback`) and `camera_profile.controls` (verified device controls).
+`configs/camera/hw01-native-720p.candidate.yaml` is merged by `app.play` unless `--camera standard`.
+
+Still 1.11, additive (ADR-0048): optional `camera_profile.exposure.guard` (measured-rate exposure guard) and
+`product.preview` (display-only brightness: `dim`, `vignette`, `tone`, `gamma`, `target_luminance`, `min_gamma`, `smoothing`).

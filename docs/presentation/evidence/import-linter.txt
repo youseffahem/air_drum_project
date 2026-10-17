@@ -1,0 +1,34 @@
+=============
+
+Import Linter
+
+=============
+
+---------
+
+Contracts
+
+---------
+
+Analyzed 198 files, 564 dependencies.
+
+-------------------------------------
+
+Space Drums pipeline layers KEPT (2 ignored imports)
+
+contracts imports nothing else in spacedrums KEPT
+
+timing and config import only contracts KEPT
+
+capture imports only L0 KEPT
+
+prediction must not import geometry (a predictor cannot peek at zones) KEPT
+
+no causal stage may import the offline label machinery (Phase 07) KEPT
+
+commit sees only StrikeCandidate + TrackState (never perception, prediction or 
+
+features) KEPT
+
+Contracts: 7 kept, 0 broken.
+

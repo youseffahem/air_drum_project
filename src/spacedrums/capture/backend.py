@@ -19,6 +19,10 @@ OpenCV specifics learned on HW-01 (docs/camera-profile-hw01-integrated-webcam.md
 * Exposure values are backend-specific: on both Windows backends the value is the DirectShow
   log2 scale (``-6`` = 2**-6 s = 15.6 ms); ``AUTO_EXPOSURE`` = 0.75 (auto) / 0.25 (manual) on
   DSHOW and 1 / 0 on MSMF (OpenCV convention). Read-back is unreliable on MSMF.
+* Other device controls (``CameraOpenSpec.controls``, ADR-0047) are opt-in: each is set once the
+  stream runs, read back and reported as verified only if the read-back equals the request (HW-01
+  DSHOW accepts GAIN 1-8 and *reports success* for nothing above 8). Changed controls are restored
+  to the values read at open when the camera is closed.
 """
 
 from __future__ import annotations
@@ -48,6 +52,12 @@ class CameraOpenSpec:
     pixel_format: str | None = None  # FOURCC
     exposure_mode: str = "AUTO"  # AUTO | MANUAL
     exposure_value: float | None = None
+    controls: tuple[tuple[str, float], ...] = ()  # (CONTROL name, value); empty = leave the driver's values
+
+
+# Device controls a profile may request (names of cv2.CAP_PROP_<NAME>); everything else is refused.
+CONTROLS = ("GAIN", "BRIGHTNESS", "CONTRAST", "SATURATION", "SHARPNESS", "GAMMA", "BACKLIGHT",
+            "AUTO_WB", "WB_TEMPERATURE", "AUTOFOCUS", "FOCUS")
 
 
 @dataclass(frozen=True)
@@ -129,6 +139,8 @@ class OpenCvCamera:
         self._stamp_after_retrieve = False
         self._grab_probe: dict[str, float] | None = None
         self._blocking_probe_frames = blocking_probe_frames
+        self._restore_controls: list[tuple[str, float]] = []
+        self.controls_report: list[dict[str, Any]] = []
 
     def open(self, spec: CameraOpenSpec) -> NegotiatedMode:
         import cv2
@@ -153,6 +165,7 @@ class OpenCvCamera:
         if not ok:
             raise RuntimeError("camera opened but delivered no frame")
         self.apply_exposure(spec.exposure_mode, spec.exposure_value)
+        self.controls_report = self.apply_controls(spec.controls)
         pos = cap.get(cv2.CAP_PROP_POS_MSEC)
         self._pos_msec_available = pos is not None and pos > 0
         self._probe_blocking()
@@ -227,6 +240,28 @@ class OpenCvCamera:
         result["readback_value"] = float(cap.get(cv2.CAP_PROP_EXPOSURE))
         return result
 
+    def apply_controls(self, controls: tuple[tuple[str, float], ...]) -> list[dict[str, Any]]:
+        """Set each requested control; ``verified`` only when the read-back equals the request."""
+        import cv2
+
+        cap = self._cap
+        assert cap is not None
+        report = []
+        for name, value in controls:
+            key = name.upper()
+            if key not in CONTROLS:
+                raise ValueError(f"unknown camera control {name!r}; allowed: {CONTROLS}")
+            prop = getattr(cv2, "CAP_PROP_" + key)
+            original = float(cap.get(prop))
+            set_ok = bool(cap.set(prop, float(value)))
+            readback = float(cap.get(prop))
+            if set_ok and readback != original:
+                self._restore_controls.append((key, original))
+            report.append({"control": key, "requested": float(value), "original": original,
+                           "set_ok": set_ok, "readback": readback,
+                           "verified": set_ok and math.isclose(readback, float(value), abs_tol=1e-6)})
+        return report
+
     def read(self) -> RawFrame | None:
         import cv2
 
@@ -260,6 +295,9 @@ class OpenCvCamera:
         import cv2
 
         if self._cap is not None:
+            for key, original in reversed(self._restore_controls):
+                self._cap.set(getattr(cv2, "CAP_PROP_" + key), original)
+            self._restore_controls = []
             if self._restore_auto is not None:
                 # leave the device in auto exposure for other applications
                 self._cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, self._restore_auto)
@@ -357,6 +395,7 @@ class SyntheticCamera:
 
 
 __all__ = [
+    "CONTROLS",
     "CameraBackend",
     "CameraOpenSpec",
     "NegotiatedMode",
