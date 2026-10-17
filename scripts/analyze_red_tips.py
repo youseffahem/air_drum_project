@@ -498,8 +498,9 @@ def commit_row(c) -> dict:
 def run_red(cfg: dict, views, session: str):
     """Red-tip perception + the shared decision pipeline over streamed FrameViews.
 
-    Returns the commits, a compact per-frame slot log ``{frame_id: {hand: (state, tip_px)}}``, the
-    per-frame red-tip compute (ms) and the estimator summary. Images and masks are not retained.
+    Returns the commits, a compact per-frame slot log ``{frame_id: {hand: (state, tip_px, track_id),
+    "resets": [hands]}}``, the per-frame red-tip compute (ms) and the estimator summary. Images and masks
+    are not retained.
     """
     perception = RedTipPerception(cfg)
     pipeline = pipeline_for(cfg, session)
@@ -512,7 +513,8 @@ def run_red(cfg: dict, views, session: str):
         result = pipeline.step(view.sample, obs, t_now=view.sample.t_frame_available,
                                endpoint_evidence=perception.estimator.evidence)
         commits.extend(commit_row(c) for c in result.commits)
-        slots[frame.frame_id] = {h: (st.state, st.tip) for h, st in frame.slots.items()}
+        slots[frame.frame_id] = {h: (st.state, st.tip, st.track_id) for h, st in frame.slots.items()}
+        slots[frame.frame_id]["resets"] = sorted(str(h) for h in frame.resets)
         ms.append(frame.ms)
     return commits, slots, ms, perception.estimator.summary()
 
@@ -553,6 +555,25 @@ def match(reference: list[dict], other: list[dict], *, tolerance: int = 2) -> tu
         else:
             missing.append(ref)
     return pairs, missing, unused
+
+
+def strike_details(red: list[dict], reference: list[dict], missing: list[dict], extra: list[dict],
+                   slot_log: dict, before: int = 8) -> dict:
+    """Every strike of both pipelines, and each extra / missed one with the nearest strike of the other
+    pipeline and the slot states, track ids and identity resets of the frames leading up to it."""
+    def context(fid):
+        frames = [k for k in range(fid - before, fid + 1) if k in slot_log]
+        return {str(k): {**{str(h): list(slot_log[k][h][::2]) for h in HANDS},
+                         "resets": slot_log[k]["resets"]} for k in frames}
+
+    def nearest(event, pool):
+        return min(pool, key=lambda o: abs(o["frame_id"] - event["frame_id"]), default=None)
+
+    return {"red_tip": red, "reference": reference,
+            "extra": [{**e, "nearest_reference": nearest(e, reference), "context": context(e["frame_id"])}
+                      for e in extra],
+            "missing": [{**m, "nearest_red_tip": nearest(m, red), "context": context(m["frame_id"])}
+                        for m in missing]}
 
 
 # ----------------------------------------------------------------------------- replay-fingertips
@@ -632,7 +653,8 @@ def cmd_replay(args) -> dict:
         bad = [s for s in states if s not in measured]
         causes[Counter(bad).most_common(1)[0][0] if bad else "MEASURED_BUT_NOT_STRUCK"] += 1
     same, swapped, both = 0, 0, 0
-    for frame_id, tips in fingers_tips.items():
+    flips, previous = [], None
+    for frame_id, tips in sorted(fingers_tips.items()):
         slots = slot_log[frame_id]
         if len(tips) == 2 and all(slots[h][0] in measured for h in HANDS):
             both += 1
@@ -642,6 +664,12 @@ def cmd_replay(args) -> dict:
             d_swap = math.dist(red[left], tips[right]) + math.dist(red[right], tips[left])
             same += d_same <= d_swap
             swapped += d_swap < d_same
+            label = d_swap < d_same
+            if previous is not None and label != previous:  # the slots' hand assignment changed
+                flips.append(frame_id)
+            previous = label
+    details = strike_details(red_commits, finger_commits, missing, extra, slot_log)
+    write_json(args.output / "strikes.json", details)
     measured_red = {str(h): sum(s[h][0] in measured for s in slot_log.values()) for h in HANDS}
     measured_fingers = {str(h): sum(h in t for t in fingers_tips.values()) for h in HANDS}
     hands_agree = sum(a["hand"] == b["hand"] for a, b in pairs)
@@ -659,7 +687,7 @@ def cmd_replay(args) -> dict:
                              "missed_causes": dict(causes),
                              "extra_zones": dict(Counter(e["zone"] for e in extra))},
         "identity": {"frames_with_both_measured": both, "same_as_fingertip_labels": same,
-                     "swapped_vs_fingertip_labels": swapped},
+                     "swapped_vs_fingertip_labels": swapped, "flips": len(flips), "flip_frames": flips},
         "measured_frames": {"fingertip": measured_fingers, "red_tip": measured_red},
         "red_tip_ms": distribution(ms), "red_tip": summary,
     }

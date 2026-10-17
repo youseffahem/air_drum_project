@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import math
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -230,6 +230,10 @@ class RedTipEndpointEstimator:
         grips = self._grips(hands, roi) if self.settings.hand_assist and hands else {}
         if self.redness:  # grips only orient the emitted axis here (the evidence tracker binds by evidence)
             tracked = self.tracker.step(s.t_capture, detection.blobs, roi_size=(roi.w, roi.h))
+            # Measured tips get the full-resolution cap point (association used the half-res one).
+            slots = {h: replace(st, tip=self.detector.refined(st.tip)) if st.measured and st.tip else st
+                     for h, st in tracked.slots.items()}
+            tracked = replace(tracked, slots=slots)
         else:
             tracked = self.tracker.step(
                 s.t_capture, detection.blobs, roi_size=(roi.w, roi.h), grips=grips,

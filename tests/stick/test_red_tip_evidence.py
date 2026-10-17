@@ -16,7 +16,14 @@ from spacedrums.contracts import FrameSample, FrameView, HandId, ImageRef, Times
 from spacedrums.stick.red_tip import RedTipSettings
 from spacedrums.stick.red_tip_caps import DEFAULT_VERIFIER, FEATURES, CapDetector, CapVerifier
 from spacedrums.stick.red_tip_estimator import RedTipEndpointEstimator
-from spacedrums.stick.red_tip_synthetic import background, draw_blob, draw_stick, path_frames, speckles
+from spacedrums.stick.red_tip_synthetic import (
+    background,
+    draw_blob,
+    draw_stick,
+    draw_tip,
+    path_frames,
+    speckles,
+)
 
 L, R = HandId.LEFT, HandId.RIGHT
 WALL = (160, 129, 66)  # the teal wall of the owner's recordings (BGR)
@@ -149,6 +156,32 @@ def test_a_tip_reappearing_beyond_its_gate_is_adopted_without_restarting_its_str
     assert not any(f.resets for f, *_ in out[3:])  # the other stick stayed in view: no identity restart
     for frame, _, truth in out[back:]:
         assert owner(frame, truth) == {L: "a", R: "b"}
+
+
+def test_measured_tips_are_full_resolution_and_steady_on_slow_motion():
+    # The half-res centre moves in 2 px steps; measured tips are re-measured at full resolution, so a cap
+    # creeping 0.4 px per frame yields a smooth path (the stroke detector reads jitter as motion).
+    path = [(300.3 + 0.4 * k, 200.6 + 0.3 * k) for k in range(30)]
+    _, out = run(path_frames({"a": path}, exposure_fraction=0.0, tip_kw={"radius": 6.0, "length": 14.0}))
+    tips = [(f.slots[R].tip, t["a"]) for f, _, t in out if f.slots[R].measured]
+    assert len(tips) >= 28
+    assert max(math.dist(tip, truth) for tip, truth in tips) < 1.0
+    steps = [math.dist(a[0], b[0]) for a, b in zip(tips, tips[1:], strict=False)]
+    assert max(steps) < 1.2  # true step 0.5 px; a half-res point jumps by 2 px
+
+
+def test_a_red_reading_wooden_shaft_never_takes_the_cap_end_of_a_stick():
+    # Under a warm lamp the shaft reads red too: shaft candidates join the cap's structure. The stick-end rule
+    # decides only between cap-like parts, so the cap region is kept (it was once dropped for a shaft piece).
+    for angle in (60.0, 80.0, 100.0):
+        img = background(rng=np.random.default_rng(7), bgr=WALL)
+        u = np.array([math.cos(math.radians(angle)), math.sin(math.radians(angle))])
+        cap = np.array([330.0, 160.0])
+        draw_blob(img, tuple(cap + u * 120), 0, hue=15, sat=150, val=170, axes=(95, 5.5), angle_deg=angle)
+        draw_blob(img, tuple(cap + u * 17), 0, hue=177, sat=200, val=150, axes=(12, 6.5), angle_deg=angle)
+        draw_tip(img, tuple(cap), radius=5.5, length=12.0, angle_deg=angle, val=120, highlight=0.3)
+        blobs = CapDetector(RedTipSettings()).detect(img).blobs
+        assert any(math.dist(b.center, cap) < 20 and b.score > 0.8 for b in blobs)
 
 
 def test_exposure_changes_keep_the_tip_measured():

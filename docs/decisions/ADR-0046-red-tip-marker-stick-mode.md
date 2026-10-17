@@ -217,3 +217,32 @@ labelled by the assistant (239 visible caps; files flagged as assistant-made, co
 - **Evidence:** offline, labelled before/after results on identical frames are in
   `docs/perf/red-tip-stick-mode.md` section 11. Live validation, unique FPS and strike counts are
   **PENDING** the owner's run.
+
+### Follow-up 2026-10-17 (later): acceptance failures
+
+The owner asked for five open failures to be investigated first. Each change was rerun on the same
+labelled halves, unpainted captures, replays and synthetic suite (`docs/perf/red-tip-stick-mode.md`
+section 12).
+
+- **Identity:** the tracker binding is unchanged.
+  - By a precise definition (one track, one slot, two sticks, no reset in between), the baseline had no
+    silent swaps. Its switches were re-identifications with a reset, caused by crossings, close-range
+    duplicates and loss.
+  - Four tracker variants (identity-memory priority, evidence-weighted association, anisotropic gate,
+    merged-candidate ambiguity) moved switches around without removing them, and two of them introduced
+    a real silent swap, so none is adopted.
+- **Extra strikes:** caused by point jitter (the half-resolution centre moves in 2 px steps). The measured
+  slot tips are now re-measured at full resolution after tracking (`CapDetector.refined`). Replay extras
+  fell from 36 to 12, with matched strikes 808 -> 812. No decision-pipeline threshold was changed.
+- **Cap centre:**
+  - a dim ball is no longer replaced by its brighter painted neck: the stick-end rule, gated so that only
+    two cap-like parts compete;
+  - close-range ball pieces merge into one centre;
+  - big round regions use their hull centroid.
+  - A rule that re-pointed every elongated region was tried and removed: it cost caps on the recordings.
+- **Gaps:** mostly sticks out of view. Dim caps held back by the evidence gate are a stated limitation.
+- **Edges:** 2 of 233 labelled caps lie at the edge, too few to validate a cut cap's point, so cut caps
+  stay `CLIPPED` and never strike.
+- **Tools:** `replay-fingertips` writes `strikes.json` and identity `flips`.
+- **Cost:** 10.5 ms p50 per frame (+7.2 ms over the colour detector).
+- **Live validation:** still PENDING (section 12.7).
