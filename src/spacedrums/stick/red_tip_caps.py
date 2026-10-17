@@ -19,11 +19,20 @@ Per frame, all at half resolution (area-downscaled ROI):
    that region.
 4. **Cap point**: the centre of the region's largest inscribed circle (holes filled: a highlight inside the
    ball is ball) when its radius reaches 3 half-res px: the ball, since the painted neck and a paint run are
-   narrower. Smaller regions keep the peak itself.
-5. **One stick end**: two candidates within ``merge_reach_px`` joined by a red path (redness along the segment
-   never below ``surround + merge_level x (peak - surround)``) are one structure: a ball split by its
-   highlight, or a ball and its painted neck. The widest is kept unless the verifier prefers the other by
-   more than ``merge_score_margin``; the other becomes a ``SAME_CAP`` reject.
+   narrower. Smaller regions keep the peak itself. A big round region (inscribed radius >= 15 px, convex
+   hull filling >= half its enclosing circle) uses its hull centroid: at close range highlights and shading
+   carve the inscribed circle off-centre while the silhouette stays round.
+5. **One stick end**: two candidates within ``merge_reach_px`` (``MERGE_RADII`` x the larger radius for a
+   close-range ball of radius >= ``BIG_BALL_PX``) joined by a red path (redness along the segment never below
+   ``surround + merge_level x (peak - surround)``) are one structure; the other becomes a ``SAME_CAP`` reject.
+   - **Pieces of one ball** (closer than ``BALL_PARTS`` radii, or up to ``FAT_UNION_RADII`` when their union
+     is fat): the point becomes the centre of their union (shading and highlights cut a close ball apart).
+   - **Ball and painted neck** (apart along the stick): the cap is the end of the structure, the one beyond
+     which the image is clearly (``EXTREMITY_MARGIN``) less red: wall or shirt beyond the ball, the wooden
+     shaft beyond the neck (owner recording 005615, frame 348: a dim ball lost to its brighter neck), decided
+     only between two cap-like parts (``EXTREMITY_QUALITY``: a lit wooden shaft reads red too).
+     When that is not decisive the widest is kept unless the verifier prefers the other by more than
+     ``merge_score_margin``.
 6. **Verifier** (:class:`CapVerifier`): a logistic score over region features -> ``RedBlob.score`` in
    [0, 1], the evidence the tracker (stick/red_tip_evidence.py) accumulates. The built-in coefficients were
    fitted on the owner's labelled recordings (``scripts/analyze_red_tips.py fit-verifier``, which refits
@@ -31,14 +40,16 @@ Per frame, all at half resolution (area-downscaled ROI):
    and green-over-blue.
 
 A region touching the ROI border with its ball centre within one radius of it is ``clipped`` (cut cap: its
-point is biased toward the visible part). Coordinates are ROI pixels (full resolution) in camera orientation.
+point is biased toward the visible part). **Measured tips** are re-measured at full resolution after tracking
+(:meth:`CapDetector.refined`): the half-res centre moves in 2 px steps, a jitter the stroke detector read as
+extra strikes (replays: 13 -> 1 extra). Coordinates are ROI pixels (full resolution) in camera orientation.
 """
 
 from __future__ import annotations
 
 import math
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 
 import cv2
 import numpy as np
@@ -52,6 +63,28 @@ WINDOW_MIN, WINDOW_MAX = 12, 48  # ... clamped (half-res px)
 LEVELS = (0.5, 0.7)  # region levels tried after region_level until the region closes
 BALL_MIN_RADIUS = 3.0  # half-res px: smaller regions keep the DoG peak as their point
 OPEN_DISC_SIGMAS = 2.0  # a never-closing region keeps this disc around its peak
+MERGE_RADII = 2.5  # a close-range ball (radius >= BIG_BALL_PX) may span this many radii of its larger part
+BIG_BALL_PX = 20.0
+BALL_PARTS = 1.5  # merged parts closer than this many radii are pieces of one ball (point = union centre) ...
+FAT_UNION_RADII = 4.0  # ... and up to this far apart when their union is fat (inscribed radius >= gap / 2)
+EXTREMITY_MARGIN = 8.0  # beyond the cap end the image is this much less red than beyond the neck end ...
+EXTREMITY_QUALITY = 0.5  # ... decided only between two cap-like parts (a lit wooden shaft is red too)
+HULL_BALL_RADIUS = 7.5  # half-res inscribed radius (15 px full res) from which a round region's hull ...
+HULL_ROUNDNESS = 0.5  # ... centroid (hull area >= this x enclosing-circle area) is the ball centre: at close
+# range a highlight and the shading carve the inscribed circle off-centre, the silhouette stays round
+
+
+def _ball_centre(contours, inscribed: tuple[float, float], r_in: float) -> tuple[float, float]:
+    """The cap point inside ``mask`` (window px): the inscribed-circle centre, or for a big round region its
+    convex hull's centroid (module docstring, step 4)."""
+    if r_in < HULL_BALL_RADIUS or not contours:
+        return inscribed
+    hull = cv2.convexHull(np.vstack(contours))
+    (_, _), radius = cv2.minEnclosingCircle(hull)
+    m = cv2.moments(hull.astype(np.float32))
+    if m["m00"] <= 0 or m["m00"] < HULL_ROUNDNESS * math.pi * radius * radius:
+        return inscribed
+    return m["m10"] / m["m00"], m["m01"] / m["m00"]
 
 # Every feature a candidate carries (half-resolution units); a verifier uses any subset by name.
 FEATURES = (
@@ -172,6 +205,7 @@ class CapCandidate:
     bbox: tuple[int, int, int, int]  # ROI px x, y, w, h
     outline: tuple[tuple[int, int], ...]
     axis: tuple[float, float]
+    region: tuple = field(default=None, compare=False, repr=False)  # (x0, y0, mask) at half resolution
 
 
 @dataclass(frozen=True)
@@ -231,6 +265,9 @@ class CapDetector:
     def __init__(self, settings: RedTipSettings | None = None) -> None:
         self.settings = settings or RedTipSettings()
         self.verifier = CapVerifier.from_dict(self.settings.verifier)
+        self.counters_extremity = 0  # merges decided by the stick-end rule (diagnostics)
+        self._refinable: dict[tuple[float, float], CapCandidate] = {}  # this frame's small / mid caps
+        self._roi: np.ndarray | None = None
 
     def candidates(self, roi: np.ndarray) -> tuple[list[CapCandidate], np.ndarray, np.ndarray]:
         """Unverified candidates (at most ``redness_candidates``), the blurred half-res redness map and the
@@ -302,7 +339,8 @@ class CapDetector:
         r_in = float(dt.max())
         if r_in >= BALL_MIN_RADIUS:
             my, mx = np.nonzero(dt >= r_in - 0.5)
-            cx, cy = float(mx.mean()) + x0, float(my.mean()) + y0
+            bx, by = _ball_centre(contours, (float(mx.mean()), float(my.mean())), r_in)
+            cx, cy = bx + x0, by + y0
         else:
             cx, cy = float(peak_xy[0]), float(peak_xy[1])
         m = cv2.moments(cu8, binaryImage=True)
@@ -341,12 +379,15 @@ class CapDetector:
         bx, by, bw, bh = cv2.boundingRect(cu8)
         bbox = (2 * (x0 + bx), 2 * (y0 + by), 2 * bw, 2 * bh)
         return CapCandidate((2 * cx + 0.5, 2 * cy + 0.5), (2 * peak_xy[0] + 0.5, 2 * peak_xy[1] + 0.5),
-                            features, clipped, base, peak, (cx, cy), bbox, outline, axis)
+                            features, clipped, base, peak, (cx, cy), bbox, outline, axis, (x0, y0, comp))
 
     def same_structure(self, a: CapCandidate, b: CapCandidate, rho_b: np.ndarray) -> bool:
         """``a`` and ``b`` are one stick end: close and joined by a continuous red path (module docstring)."""
         s = self.settings
-        if math.dist(a.point, b.point) > s.merge_reach_px:
+        radius = FEATURES.index("radius")
+        big = max(a.features[radius], b.features[radius])
+        reach = max(s.merge_reach_px, MERGE_RADII * big) if big >= BIG_BALL_PX else s.merge_reach_px
+        if math.dist(a.point, b.point) > reach:
             return False
         base = min(a.base, b.base)
         floor = base + s.merge_level * (min(a.top, b.top) - base)
@@ -356,28 +397,124 @@ class CapDetector:
         ys = np.clip(np.round(np.linspace(ya, yb, n)).astype(int), 0, rho_b.shape[0] - 1)
         return bool(rho_b[ys, xs].min() >= floor)
 
+    @staticmethod
+    def _beyond(c: CapCandidate, partner: CapCandidate, rho_b: np.ndarray) -> float:
+        """Mean redness just beyond ``c``, away from ``partner`` (half-res): the wall or shirt beyond a cap's
+        ball, the wooden shaft beyond a painted neck."""
+        u = np.subtract(c.half, partner.half)
+        n = float(np.hypot(*u))
+        if n < 1e-6:
+            return 0.0
+        r = c.features[FEATURES.index("radius")] / 2
+        steps = np.arange(r + 2.0, r + 2.0 + max(5.0, 2.0 * r))
+        pts = np.asarray(c.half) + np.outer(steps, u / n)
+        xs = np.clip(np.round(pts[:, 0]).astype(int), 0, rho_b.shape[1] - 1)
+        ys = np.clip(np.round(pts[:, 1]).astype(int), 0, rho_b.shape[0] - 1)
+        return float(rho_b[ys, xs].mean())
+
+    @staticmethod
+    def _union(a: CapCandidate, b: CapCandidate) -> CapCandidate:
+        """``a`` re-centred on the largest inscribed circle of both regions (pieces of one ball)."""
+        (xa, ya, ma), (xb, yb, mb) = a.region, b.region
+        x0, y0 = min(xa, xb), min(ya, yb)
+        x1, y1 = max(xa + ma.shape[1], xb + mb.shape[1]), max(ya + ma.shape[0], yb + mb.shape[0])
+        union = np.zeros((y1 - y0, x1 - x0), np.uint8)
+        union[ya - y0:ya - y0 + ma.shape[0], xa - x0:xa - x0 + ma.shape[1]] |= ma.view(np.uint8)
+        union[yb - y0:yb - y0 + mb.shape[0], xb - x0:xb - x0 + mb.shape[1]] |= mb.view(np.uint8)
+        contours, _ = cv2.findContours(union, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(union, contours, -1, 1, thickness=-1)
+        dt = cv2.distanceTransform(cv2.copyMakeBorder(union, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0),
+                                   cv2.DIST_L2, 3)[1:-1, 1:-1]
+        my, mx = np.nonzero(dt >= float(dt.max()) - 0.5)
+        bx, by = _ball_centre(contours, (float(mx.mean()), float(my.mean())), float(dt.max()))
+        cx, cy = bx + x0, by + y0
+        f = list(a.features)
+        f[FEATURES.index("radius")] = 2.0 * float(dt.max())
+        return replace(a, point=(2 * cx + 0.5, 2 * cy + 0.5), half=(cx, cy), features=tuple(f),
+                       region=(x0, y0, union.astype(bool)))
+
+    @staticmethod
+    def _refine(c: CapCandidate, roi: np.ndarray) -> CapCandidate:
+        """The cap point re-measured at full resolution: the inscribed-circle centre of the pixels above the
+        mid level between surround and peak inside the (dilated) half-res region. The half-res centre moves in
+        2 px steps, a jitter the stroke detector reads as motion (replays: frame-to-frame change p95 1.7 ->
+        0.7 px, colour detector 0.5)."""
+        x0, y0, m = c.region
+        bx, by, bw, bh = cv2.boundingRect(m.view(np.uint8))  # crop to the region (+1 half-res px)
+        bx0, by0 = max(0, bx - 1), max(0, by - 1)
+        m = m[by0:min(m.shape[0], by + bh + 1), bx0:min(m.shape[1], bx + bw + 1)]
+        x0, y0 = x0 + bx0, y0 + by0
+        h, w = m.shape
+        big = cv2.resize(m.view(np.uint8), (2 * w, 2 * h), interpolation=cv2.INTER_NEAREST)
+        big = cv2.dilate(big, np.ones((3, 3), np.uint8))
+        X0, Y0 = 2 * x0, 2 * y0
+        crop = roi[Y0:Y0 + 2 * h, X0:X0 + 2 * w].astype(np.float32)
+        big = big[:crop.shape[0], :crop.shape[1]]
+        b_, g_, r_ = cv2.split(crop)
+        rho = cv2.GaussianBlur(np.minimum(r_ - g_, r_ - b_ + REDNESS_BLUE_OFFSET), (0, 0), 1.0)
+        thr = c.base + 0.5 * (c.top - c.base)
+        mask = ((rho >= thr) & (big > 0)).astype(np.uint8)
+        if mask.sum() < 3:
+            return c
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(mask, contours, -1, 1, thickness=-1)
+        dt = cv2.distanceTransform(cv2.copyMakeBorder(mask, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0),
+                                   cv2.DIST_L2, 5)[1:-1, 1:-1]
+        my, mx = np.nonzero(dt >= float(dt.max()) - 0.5)
+        px, py = float(mx.mean()), float(my.mean())
+        return replace(c, point=(X0 + px, Y0 + py))  # full-res pixel centres sit on integer coordinates
+
+    def refined(self, point: tuple[float, float]) -> tuple[float, float]:
+        """The full-resolution cap point for one of this frame's blob centres (``point`` exactly as detected);
+        the point itself when there is nothing to refine. Called for the slot tips after tracking only: the
+        half-res centre is good enough to associate, the stroke detector needs the stable one."""
+        c = self._refinable.get(point)
+        return point if c is None or self._roi is None else self._refine(c, self._roi).point
+
     def detect(self, roi: np.ndarray) -> CapDetection:
         s = self.settings
         cands, rho_b, mask = self.candidates(roi)
+        self._refinable, self._roi = {}, roi
         quality = self.verifier.score(np.array([c.features for c in cands])) if cands else np.zeros(0)
         radius = FEATURES.index("radius")
         keep = list(range(len(cands)))
         merged = []
+        unions: set[int] = set()
         for i in range(len(cands)):
             for j in range(i + 1, len(cands)):
-                if i in keep and j in keep and self.same_structure(cands[i], cands[j], rho_b):
-                    wide = cands[i].features[radius] >= cands[j].features[radius]
+                if not (i in keep and j in keep and self.same_structure(cands[i], cands[j], rho_b)):
+                    continue
+                a, b = cands[i], cands[j]
+                ra, rb = a.features[radius], b.features[radius]
+                sep = math.dist(a.point, b.point)
+                first = i if quality[i] >= quality[j] else j
+                near = sep <= FAT_UNION_RADII * max(ra, rb)
+                union = self._union(cands[first], cands[j if first == i else i]) if near else None
+                fat = union is not None and union.features[radius] >= 0.5 * sep
+                if union is not None and (sep <= BALL_PARTS * max(ra, rb) or fat):
+                    cands[first] = union  # pieces of one ball (a highlight or shading cut it): their centre
+                    unions.add(first)
+                    drop = j if first == i else i
+                else:  # along the stick: ball and painted neck (or paint run); the cap is the end
+                    wide = ra >= rb
                     if abs(quality[i] - quality[j]) > s.merge_score_margin:
                         wide = quality[i] > quality[j]
+                    beyond_a, beyond_b = self._beyond(a, b, rho_b), self._beyond(b, a, rho_b)
+                    capped = min(quality[i], quality[j]) >= EXTREMITY_QUALITY
+                    if capped and abs(beyond_a - beyond_b) >= EXTREMITY_MARGIN:
+                        wide = beyond_a < beyond_b  # beyond the cap: background; beyond the neck: the shaft
+                        self.counters_extremity += 1
                     drop = j if wide else i
-                    keep.remove(drop)
-                    merged.append(drop)
+                keep.remove(drop)
+                merged.append(drop)
         counts: Counter = Counter()
         counts["SAME_CAP"] += len(merged)
         h, w = roi.shape[:2]
         blobs, rejected = [], [self._blob(cands[k], float(quality[k]), "SAME_CAP") for k in merged]
         for k in keep:
             c = cands[k]
+            if c.features[radius] < 2 * HULL_BALL_RADIUS and k not in unions:  # small and mid caps
+                self._refinable[c.point] = c
             x, y = c.point[0] / w, c.point[1] / h
             if any(x0 <= x <= x1 and y0 <= y <= y1 for x0, y0, x1, y1 in s.ignore_regions):
                 counts["IGNORED_REGION"] += 1

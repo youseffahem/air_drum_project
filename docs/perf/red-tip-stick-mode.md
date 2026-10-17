@@ -3,6 +3,16 @@
 Date: 2026-10-16, revised the same day after the owner's photo of the painted sticks. Decision record:
 [ADR-0046](../decisions/ADR-0046-red-tip-marker-stick-mode.md), including its revision section.
 
+**Follow-up (2026-10-17, section 12):** the five open failures were investigated event by event:
+- extra strikes on the replays fell from 36 to 12, after point jitter was found and fixed;
+- the painted neck no longer replaces a dim ball;
+- close-range centres improved on the development caps;
+- by a precise definition there are no silent identity swaps;
+- the long gaps are mostly sticks out of view;
+- cut caps stay unmeasured.
+
+Live validation is still **PENDING** (section 12.7).
+
 **Status (2026-10-17, section 11):** the default detector is now `redness` (local redness contrast, a
 fitted cap verifier, evidence tracking). On labelled held-out frames of four owner recordings at playing
 distance it finds **90 of 115 caps (78 %)**, against 7 (6 %) for the colour detector below and 31 (27 %)
@@ -579,9 +589,9 @@ separate interleaved run of the three estimators on the same 340 frames of each 
 That makes **3 of 75 (4 %) measured points truly off the cap**. Close-range matches also inflate 005615's
 error p95.
 
-**Identity switches:** of the 7, 5 are re-identifications, where the stick's slot changed its track
-after a loss. **2 are silent swaps** (one each on 005615 and 005812): a slot kept its track while the
-stick was then measured by the other slot. These are real identity errors, not ambiguity reports.
+**Identity switches:** all 7 are re-identifications after a loss, each announced by an identity reset.
+An earlier version of this paragraph called 2 of them silent swaps; that came from a looser test, and
+section 12.1 gives the precise definition and the analysis of every event.
 
 **Gaps:** the longest unmeasured runs are stretches where a stick leaves the frame or sits dark at its
 edge.
@@ -679,3 +689,193 @@ python scripts\compare_play_sessions.py ...                   # fingers vs stick
 - Stick B's painted neck can win over the ball when the ball is dim.
 - Close-range balls are measured on the ball but not at its centre.
 - A cap at the frame edge is `CLIPPED` until it is fully visible.
+
+## 12. Follow-up 2026-10-17: the acceptance failures of section 11
+
+The owner asked for five open failures to be investigated before any further tuning: identity switches,
+long gaps, extra strikes, cap-centre accuracy and edge handling. The current implementation was kept as the
+baseline.
+
+**Method.** Every change was rerun on the same regression set: the four labelled recordings (first halves
+= development, second halves = held out, scored with the verifier fitted on first halves; no label was
+changed), the eight unpainted captures, the four fingertip replays and the synthetic suite. Scratch tools
+classify every switch, gap and extra strike.
+
+The replay tool now writes `strikes.json` (every strike of both pipelines; each extra or missed one with
+the nearest strike of the other pipeline, and the slot states, track ids and resets before it) and counts
+identity `flips` (frames where the slots' hand assignment against the fingertips changes).
+
+### 12.1 Identity switches
+
+**A precise definition first.** A *silent swap* is one track, in one slot, measuring two different sticks
+at consecutive labelled frames with no identity reset of that slot in between. Only then can a stroke
+continue across a change of stick.
+
+- **Section 11's count of "2 silent swaps" used a looser test,** so it was wrong. That test counted any
+  stick that changed slot while its old slot kept its track. By the precise definition **the baseline has
+  0 silent swaps** in both halves.
+- **Its 7 held-out switches are re-identifications,** each with an identity reset. Strokes restart, which
+  is the "mark it uncertain" behaviour.
+
+| Baseline switch (held-out) | Cause |
+|---|---|
+| 005436 A 432 to 480, B 400 to 480 | The sticks cross physically; both tracks are lost; rebinding puts them in the other slots. |
+| 005615 A 444 to 552, B 480 to 492 | Close range: two candidates on one 110 px ball (merge reach was fixed at 60 px); the duplicate fills the free slot. |
+| 005812 B 416 to 432, 432 to 448, 464 to 528 | A WEAK continuation follows a fast stroke away from the cap; the cap is reborn and takes the free slot (identity memory was not consulted). |
+
+The labels were checked at each event and are consistent: the sticks really cross in 005615 (290-300 and
+324-348).
+
+**Four tracker changes were tried, each on the whole set. None is adopted:**
+
+| Variant | Held-out caps / false / switches (silent) | Dev caps / switches (silent) | Replay flips |
+|---|---|---|---|
+| Baseline | 90 / 9 / 7 (0) | 97 / 5 (0) | 8 |
+| Identity memory has priority in binding | 91 / 14 / 9 (**1**) | 96 / 3 (0) | 7 |
+| + evidence-weighted association + anisotropic gate | 92 / 8 / 7 (0) | 98 / 8 (0) | – |
+| Association changes only | 93 / 11 / 11 (0) | 96 / 5 (0) | 9 |
+| + merged-candidate ambiguity | 90 / 11 / 9 (0) | 101 / 4 (**1**) | 8 |
+
+They moved switches around rather than removing them, and two of them introduced a real silent swap. The
+binding logic therefore stays as it was.
+
+**One silent swap remains possible:** a crossing in which only one stick is tracked and that stick reverses
+inside a blur. Its WEAK continuation can then follow the other stick. It was seen once in a development
+run, not with the final code.
+
+### 12.2 Long gaps
+
+**The longest gaps are mostly a stick out of view.** In every gap of 9 frames or more, the labelled frames
+inside show no visible cap left unmeasured, except:
+- **first sightings,** measured from their second frame by design (a one-frame red flash is never
+  measured);
+- **one cap cut by the top edge** (12.5);
+- **the dim magenta caps of 225435** (verifier quality 0.07-0.5), which the evidence gate holds back
+  (`LOW_EVIDENCE`).
+
+Lowering the gate for them would let hands in again, so it is not changed. A stick returning near where its
+slot last measured it is bound on its first frame (identity memory). In the synthetic tests reacquisition
+takes at most 3 frames.
+
+### 12.3 Extra strikes
+
+On replay 015648 every one of the baseline's 13 extra strikes happened while the slot was steadily
+OBSERVED on one track, with no reset and no WEAK frame. They were not an identity or tracking problem:
+- 9 were second strikes 4-11 frames after a real one in the same zone;
+- 4 were in a zone with no fingertip strike nearby.
+
+**The cause was point jitter.** For small caps the cap point was the half-resolution centre, which moves
+in 2 px steps.
+
+| On replay frames (synthetic tips at recorded positions) | Colour detector | Baseline redness | **Final** |
+|---|---|---|---|
+| Point error p50 / p95 | 0.14 / 0.31 px | 0.44 / 1.29 px | **0.20 / 0.47 px** |
+| Frame-to-frame change of the error p50 / p95 | 0.18 / 0.46 px | 0.65 / 1.71 px | **0.30 / 0.70 px** |
+
+**Fix.** A slot's measured tip is now re-measured at full resolution after tracking
+(`CapDetector.refined`): the inscribed-circle centre of the pixels above the mid level inside the region.
+Association still uses the half-resolution point.
+
+Refining every candidate cost 3.8 ms. Refining only candidates with a high score reintroduced the jitter on
+blurred strokes (extras 3 -> 11), so only the two slot tips are refined.
+
+| Replay: matched / missed / extra strikes | Baseline | **Final** |
+|---|---|---|
+| 015648, blur 0.9 | 242 / 4 / 13 | 239 / 7 / **7** |
+| 015648, no blur | 239 / 7 / 13 | **243 / 3 / 1** |
+| 003327, blur 0.9 | 154 / 24 / 9 | **158 / 20 / 4** |
+| 003327, no blur | 173 / 5 / 1 | 172 / 6 / **0** |
+
+The remaining extras are mostly a second strike 3-14 frames after a real one in the same zone, around
+stroke reversals in heavy blur. They are a decision-pipeline sensitivity, and no strike threshold was
+changed.
+
+### 12.4 Cap centre
+
+- **One stick end** (`SAME_CAP` merge). When two candidates of one red structure lie apart along the stick,
+  the cap is the end beyond which the image is clearly less red: wall beyond the ball, wooden shaft beyond
+  the neck.
+  - **Owner frame 005615 348:** the point moves from the painted neck (564, 114) to the ball (564, 87).
+  - **Gated at quality ≥ 0.5 for both parts.** A synthetic warm-lit shaft reads red. Ungated, the rule
+    once dropped the cap region for a shaft piece (quality 0.39); a test now covers this.
+- **A version that re-pointed every elongated region at its stick end was tried and removed.** It fixed a
+  synthetic scene but cost 3 caps in each half and raised 005615's p95 to 16.9 px.
+- **Pieces of one ball** (close range: shading and highlights cut it apart): the merge reach scales with
+  the ball (2.5 radii for radius ≥ 20 px), and the point is the centre of the pieces' union.
+- **Big round regions** (inscribed radius ≥ 15 px, hull ≥ half its enclosing circle) use the convex
+  hull's centroid. This rule was chosen on the development caps only.
+
+| Close-range caps (labelled radius 24-55 px): centre error | Baseline | **Final** |
+|---|---|---|
+| Development half, 8 caps (radius 24-35 px): mean / median | 7.4 / 5 px | **4.3 / 4 px** |
+| Held-out half, 11 caps (radius 27-55 px): mean / median | 24.0 / 19 px | 22.9 / 17 px |
+| Extra candidates on one close-range ball | 3 | 2 |
+
+**Limitation:** the biggest balls (radius 50-55 px, a stick about 15 cm from the lens) still break into
+rim pieces 28-45 px from the centre. The redness blob scales do not cover a ball that size. The point is on
+the ball, not at its centre.
+
+### 12.5 Edge handling
+
+Only **2 of 233** labelled caps lie at the frame edge (within max(15 px, radius)), plus 2 unscored
+uncertain caps. One is a cap at y = 4 (a quality 0.03 candidate 3.6 px away); the other is a 50 px ball cut
+by the top edge (no candidate).
+
+These recordings cannot show that a cut cap's point is accurate, so cut caps stay `CLIPPED`: seen, never
+measured, never a strike. No measurement is invented at the edge.
+
+Measuring this needs a recording that sweeps both sticks slowly out of and back into each edge, labelled
+with `--label`.
+
+### 12.6 Final numbers (same frames, `--label-half second` with the first-half verifier)
+
+| | Baseline (section 11) | **Final** |
+|---|---|---|
+| Held-out caps found (A / B per recording in the text) | 90/115 | **92/115** |
+| Development caps found | 97/118 | **101/118** |
+| False points on fully labelled recordings (held-out) | 9/75 | **7/74** |
+| Identity switches held-out / dev (silent swaps) | 7 / 5 (0) | 12 / 3 (0) |
+| Longest unmeasured run, frames (mostly out of view, 12.2) | 64 | 64 |
+| Replay strikes matched / missed / extra (4 runs) | 808 / 40 / 36 | 812 / 36 / **12** |
+| Replay identity flips (4 runs) | 8 | 8 |
+| Unpainted captures, measured frames | 0 | 0 |
+| Synthetic suite | all match | all match |
+| Cost per frame p50, interleaved with the old colour default | 10.1 ms (+7.1) | 10.5 ms (+7.2) |
+
+**Per held-out recording (final):**
+
+| Recording | Caps found | False | Switches | Error p50 / p95 |
+|---|---|---|---|---|
+| 225435 | 29/34 | (labels incomplete) | 3 | 1.0 / 2.8 px |
+| 005436 | 20/26 | 2/24 | 2 | 1.7 / 6.0 px |
+| 005615 | 30/38 | 5/36 | 2 | 2.4 / 12.9 px (close range) |
+| 005812 | 13/17 | 0/14 | 5 | 1.6 / 3.7 px |
+
+**Still unmet (section 11.4 targets):**
+- coverage ≥ 85 % per stick;
+- 0 identity switches;
+- gaps ≤ 10 frames.
+
+### 12.7 Live validation (owner, about 10 minutes)
+
+Nothing here is a live result. Run this once, in the usual room and light:
+
+1. `.\demo-sticks-spacedrums.ps1` and press `D`.
+   - Hold both sticks up and still for 5 s: two filled dots, `L#.. OBS` and `R#.. OBS`, sitting on the
+     balls.
+   - Move each stick alone, then cross them twice: an `AMBIG` ring or a brief `LOW` is fine; a dot on a
+     hand, the shaft or the wall is not.
+   - Note the `RED .. ms` value on the HUD.
+2. Record 30 s of normal playing:
+   `.\play-spacedrums.ps1 --demo --red-tips --record-frames --max-seconds 30`
+   - Count the hits you play aloud, or write them down per drum.
+3. Score it offline:
+   `python scripts\analyze_red_tips.py frames data\dev-product\<session> --output experiments\live-check --contact-sheet 12`
+   - Look at `experiments\live-check\contact-sheet.jpg`: every filled dot must be on a ball.
+   - Compare your hit count with `commits_by_drum` in `data\dev-product\<session>\report.json`.
+4. Optional, for a stronger check: label every 10th frame (`python scripts\tune_red_tips.py
+   data\dev-product\<session> --label --label-every 10`) and rerun step 3 with `--labels
+   data\dev-product\<session>\red-tip-labels.json`, which reports coverage, false points and switches.
+5. HAND mode is unchanged: `.\play-spacedrums.ps1 --fingers`.
+
+Report the HUD ms, the counted versus committed hits, and any dot seen off a ball.

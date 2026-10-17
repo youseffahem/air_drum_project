@@ -115,6 +115,10 @@ def test_replay_fingertips_renders_recorded_tips_and_compares_the_strikes(tmp_pa
     # consistently mirrored; what matters is that they never change part-way through.
     assert identity["frames_with_both_measured"] > 50
     assert 0 in (identity["same_as_fingertip_labels"], identity["swapped_vs_fingertip_labels"])
+    assert identity["flips"] == 0 and identity["flip_frames"] == []
+    strikes = json.loads((out / "strikes.json").read_text())  # every strike of both pipelines, explained
+    assert len(strikes["red_tip"]) == len(strikes["reference"]) == 3
+    assert strikes["extra"] == [] and strikes["missing"] == []
 
 
 def test_synthetic_self_test_runs_one_case(tmp_path):
