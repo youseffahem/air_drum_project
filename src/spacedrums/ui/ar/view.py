@@ -11,7 +11,7 @@ from spacedrums.timing import now
 from spacedrums.ui.ar.controls import Controls
 from spacedrums.ui.ar.display_map import DisplayMap
 from spacedrums.ui.ar.effects import Effects
-from spacedrums.ui.ar.gl import GLRenderer, GLUnavailable
+from spacedrums.ui.ar.gl import GLRenderer, GLUnavailable, prefer_discrete_gpu
 from spacedrums.ui.ar.hud import Hud, UiStatus
 from spacedrums.ui.ar.scene import layout
 
@@ -22,6 +22,8 @@ BLOOM = 1.8
 class ARView:
     def __init__(self, *, samples: int = 4, prefer_discrete: bool = True, renderer_factory=None, text=None):
         self.samples, self.prefer_discrete = samples, prefer_discrete
+        if prefer_discrete:  # now, before the session starts its models (see prefer_discrete_gpu)
+            prefer_discrete_gpu()
         self._factory = renderer_factory or GLRenderer
         self.renderer = None
         self.controls = Controls()
@@ -34,14 +36,25 @@ class ARView:
 
     def renderer_for(self, dmap: DisplayMap):
         r = self.renderer
-        if r is not None and (r.width, r.height) != (dmap.out_w, dmap.out_h):
-            r.release()
-            r = self.renderer = None
         if r is None:
             self.renderer = self._factory(
                 dmap.out_w, dmap.out_h, samples=self.samples, prefer_discrete=self.prefer_discrete
             )
+        elif (r.width, r.height) != (dmap.out_w, dmap.out_h):
+            r.resize(dmap.out_w, dmap.out_h)
         return self.renderer
+
+    def prewarm(self, width: int = 1280, height: int = 720):
+        """Create the GL context, compile the shaders and render the HUD text once, before the camera
+        starts: on this laptop the first context and compile take about 2 s, which would otherwise starve
+        the capture thread on the first frame. Raises ``GLUnavailable`` like ``render``."""
+        self.renderer_for(DisplayMap(width, height, width, 1.0))
+        import numpy as np
+
+        img = np.zeros((height, width, 3), np.uint8)
+        layout_ = self.hud.update_layout(width, height, self.controls)
+        for label in ("SpaceDrums", "Settings", "Volume", "Sensitivity", "Camera View", "Stick Tracking"):
+            self.hud.text.draw(img, label, (0, 0), round(20 * layout_.k), (255, 255, 255))
 
     def info(self) -> dict:
         return self.renderer.info() if self.renderer is not None else {}

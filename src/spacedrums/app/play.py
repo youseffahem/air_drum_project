@@ -312,6 +312,14 @@ def run(args):
         else:
             restart_calibration()
 
+    def ar_fallback(exc):
+        nonlocal ar_view, ar_active
+        ar_report["fallback"] = str(exc)
+        print(json.dumps({"ar_view": "no OpenGL context; using the classic view", "reason": str(exc)}),
+              flush=True)
+        ar_view.release()
+        ar_view, ar_active = None, False
+
     def ar_frame(sample, view, display_registry, evidence, result):
         """The AR view's frame, or None once it has fallen back to the classic view (no OpenGL)."""
         nonlocal ar_view, ar_active
@@ -338,11 +346,7 @@ def run(args):
             img = ar_view.render(full, roi, display_registry, evidence, result, t=sample.t_capture, dmap=dmap,
                                  status=status, target=calibration.target)
         except GLUnavailable as exc:
-            ar_report["fallback"] = str(exc)
-            print(json.dumps({"ar_view": "no OpenGL context; using the classic view", "reason": str(exc)}),
-                  flush=True)
-            ar_view.release()
-            ar_view, ar_active = None, False
+            ar_fallback(exc)
             return None
         if ar_report["renderer"] is None:
             ar_report["renderer"] = ar_view.info()
@@ -353,6 +357,11 @@ def run(args):
     if args.record_frames:
         (directory / "frames").mkdir()
     try:
+        if ar_view is not None:  # GL context and shaders before the models and the camera start (~2 s)
+            try:
+                ar_view.prewarm()
+            except GLUnavailable as exc:
+                ar_fallback(exc)
         if args.red_tips:
             perception = RedTipPerception(cfg)
         else:

@@ -46,6 +46,12 @@ class PieceDraw:
     wobble: np.ndarray | None = None  # local 3x3 rotation of the cymbal parts
 
 
+def prefer_discrete_gpu():
+    """Ask the NVIDIA Optimus shim for the discrete GPU. It decides when the process first loads OpenGL
+    (MediaPipe can do that while starting), so call this before any model or context is created."""
+    os.environ.setdefault("SHIM_MCCOMPAT", "0x800000001")
+
+
 def _mat(m) -> bytes:
     return np.asarray(m, "f4").T.tobytes()  # GLSL matrices are column-major
 
@@ -63,7 +69,7 @@ class GLRenderer:
         if bloom_levels < 2:
             raise ValueError("bloom needs at least two levels")
         if prefer_discrete:
-            os.environ.setdefault("SHIM_MCCOMPAT", "0x800000001")
+            prefer_discrete_gpu()
         try:
             import moderngl
         except ImportError as exc:
@@ -85,30 +91,10 @@ class GLRenderer:
         self.quads = {
             p: ctx.vertex_array(p, [(quad, "2f", "in_pos")]) for p in (self.down, self.up, self.composite)
         }
-        size = (width, height)
-        samples = min(samples, ctx.max_samples)
-        self.ms = ctx.framebuffer(
-            [
-                ctx.renderbuffer(size, 4, samples=samples),
-                ctx.renderbuffer(size, 4, samples=samples, dtype="f2"),
-            ],
-            ctx.depth_renderbuffer(size, samples=samples),
-        )
-        self.color = ctx.texture(size, 4)
-        self.emit = ctx.texture(size, 4, dtype="f2")
-        self.resolved = ctx.framebuffer([self.color, self.emit])
-        self.levels = []
-        w, h = width, height
-        for _ in range(bloom_levels):
-            w, h = max(1, w // 2), max(1, h // 2)
-            down, up = ctx.texture((w, h), 4, dtype="f2"), ctx.texture((w, h), 4, dtype="f2")
-            for t in (down, up):
-                t.repeat_x = t.repeat_y = False
-            self.levels.append((down, ctx.framebuffer([down]), up, ctx.framebuffer([up])))
-        for t in (self.color, self.emit):
-            t.repeat_x = t.repeat_y = False
-        self.out = ctx.framebuffer([ctx.texture(size, 4)])
-        self.readback = bytearray(width * height * 4)
+        self.samples = min(samples, ctx.max_samples)
+        self.bloom_levels = bloom_levels
+        self._targets = []
+        self.resize(width, height)
         self.cam = None
         self.meshes = {}
         self.overlay_vbo = ctx.buffer(reserve=4096 * 7 * 4, dynamic=True)
@@ -118,6 +104,41 @@ class GLRenderer:
         self.timings = {}
 
     # -- resources ---------------------------------------------------------------------------
+    def resize(self, width: int, height: int):
+        """(Re)allocate the size-dependent targets; the context, programs and meshes are kept, so a
+        renderer warmed up before the camera starts never stalls the first frames."""
+        for obj in self._targets:
+            obj.release()
+        ctx, size, samples = self.ctx, (width, height), self.samples
+        self.width, self.height = width, height
+        made = []
+
+        def keep(obj):
+            made.append(obj)
+            return obj
+
+        self.ms = keep(ctx.framebuffer(
+            [keep(ctx.renderbuffer(size, 4, samples=samples)),
+             keep(ctx.renderbuffer(size, 4, samples=samples, dtype="f2"))],
+            keep(ctx.depth_renderbuffer(size, samples=samples)),
+        ))
+        self.color = keep(ctx.texture(size, 4))
+        self.emit = keep(ctx.texture(size, 4, dtype="f2"))
+        self.resolved = keep(ctx.framebuffer([self.color, self.emit]))
+        self.levels = []
+        w, h = width, height
+        for _ in range(self.bloom_levels):
+            w, h = max(1, w // 2), max(1, h // 2)
+            down, up = keep(ctx.texture((w, h), 4, dtype="f2")), keep(ctx.texture((w, h), 4, dtype="f2"))
+            for t in (down, up):
+                t.repeat_x = t.repeat_y = False
+            self.levels.append((down, keep(ctx.framebuffer([down])), up, keep(ctx.framebuffer([up]))))
+        for t in (self.color, self.emit):
+            t.repeat_x = t.repeat_y = False
+        self.out = keep(ctx.framebuffer([keep(ctx.texture(size, 4))]))
+        self.readback = bytearray(width * height * 4)
+        self._targets = made
+
     def info(self) -> dict:
         i = self.ctx.info
         return {
@@ -270,4 +291,4 @@ class GLRenderer:
             pass
 
 
-__all__ = ["GLRenderer", "GLUnavailable", "PieceDraw", "linear"]
+__all__ = ["GLRenderer", "GLUnavailable", "PieceDraw", "linear", "prefer_discrete_gpu"]
