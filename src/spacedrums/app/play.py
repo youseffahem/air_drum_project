@@ -438,8 +438,12 @@ def run(args):
                 if preview is not None and not show_diagnostics:
                     preview.draw(img, stage_view, roi, view.full.shape[1])
                 metrics["render_ms"].append((now() - render_started) * 1000)
+                shown_at = now()
                 cv2.imshow("Space Drums", img)
+                polled_at = now()
+                metrics["imshow_ms"].append((polled_at - shown_at) * 1000)
                 key = cv2.pollKey() & 0xFF
+                metrics["pollkey_ms"].append((now() - polled_at) * 1000)
                 if key in (27, ord("q")):
                     break
                 if preview is not None:
