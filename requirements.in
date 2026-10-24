@@ -11,6 +11,9 @@ scipy>=1.11
 
 # --- camera / CV (Phase 02, 03) ---
 opencv-python>=4.9
+# --- AR view: GPU kit over the live camera (ADR-0049); pillow renders the HUD text ---
+moderngl>=5.12,<6
+pillow>=10
 mediapipe>=0.10.14
 
 # --- training / inference (Phase 09-13) ---

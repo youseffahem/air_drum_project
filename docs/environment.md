@@ -35,6 +35,8 @@ Versions are what `pip` resolved on **2026-09-20** into a clean `venv` from `req
 | JSON schemas | `jsonschema` | 4.26.0 | MIT | yes | Used for `schemas/experiment-log.schema.json`. | 00 (this phase) |
 | Tests | `pytest` | 9.1.1 | MIT | yes | — | all |
 | Lint / format | `ruff` | 0.16.8 | MIT | yes | dev-only | all |
+| AR view rendering *(added 2026-10-24, ADR-0049)* | `moderngl` (+ `glcontext`) | 5.13.0 (+ 3.1.0) | MIT | needs an OpenGL 3.3 driver (integrated or discrete GPU) | Offscreen standalone context on the main thread; without one, `app.play --view ar` falls back to the classic view. On Optimus laptops the renderer sets `SHIM_MCCOMPAT` before the first context so the NVIDIA GPU is used. Display only; never part of a latency or accuracy claim. | — |
+| AR HUD text *(direct since 2026-10-24)* | `pillow` (`PIL`) | 12.3.0 (already locked via `matplotlib`) | MIT-CMU | yes | Renders Segoe UI / Segoe Fluent Icons from `C:/Windows/Fonts`; falls back to OpenCV Hershey text. | — |
 | Import-layer linting *(added Phase 02)* | `import-linter` (`lint-imports`) | 2.15 (+ `grimp` 3.17, `click`, `rich`, `markdown-it-py`, `mdurl`) | BSD-2-Clause | yes | dev-only; runs the `.importlinter` contract in `tests/architecture/` (architecture.md section 2.4; Phase 01 follow-up F-3) | 02+ |
 
 Not yet chosen (deliberately): plotting library for thesis figures (Phase 21 may pick `matplotlib`); UI toolkit beyond OpenCV windows (`Pending Architecture Decision`, Phase 15); experiment tracker beyond file manifests (`Pending Architecture Decision`, see `reproducibility-policy.md` §7).
