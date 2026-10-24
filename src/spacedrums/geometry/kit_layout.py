@@ -33,14 +33,19 @@ KIT_SAMPLES = {
 CYMBALS = frozenset({"crash", "ride", "hihat", "crash_ride"})
 
 
-def kit_layout(pads: list[dict], *, mirror: bool = True) -> list[dict]:
-    """``pads``: dicts of zone_id, x (display centre), y (top strike edge), width, height."""
+def kit_layout(pads: list[dict], *, mirror: bool = True, names=None, samples=None) -> list[dict]:
+    """``pads``: dicts of zone_id, x (display centre), y (top strike edge), width, height.
+
+    ``names``/``samples`` default to the seven-piece kit; the reference four-piece kit passes its own.
+    """
+    names = KIT_NAMES if names is None else names
+    samples = KIT_SAMPLES if samples is None else samples
     if not pads:
         raise ValueError("a kit needs at least one pad")
     boxes, zones = [], []
     for pad in pads:
         zid = pad["zone_id"]
-        if zid not in KIT_NAMES:
+        if zid not in names:
             raise ValueError(f"unknown kit pad {zid!r}")
         x, y, w, h = (float(pad[k]) for k in ("x", "y", "width", "height"))
         if not all(math.isfinite(v) for v in (x, y, w, h)) or min(w, h) <= 0:
@@ -53,7 +58,7 @@ def kit_layout(pads: list[dict], *, mirror: bool = True) -> list[dict]:
             if x - w / 2 < ox1 and ox0 < x + w / 2 and y < oy1 and oy0 < y + h:
                 raise ValueError(f"pads {zid} and {oid} overlap")
         boxes.append((zid, x - w / 2, y, x + w / 2, y + h))
-        zones.append(pad_zone(zid, KIT_NAMES[zid], KIT_SAMPLES[zid], 1 - x if mirror else x, y, w, h))
+        zones.append(pad_zone(zid, names[zid], samples[zid], 1 - x if mirror else x, y, w, h))
     return zones
 
 

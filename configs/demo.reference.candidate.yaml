@@ -1,0 +1,18 @@
+# Loaded ONLY by app.play --demo --kit reference (the AR view's default kit), after demo.professor.candidate.yaml.
+# The reference four-piece arrangement of the SpaceDrums AR screen (geometry/reference_kit.py):
+#   crash_ride (high, far left)                                   hihat (high, far right)
+#               tom1 (low, inner left)        snare (low, inner right)
+# Ids, names and TR-505 samples are the four-pad ones; only positions differ from the 2x2 guide.
+# x is the pad centre and y the top strike edge, in the player's mirrored display, ROI-normalised over
+# the 640 x 480 product ROI. Every pad keeps the product floors (72 x 42 px) and every pair clears 32 px
+# horizontally or vertically (tom/snare 48 px in x; crash/tom and hihat/snare 40+ px in y). A developer
+# guess, not a calibrated reach.
+product:
+  developer_demo:
+    profile_id: reference-kit-v1
+    source: configs/demo.reference.candidate.yaml
+    pads:
+      - {zone_id: crash_ride, x: 0.13,  y: 0.46, width: 0.26, height: 0.0875}
+      - {zone_id: tom1,       x: 0.30,  y: 0.66, width: 0.27, height: 0.0875}
+      - {zone_id: snare,      x: 0.645, y: 0.67, width: 0.27, height: 0.0875}
+      - {zone_id: hihat,      x: 0.87,  y: 0.50, width: 0.26, height: 0.0875}
