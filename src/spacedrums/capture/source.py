@@ -120,6 +120,7 @@ class _Pending:
     t_frame_available: float
     source: TimestampSource
     preview: np.ndarray | None = None  # native-resolution tracking window (display only)
+    full: np.ndarray | None = None  # the whole native frame (display only; the AR view's 16:9 canvas)
 
 
 def _same_image(a: np.ndarray, b: np.ndarray) -> bool:
@@ -170,6 +171,7 @@ class LiveFrameSource:
         self._capture_report: dict[str, Any] = {}
         self._convert_s: deque[float] = deque(maxlen=900)  # guarded by _lock
         self._preview: tuple[int, np.ndarray | None] | None = None  # consumer thread only
+        self._preview_full: tuple[int, np.ndarray | None] | None = None
         self._watch: ExposureWatch | None = None  # capture thread; read via capture_report()
 
     # -- lifecycle -------------------------------------------------------------------------
@@ -371,7 +373,8 @@ class LiveFrameSource:
                     self._driver_mapped += 1
                 else:
                     self._grab_return += 1
-            self._queue.put(_Pending(image, t_cap, t_avail, src, preview))
+            self._queue.put(_Pending(image, t_cap, t_avail, src, preview,
+                                     raw.image if self._native is not None else None))
             watch = self._watch
             if watch is not None:  # after the hand-over: an exposure call costs tens of ms
                 action = watch.observe(raw.t_grab_return, float(raw.image[::16, ::16].mean()))
@@ -396,6 +399,7 @@ class LiveFrameSource:
         self._next_frame_id += 1
         self._recent_t_capture.append(pending.t_capture)
         self._preview = (frame_id, pending.preview)
+        self._preview_full = (frame_id, pending.full)
         return FrameSample(
             frame_id=frame_id,
             t_capture=pending.t_capture,
@@ -434,6 +438,17 @@ class LiveFrameSource:
         """
         got = self._preview
         return got[1] if got is not None and got[0] == sample.frame_id else None
+
+    def preview_full(self, sample: FrameSample) -> np.ndarray | None:
+        """The whole native frame of ``sample`` (e.g. 1280x720), for display only, under the same rules as
+        :meth:`preview_image`; :attr:`preview_crop_px` is the tracking field of view inside it."""
+        got = self._preview_full
+        return got[1] if got is not None and got[0] == sample.frame_id else None
+
+    @property
+    def preview_crop_px(self) -> tuple[int, int, int, int] | None:
+        """[x, y, w, h] of the tracking field of view in :meth:`preview_full`, or ``None`` (standard)."""
+        return tuple(self._native.crop_px) if self._native is not None else None
 
     def capture_report(self) -> dict[str, Any]:
         """Which capture mode is running and why, the native-open probe, the device controls and
