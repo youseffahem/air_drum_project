@@ -35,7 +35,7 @@ class Settings:
             ("effects", "Hit effects  (E)", self.effects.title()),
             ("bloom", "Neon glow  (B)", on[self.bloom]),
             ("ghost", "See-through kit  (G)", on[self.ghost]),
-            ("classic", "Classic view  (Esc in menu)", ""),
+            ("classic", "Classic view  (A returns)", ""),
         ]
 
 

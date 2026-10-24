@@ -201,8 +201,11 @@ def run(args):
     directory.mkdir(parents=True, exist_ok=False)
     provenance = "DEVELOPER_REPLAY" if args.replay else "DEVELOPER_LIVE"
     reach_settings = ReachSettings(**cfg["product"].get("reach", {}))
+    # Product layout: the AR view's reference four-piece kit, or the 2x2 grid (classic, or --kit four).
+    arrangement = "reference" if args.kit == "reference" else "grid"
     calibration = (DeveloperDemoLayout(cfg) if args.demo else
-                   AutomaticCalibration((roi.w, roi.h), settings=reach_settings, provenance=provenance))
+                   AutomaticCalibration((roi.w, roi.h), settings=reach_settings, provenance=provenance,
+                                        arrangement=arrangement))
     source = perception = pose = audio = None
     pipeline = None
     metrics = defaultdict(list)
@@ -270,7 +273,8 @@ def run(args):
     def restart_calibration():
         nonlocal calibration, pipeline, registry, body, audio
         attempts.append(calibration.report())
-        calibration = AutomaticCalibration((roi.w, roi.h), settings=reach_settings, provenance=provenance)
+        calibration = AutomaticCalibration((roi.w, roi.h), settings=reach_settings, provenance=provenance,
+                                           arrangement=arrangement)
         perception.estimator.reset()
         pipeline = None
         registry = None
@@ -745,7 +749,8 @@ def main(argv=None):
     p.add_argument("--kit", choices=("full", "four", "reference"), default=None,
                    help="--demo layout: full 7-piece kit without kick (classic default), the 2x2 guide, or "
                         "the reference four-piece arrangement (cymbals outside, tom and snare low; "
-                        "--view ar default)")
+                        "--view ar default). Calibrated play: reference calibrates that arrangement, any "
+                        "other value the 2x2 grid")
     p.add_argument("--camera-index", type=int, metavar="N",
                    help="open camera device N instead of the configured one (the AR Camera View menu can "
                         "switch devices while playing)")
