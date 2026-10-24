@@ -5,6 +5,8 @@ are saved locally; raw camera images are saved only with --record-frames.
 Explicit --demo selects an uncalibrated fixed guide and a diagnostic camera view.
 --red-tips tracks red painted stick tips by colour (a MARKER condition); --fingers
 plays with index fingertips; neither flag keeps the visible-stick estimator.
+--view ar draws the GPU-rendered 3D kit over the live camera with the reference HUD and
+control bar (ADR-0049); without a usable OpenGL context it falls back to the classic view.
 --check verifies assets without opening the camera or an audio stream.
 No participant protocol, lock or gate is opened by this entry point.
 """
@@ -14,7 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, deque
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +25,7 @@ from uuid import uuid4
 import cv2
 import numpy as np
 
+from spacedrums.app.ar_controls import SessionControls, camera_names
 from spacedrums.app.audio_out import AudioOutput, OutputLatency
 from spacedrums.app.main import Perception
 from spacedrums.app.pipeline import DecisionPipeline
@@ -45,6 +48,7 @@ from spacedrums.geometry import ZoneRegistry
 from spacedrums.geometry.kit_layout import load_pads
 from spacedrums.hands.body import BodyLandmarker
 from spacedrums.timing import now, process_cpu_seconds, wall_clock_iso
+from spacedrums.ui.ar import ARView, DisplayMap, GLUnavailable, UiStatus
 from spacedrums.ui.developer_demo import DemoOverlay
 from spacedrums.ui.kit import render_kit
 from spacedrums.ui.layout_preview import LayoutPreview
@@ -104,6 +108,8 @@ def play_config(*, demo=False, delegate="CPU", kit="four", exclusive=False, kit_
         paths.append(ROOT / "configs/demo.professor.candidate.yaml")
         if kit == "full":
             paths.append(ROOT / "configs/demo.fullkit.candidate.yaml")
+        elif kit == "reference":  # the AR view's four-piece arrangement (four-pad ids and samples)
+            paths.append(ROOT / "configs/demo.reference.candidate.yaml")
     if red_tips:  # painted-tip MARKER mode only: fingertip and visible-stick configs stay byte-identical
         paths.append(ROOT / "configs/red-tip.candidate.yaml")
         if stick_tip is not None:
@@ -173,6 +179,8 @@ def run(args):
     cfg = play_config(demo=args.demo, delegate=args.delegate, kit=args.kit, exclusive=args.exclusive_audio,
                       kit_layout=args.kit_layout, red_tips=args.red_tips, stick_tip=args.stick_tip_config,
                       hand_assist=args.hand_assist, camera=args.camera, exposure=args.exposure)
+    if args.camera_index is not None:
+        cfg["camera_profile"]["device"]["index"] = args.camera_index
     preview_settings = PreviewSettings.from_config(cfg["product"].get("preview")).preset(args.preview)
     cfg["product"]["preview"] = preview_settings.to_dict()  # the record shows what the window used
     if args.check:
@@ -223,6 +231,13 @@ def run(args):
     tracking_tone = PreviewTone(PreviewSettings.from_config(cfg["product"].get("preview")).preset("natural")
                                 ) if args.tracking_tone == "auto" else None
     show_diagnostics = False
+    # AR view (--view ar): created now, its GL context on the first frame; GLUnavailable -> classic view.
+    ar_view = ARView() if args.view == "ar" and not args.no_window else None
+    ar_active = ar_view is not None
+    ar_report = {"requested": args.view == "ar", "renderer": None, "fallback": None}
+    controls = SessionControls(cfg["geometry"]["v_min"])
+    ar_times = deque(maxlen=60)
+    camera_switches = []
     registry = None
     preview = None
     if args.layout_preview and stage_view is not None:
@@ -242,13 +257,94 @@ def run(args):
             hardware_id="developer-host", config_hash=config_hash(cfg), audio=audio,
             developer_demo=args.demo,
         )
+        controls.apply_pipeline(pipeline)  # the sensitivity slider; the default keeps the configured v_min
 
     def start_pipeline():
         nonlocal audio
         audio = AudioOutput(cfg, latency=OutputLatency.unmeasured(),
                             device_enabled=not args.no_audio and not args.replay)
+        controls.apply_audio(audio)  # the volume slider; the default keeps output_scale 1.0
         audio.start()
         build_pipeline()
+
+    def restart_calibration():
+        nonlocal calibration, pipeline, registry, body, audio
+        attempts.append(calibration.report())
+        calibration = AutomaticCalibration((roi.w, roi.h), settings=reach_settings, provenance=provenance)
+        perception.estimator.reset()
+        pipeline = None
+        registry = None
+        body = None
+        if audio:
+            audio.stop()
+            audio = None
+
+    def switch_camera(index, t_capture):
+        """Reopen capture on another device; frame ids restart, so tracking and decisions restart too."""
+        nonlocal source
+        previous = cfg["camera_profile"]["device"]["index"]
+        source.stop()
+        record = {"t_capture": t_capture, "from": previous, "requested": index, "error": None}
+        for attempt in (index, previous):
+            cfg["camera_profile"]["device"]["index"] = attempt
+            candidate = LiveFrameSource(OpenCvCamera(), CaptureSettings.from_config(cfg))
+            try:
+                candidate.start()
+            except Exception as exc:  # noqa: BLE001 - fall back to the previous device
+                record["error"] = f"{type(exc).__name__}: {exc}"
+                continue
+            source = candidate
+            record["opened"] = attempt
+            break
+        else:
+            raise RuntimeError(f"no camera could be reopened ({record['error']})")
+        camera_switches.append(record)
+        if ar_view is not None:
+            ar_view.controls.device = record["opened"]
+            ar_view.effects.reset()
+        if args.demo:
+            perception.estimator.reset()
+            build_pipeline()
+        else:
+            restart_calibration()
+
+    def ar_frame(sample, view, display_registry, evidence, result):
+        """The AR view's frame, or None once it has fallen back to the classic view (no OpenGL)."""
+        nonlocal ar_view, ar_active
+        full = source.preview_full(sample) if isinstance(source, LiveFrameSource) else None
+        if full is not None:  # the whole 16:9 native frame; the tracking window sits inside it
+            dmap = DisplayMap.native(full.shape[1], full.shape[0], source.preview_crop_px, view.full.shape[1])
+        else:
+            full = view.full
+            dmap = DisplayMap.upscaled(full.shape[1], full.shape[0], 1.5)
+        tone_started = now()
+        full = tone(full)  # a new array; the camera and tracking frames are untouched
+        metrics["preview_tone_ms"].append((now() - tone_started) * 1000)
+        ar_times.append(sample.t_capture)
+        span = ar_times[-1] - ar_times[0]
+        lag = metrics["capture_to_schedule_ms"][-60:]
+        stream_s = getattr(getattr(audio, "device", None), "opened_latency_s", None)
+        status = UiStatus(
+            fps=(len(ar_times) - 1) / span if span > 0 else None,
+            # software capture -> audio schedule plus the opened output stream; not an acoustic measurement
+            latency_ms=float(np.median(lag)) + (stream_s or 0) * 1000 if lag else None,
+            message="" if args.demo or calibration.state == "READY" else calibration.message,
+        )
+        try:
+            img = ar_view.render(full, roi, display_registry, evidence, result, t=sample.t_capture, dmap=dmap,
+                                 status=status, target=calibration.target)
+        except GLUnavailable as exc:
+            ar_report["fallback"] = str(exc)
+            print(json.dumps({"ar_view": "no OpenGL context; using the classic view", "reason": str(exc)}),
+                  flush=True)
+            ar_view.release()
+            ar_view, ar_active = None, False
+            return None
+        if ar_report["renderer"] is None:
+            ar_report["renderer"] = ar_view.info()
+        for name, ms in ar_view.timings.items():
+            metrics[f"ar_{name}"].append(ms)
+        return img
 
     if args.record_frames:
         (directory / "frames").mkdir()
@@ -293,9 +389,24 @@ def run(args):
                         return
 
             samples = live_samples()
-        if not args.no_window:
+        if not args.no_window and ar_view is None:
             cv2.namedWindow("Space Drums", cv2.WINDOW_NORMAL)
             cv2.resizeWindow("Space Drums", 960, 720)
+        elif not args.no_window:
+            native = isinstance(source, LiveFrameSource) and source.preview_crop_px is not None
+            cv2.namedWindow("Space Drums", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+            cv2.resizeWindow("Space Drums", 1280 if native else 960, 720)
+            cv2.setMouseCallback("Space Drums", ar_view.mouse)
+            index = cfg["camera_profile"]["device"]["index"]
+            ar_view.controls.device = index
+            ar_view.controls.devices = [(index, f"Camera {index} (Default)")]
+            if isinstance(source, LiveFrameSource):
+                def named(rows, index=index, controls_ui=ar_view.controls):
+                    names = [(i, f"{n} (Default)" if i == index else n) for i, n in rows]
+                    controls_ui.devices = names if any(i == index for i, _ in names) else \
+                        [(index, f"Camera {index} (Default)"), *names]
+
+                camera_names(named)
         records = (directory / "observations.jsonl").open("w", encoding="utf-8")
         if args.record_frames:
             frame_records = (directory / "frames.jsonl").open("w", encoding="utf-8")
@@ -400,31 +511,37 @@ def run(args):
                 render_started = now()
                 zones = calibration.zones or calibration.guide_zones
                 display_registry = registry or (ZoneRegistry.from_config(zones) if zones else None)
-                # Native capture: the same field of view at full sensor detail, for display only.
-                hires = source.preview_image(sample) if isinstance(source, LiveFrameSource) else None
-                scale = hires.shape[1] / view.full.shape[1] if hires is not None else 1.0
-                shown, shown_roi = (hires, display_roi(roi, scale)) if hires is not None else (view.full, roi)
-                tone_started = now()
-                shown = tone(shown)  # a new array; the camera and tracking frames are untouched
-                metrics["preview_tone_ms"].append((now() - tone_started) * 1000)
-                img = stage_view.render(
-                    view.full if hires is not None else shown, roi, registry, evidence, result, audio=audio,
-                    latency_ms=(metrics["capture_to_schedule_ms"] or [None])[-1],
-                    preview=shown if hires is not None else None,
-                ) if stage_view and not show_diagnostics else demo_overlay.render(
-                    shown, shown_roi, registry, evidence, result, dropped=dropped,
-                    perception_ms=metrics["perception_ms"][-1], audio_state=audio.device_state,
-                    stroke_diagnostics=pipeline.geometry.diagnostics, tip_diagnostics=tips, px_scale=scale,
-                ) if demo_overlay else render_kit(
-                    shown,
-                    shown_roi,
-                    display_registry,
-                    sticks=[s for o, s in observations.values()],
-                    body=calibration.body,
-                    message=calibration.message,
-                    target=calibration.target,
-                    **kit_dim,
-                )
+                img = ar_frame(sample, view, display_registry, evidence, result) \
+                    if ar_active and not show_diagnostics else None
+                if img is None:
+                    # Native capture: the same field of view at full sensor detail, for display only.
+                    hires = source.preview_image(sample) if isinstance(source, LiveFrameSource) else None
+                    scale = hires.shape[1] / view.full.shape[1] if hires is not None else 1.0
+                    shown, shown_roi = ((hires, display_roi(roi, scale)) if hires is not None
+                                        else (view.full, roi))
+                    tone_started = now()
+                    shown = tone(shown)  # a new array; the camera and tracking frames are untouched
+                    metrics["preview_tone_ms"].append((now() - tone_started) * 1000)
+                    img = stage_view.render(
+                        view.full if hires is not None else shown, roi, registry, evidence, result,
+                        audio=audio,
+                        latency_ms=(metrics["capture_to_schedule_ms"] or [None])[-1],
+                        preview=shown if hires is not None else None,
+                    ) if stage_view and not show_diagnostics else demo_overlay.render(
+                        shown, shown_roi, registry, evidence, result, dropped=dropped,
+                        perception_ms=metrics["perception_ms"][-1], audio_state=audio.device_state,
+                        stroke_diagnostics=pipeline.geometry.diagnostics, tip_diagnostics=tips,
+                        px_scale=scale,
+                    ) if demo_overlay else render_kit(
+                        shown,
+                        shown_roi,
+                        display_registry,
+                        sticks=[s for o, s in observations.values()],
+                        body=calibration.body,
+                        message=calibration.message,
+                        target=calibration.target,
+                        **kit_dim,
+                    )
                 if args.developer and not args.demo:
                     cv2.putText(
                         img,
@@ -444,6 +561,8 @@ def run(args):
                 metrics["imshow_ms"].append((polled_at - shown_at) * 1000)
                 key = cv2.pollKey() & 0xFF
                 metrics["pollkey_ms"].append((now() - polled_at) * 1000)
+                if ar_active and key != 0xFF and ar_view.key(key):
+                    key = 0xFF  # an AR control key (H S C V T E B G [ ] - =; Esc closes an open menu)
                 if key in (27, ord("q")):
                     break
                 if preview is not None:
@@ -453,20 +572,21 @@ def run(args):
                         cfg["product"]["developer_demo"]["pads"] = moved
                         calibration = DeveloperDemoLayout(cfg)
                         build_pipeline()
-                if key == ord("d") and stage_view:
+                if key == ord("d") and (stage_view or ar_active):
                     show_diagnostics = not show_diagnostics
+                if key == ord("a") and ar_view is not None and not ar_active:  # back from the classic view
+                    ar_active = True
+                    controls.changes.append({"t_capture": sample.t_capture, "control": "view", "value": "ar"})
                 if key == ord("r") and not args.demo:
-                    attempts.append(calibration.report())
-                    calibration = AutomaticCalibration(
-                        (roi.w, roi.h), settings=reach_settings, provenance=provenance
-                    )
-                    perception.estimator.reset()
-                    pipeline = None
-                    registry = None
-                    body = None
-                    if audio:
-                        audio.stop()
-                        audio = None
+                    restart_calibration()
+                if ar_view is not None:
+                    actions = ar_view.controls.drain()
+                    pending = controls.handle(actions, sample.t_capture, audio=audio, pipeline=pipeline)
+                    for name, value in pending:
+                        if name == "view":
+                            ar_active = False
+                        elif name == "device" and isinstance(source, LiveFrameSource):
+                            switch_camera(value, sample.t_capture)
             metrics["frame_work_ms"].append((now() - begin) * 1000)
             if now() - last_status >= 5:
                 records.flush()
@@ -512,6 +632,8 @@ def run(args):
             perception.close()
         if pose:
             pose.close()
+        if ar_view is not None:
+            ar_view.release()
         if not args.no_window:
             cv2.destroyAllWindows()
     elapsed = now() - start
@@ -570,6 +692,9 @@ def run(args):
         "preview": tone.report() if not args.no_window else None,
         "tracking_tone": tracking_tone.report() if tracking_tone else None,
         "audio": audio_stats,
+        "view": args.view,
+        "ar_view": {**ar_report, "controls": controls.report(), "camera_switches": camera_switches}
+        if args.view == "ar" else None,
         "action_to_sound_ms": None,
         "audio_output_latency_ms": None,
         "acceptance": "RUNTIME_ERROR" if error else
@@ -614,8 +739,16 @@ def main(argv=None):
     p.add_argument("--check", action="store_true", help="Check config/model/samples without opening devices")
     p.add_argument("--delegate", choices=("CPU", "GPU"), default="CPU")
     p.add_argument("--no-audio", action="store_true")
-    p.add_argument("--kit", choices=("full", "four"), default="full",
-                   help="--demo layout: full 7-piece kit without kick (default) or the 2x2 guide")
+    p.add_argument("--view", choices=("classic", "ar"), default="classic",
+                   help="ar: the GPU-rendered 3D kit over the live camera with status panels and a "
+                        "control bar (needs OpenGL 3.3; falls back to classic). classic: the previous views")
+    p.add_argument("--kit", choices=("full", "four", "reference"), default=None,
+                   help="--demo layout: full 7-piece kit without kick (classic default), the 2x2 guide, or "
+                        "the reference four-piece arrangement (cymbals outside, tom and snare low; "
+                        "--view ar default)")
+    p.add_argument("--camera-index", type=int, metavar="N",
+                   help="open camera device N instead of the configured one (the AR Camera View menu can "
+                        "switch devices while playing)")
     p.add_argument("--layout-preview", action="store_true",
                    help="--demo --kit full: show pad coordinates and your measured reach; i/k/j/l move, "
                         "[ ] scale, s saves kit-layout.yaml into the session directory")
@@ -656,6 +789,12 @@ def main(argv=None):
     )
     p.add_argument("--output", type=Path)
     args = p.parse_args(argv)
+    if args.kit is None:
+        args.kit = "reference" if args.view == "ar" else "full"
+    if args.view == "ar" and args.layout_preview:
+        p.error("--layout-preview draws on the classic full-kit stage; use --view classic")
+    if args.camera_index is not None and args.camera_index < 0:
+        p.error("--camera-index must be >= 0")
     if args.demo and args.recorded_roi:
         p.error("fixed demo geometry requires its full-camera ROI; do not use --recorded-roi")
     if (args.layout_preview or args.kit_layout) and not (args.demo and args.kit == "full"):
