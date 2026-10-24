@@ -35,6 +35,38 @@ R starts a fresh calibration. Esc or Q closes the window. A failed calibration
 keeps sound disabled and tells you to retry. The camera profile stays at the
 existing 640Ã—480 / requested 30 FPS settings; actual delivered FPS is logged.
 
+## AR view (`--view ar`)
+
+```powershell
+.\play-ar-spacedrums.ps1                 # calibrated play, reference four-piece kit
+.\play-ar-spacedrums.ps1 --demo --fingers  # fixed reference kit, fingertips as sticks
+```
+
+The webcam stays live and full-screen (the whole 16:9 frame in native capture). The kit is drawn into
+it with the GPU: Crash / Ride (gold) high on the left, Tom (blue) and Snare (red) low in the middle,
+and Hi-Hat (green) high on the right.
+
+- **Hitting.** Strike down through a drum's head line. A hit flashes the piece and throws sparks; the
+  flash comes from the same committed strike that plays the sound.
+- **Calibration.** In calibrated play the same stand / reach / verify steps place this arrangement,
+  with the drums at your navel, in front of your body. Use `--kit four` for the 2x2 grid in the AR view.
+- **Status card.** FPS is the camera's delivered rate. Latency is the logged capture-to-sound-schedule
+  time plus the opened output stream; it is not a measured acoustic delay, and it shows "—" until
+  sound starts.
+- **Stick Tracking panel.** Each hand's current stick and its recent tip path.
+- **Bottom bar.** Use the mouse or the keys:
+
+| Control | Mouse | Keys |
+|---|---|---|
+| Settings (panels, trails, hit effects, glow, see-through kit, classic view) | Settings button | S, then H / T / E / B / G |
+| Camera View: viewpoint (Front, High Angle, Low Angle) or camera device | dropdown | C, V cycles the viewpoint |
+| Sensitivity (0.7 = the tested stroke speed threshold) | drag the slider | [ and ] |
+| Volume (0.8 = the normal level) | drag the slider | - and = |
+| Back from the classic view | | A |
+
+Without an OpenGL 3.3 driver, the run prints one line and continues in the classic view. Every control
+change is logged in `report.json` under `ar_view.controls.changes`.
+
 ## Developer validation
 
 ```powershell

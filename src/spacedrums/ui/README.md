@@ -42,6 +42,10 @@ imports `calib` (independent L7 siblings). Tests: `tests/ui/test_ui_wizard_views
 
 `draw_guide(frame, roi, band=(y0, y1), instruction, status_lines)` draws the fixed ROI box, the "hands here" band (ROI-normalized y, y down), the instruction "Stand so both hands and sticks stay inside the box" and a capture-stats line in which drops/duplicates/stalls are always visible. `scripts/show_guide.py` runs it live and saves a screenshot.
 
+## AR view (`ar/`, ADR-0049)
+
+`ar.view.ARView` renders the 3D kit with moderngl (offscreen OpenGL 3.3) over the mirrored camera, then draws the HUD (`ar.hud`) and control bar (`ar.controls`) on the CPU. `ar.display_map.DisplayMap` is its single camera-to-display mapping; with no side padding it equals `StageRenderer.to_display`. `ar.scene.layout` solves each piece so its rim spans the zone's impact segment (the head's major axis), and never moves a zone. Effects (`ar.effects`) start only from committed strikes and current endpoint evidence. Offline snapshot: `scripts/render_ar_snapshot.py`.
+
 ## Full-kit stage view (`stage.py`)
 
 `app.play --demo` (default `--kit full`) renders `StageRenderer`: the mirrored, dimmed camera upscaled to
