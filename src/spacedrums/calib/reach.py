@@ -1,4 +1,4 @@
-"""Measured stroke evidence -> constrained 2x2 fit, also used by offline simulation.
+"""Measured stroke evidence -> constrained 2x2 or reference-kit fit, also used by offline simulation.
 
 No inferred GEOM tip or axis length is admissible. A global reach bounding box
 cannot fill a hole in the measured play area: every target needs local strokes.
@@ -13,6 +13,8 @@ import numpy as np
 
 from spacedrums.contracts.perception import BodyReference, EndpointEvidence
 from spacedrums.geometry.four_pad import DISPLAY_ORDER, four_pad_layout
+from spacedrums.geometry.kit_layout import kit_clearance_failures
+from spacedrums.geometry.reference_kit import REFERENCE_IDS, reference_kit_layout
 
 
 @dataclass(frozen=True)
@@ -173,6 +175,97 @@ def fit_reach(
         return result
     try:
         zones = four_pad_layout((xl, xr), tuple(rows), width, height, mirror=mirror)
+    except ValueError as exc:
+        reasons.append(str(exc))
+        return result
+    result.update(passed=True, zones=zones)
+    return result
+
+
+def fit_reach_reference(
+    strokes: list[ReachStroke],
+    body: BodyReference,
+    roi_size: tuple[int, int],
+    settings: ReachSettings | None = None,
+    *,
+    mirror: bool = True,
+) -> dict:
+    """Fit the reference four-piece kit (AR view) to per-target endpoints; same evidence rules as the 2x2.
+
+    Each piece gets its own centre (median stroke end) and strike edge (median end minus the margin) and
+    a width covering 10-90 % of its endpoints plus noise margins. The pixel floors and the pairwise gap
+    floors are hard constraints, the drums must sit on the navel band around the body centre, and only the
+    cymbals are kept clear of the torso (the drums are played in front of it, as on the reference).
+    """
+    settings = settings or ReachSettings()
+    w, h = roi_size
+    reasons = []
+    groups = {z: [s for s in strokes if s.target == z] for z in DISPLAY_ORDER}
+    result = {
+        "passed": False,
+        "arrangement": "reference",
+        "reasons": reasons,
+        "zones": [],
+        "settings": asdict(settings),
+        "counts": {z: len(g) for z, g in groups.items()},
+        "support": {},
+    }
+    if any(len(g) < settings.min_strokes for g in groups.values()):
+        reasons.append("MORE_MEASURED_STROKES_REQUIRED")
+        return result
+    if set(s.hand for s in strokes) != {"LEFT", "RIGHT"}:
+        reasons.append("BOTH_HANDS_REQUIRED")
+    if body.confidence < settings.min_confidence:
+        reasons.append("BODY_REFERENCE_UNCERTAIN")
+
+    def disp(x):
+        return 1 - x if mirror else x
+
+    margin = settings.margin_px / h
+    pads = []
+    for zid in REFERENCE_IDS:
+        ends = np.array([s.end for s in groups[zid]])
+        spread = float(np.ptp(np.percentile(ends[:, 0], [10, 90])))
+        pads.append({
+            "zone_id": zid,
+            "x": disp(float(np.median(ends[:, 0]))),
+            "y": float(np.median(ends[:, 1])) - margin,
+            "width": max(settings.min_width_px / w, spread + 2 * settings.margin_px / w),
+            "height": settings.min_height_px / h,
+        })
+    by = {p["zone_id"]: p for p in pads}
+    if not by["crash_ride"]["x"] < by["tom1"]["x"] < by["snare"]["x"] < by["hihat"]["x"]:
+        reasons.append("TARGET_SIDES_REVERSED")
+    gaps = kit_clearance_failures(pads, roi_size, settings.horizontal_gap_px, settings.vertical_gap_px)
+    reasons.extend(f"PAD_GAP_TOO_SMALL:{a}/{b}" for a, b, _, _ in gaps)
+    torso = sorted((disp(body.left), disp(body.right)))
+    pad_margin = settings.margin_px / w
+    for zid in ("crash_ride", "hihat"):
+        p = by[zid]
+        x0, x1 = p["x"] - p["width"] / 2 - pad_margin, p["x"] + p["width"] / 2 + pad_margin
+        if x1 > torso[0] and x0 < torso[1]:
+            reasons.append(f"CYMBAL_INTERSECTS_TORSO:{zid}")
+    if abs((by["tom1"]["x"] + by["snare"]["x"]) / 2 - disp(body.center_x)) > 0.06:
+        reasons.append("LAYOUT_NOT_CENTERED")
+    drum_row = (by["tom1"]["y"] + by["snare"]["y"]) / 2
+    if abs(drum_row - body.navel_y) > max(0.10, 0.25 * (body.hip_y - body.shoulder_y)):
+        reasons.append("LOWER_ROW_OUTSIDE_NAVEL_BAND")
+    result.update(pads=pads, body=body.to_dict())
+    for zid in REFERENCE_IDS:
+        p = by[zid]
+        usable_half = p["width"] / 2 - 0.16 * min(p["width"], p["height"]) - settings.margin_px / w
+        supported = [
+            s for s in groups[zid]
+            if s.start[1] <= p["y"] - margin and s.end[1] >= p["y"] + margin * 0.5
+            and abs(disp(s.end[0]) - p["x"]) <= usable_half
+        ]
+        result["support"][zid] = len(supported)
+        if len(supported) < settings.min_strokes:
+            reasons.append(f"INSUFFICIENT_APPROACH_MARGIN:{zid}")
+    if reasons:
+        return result
+    try:
+        zones = reference_kit_layout(pads, mirror=mirror)
     except ValueError as exc:
         reasons.append(str(exc))
         return result

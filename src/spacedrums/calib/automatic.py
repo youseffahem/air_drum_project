@@ -11,16 +11,27 @@ from dataclasses import asdict
 
 import numpy as np
 
-from spacedrums.calib.reach import ReachSettings, StrokeCollector, fit_reach
+from spacedrums.calib.developer_demo import check_kit_pads
+from spacedrums.calib.reach import ReachSettings, StrokeCollector, fit_reach, fit_reach_reference
 from spacedrums.contracts.perception import BodyReference
 from spacedrums.geometry.four_pad import DISPLAY_ORDER, NAMES, four_pad_layout
+from spacedrums.geometry.reference_kit import reference_guide_pads, reference_kit_layout
+
+ARRANGEMENTS = ("grid", "reference")
 
 
 class AutomaticCalibration:
-    def __init__(self, roi_size, *, settings=None, mirror=True, provenance="DEVELOPER_LIVE"):
+    def __init__(self, roi_size, *, settings=None, mirror=True, provenance="DEVELOPER_LIVE",
+                 arrangement="grid"):
+        """``arrangement``: "grid" (the 2x2 product layout) or "reference" (the AR view's four-piece kit:
+        cymbals outboard and high, tom and snare on the navel line in front of the torso). The flow,
+        targets, evidence rules and validation are the same for both."""
         settings = settings or ReachSettings()
         if provenance not in ("SYNTHETIC", "DEVELOPER_LIVE", "DEVELOPER_REPLAY"):
             raise ValueError("product calibration supports developer evidence only")
+        if arrangement not in ARRANGEMENTS:
+            raise ValueError(f"arrangement must be one of {ARRANGEMENTS}")
+        self.arrangement = arrangement
         self.provenance = provenance
         self.roi_size, self.settings, self.mirror = roi_size, settings, mirror
         self.state = "STAND"
@@ -88,7 +99,16 @@ class AutomaticCalibration:
             cols = (self.body.center_x - half, self.body.center_x + half)
             rows = (sy + 0.25 * (hy - sy), self.body.navel_y)
             try:
-                self.guide_zones = four_pad_layout(cols, rows, width, height, mirror=self.mirror)
+                if self.arrangement == "reference":
+                    s = self.settings
+                    pads = reference_guide_pads(
+                        self.body, (w, h), min_width_px=s.min_width_px, min_height_px=s.min_height_px,
+                        gap_px=s.horizontal_gap_px, vertical_gap_px=s.vertical_gap_px, margin_px=s.margin_px,
+                        mirror=self.mirror)
+                    check_kit_pads(pads, (w, h), s)
+                    self.guide_zones = reference_kit_layout(pads, mirror=self.mirror)
+                else:
+                    self.guide_zones = four_pad_layout(cols, rows, width, height, mirror=self.mirror)
             except ValueError:
                 self.fail("BODY_LEAVES_NO_PLAY_AREA", "Keep your waist visible and space beside both arms")
                 return
@@ -134,7 +154,8 @@ class AutomaticCalibration:
                 self.message = f"Play relaxed strokes at {NAMES[self.target]}; alternate your hands"
                 return
             if self.state == "REACH":
-                self.fit = fit_reach(
+                fit = fit_reach_reference if self.arrangement == "reference" else fit_reach
+                self.fit = fit(
                     self.collector.strokes, self.body, self.roi_size, self.settings, mirror=self.mirror
                 )
                 if not self.fit["passed"]:
@@ -173,7 +194,8 @@ class AutomaticCalibration:
             "provenance": self.provenance,
             "state": self.state,
             "participant_evidence": False,
-            "settings": asdict(self.settings),
+            "settings": asdict(self.settings) if self.arrangement == "grid"
+            else {**asdict(self.settings), "arrangement": self.arrangement},
             "body": self.body.to_dict() if self.body else None,
             "roi_size": list(self.roi_size),
             "measured_reach_envelope": envelope,

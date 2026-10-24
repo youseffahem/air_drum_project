@@ -59,5 +59,6 @@ When an ADR is required: any decision not already in `project-discovery.md`; any
 | [ADR-0048](ADR-0048-camera-brightness.md) | Camera brightness: display-only natural preview (no stage/kit darkening, auto gamma; `--preview natural\|raw\|legacy`), measured-rate exposure guard (re-apply MANUAL, AUTO -> -5 fallback; fixes Windows Camera forcing 15 FPS), opt-in `--tracking-tone auto` for the hand model | Implementation candidate; live tracking effect pending | 2026-10-16 | - |
 
 | [ADR-0049](ADR-0049-ar-view-gpu-kit.md) | AR view (`app.play --view ar`): moderngl offscreen 3D kit aligned to the hit zones over the live 16:9 camera, glow from committed strikes only, reference HUD and control bar (volume = `output_scale`, sensitivity = `v_min`, defaults unchanged), reference four-piece kit, classic fallback without OpenGL | Implementation candidate; live A/B pending | 2026-10-24 | - |
+| [ADR-0050](ADR-0050-reference-kit-arrangement.md) | Reference four-piece arrangement in calibrated play (`AutomaticCalibration(arrangement="reference")`, `fit_reach_reference`): same flow and floors, drums on the navel line in front of the torso, cymbals outboard and clear of it; the grid unchanged | Implementation candidate; live calibration pending | 2026-10-24 | - |
 
-Next free number: **ADR-0050** (ADR-0043, ablation preparation, exists but is not listed above).
+Next free number: **ADR-0051** (ADR-0043, ablation preparation, exists but is not listed above).

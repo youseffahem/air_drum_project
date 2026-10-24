@@ -28,4 +28,36 @@ def reference_kit_layout(pads: list[dict] | None = None, *, mirror: bool = True)
     return kit_layout(REFERENCE_PADS if pads is None else pads, mirror=mirror, names=NAMES, samples=SAMPLES)
 
 
-__all__ = ["REFERENCE_IDS", "REFERENCE_PADS", "reference_kit_layout"]
+def reference_guide_pads(body, roi_size, *, min_width_px, min_height_px, gap_px, vertical_gap_px, margin_px,
+                         mirror: bool = True) -> list[dict]:
+    """Calibration guide pads around a measured body (camera ROI units; display x mirrored when ``mirror``).
+
+    Drums flank the body centre at the navel line, in front of the torso as on the reference screen; the
+    cymbals sit outboard and higher, one pad height plus the vertical gap floor above the drum line. Only a
+    starting guide for the reach step: the fitted kit comes from the player's own strokes.
+    """
+    w, h = roi_size
+    cx = 1 - body.center_x if mirror else body.center_x
+    half_torso = (body.right - body.left) / 2
+    height = min_height_px / h
+    drum_w = min(0.28, max(min_width_px / w, 1.6 * half_torso))
+    gap = (gap_px + margin_px) / w
+    drum_off = drum_w / 2 + gap / 2
+    cym_off = drum_off + 0.6 * drum_w
+    navel = body.navel_y
+    upper = body.shoulder_y + 0.25 * (body.hip_y - body.shoulder_y)
+    cym_y = navel - max(0.5 * (navel - upper), height + (vertical_gap_px + margin_px) / h)
+
+    def inside(x):
+        return min(max(x, drum_w / 2 + 0.002), 1 - drum_w / 2 - 0.002)
+
+    return [
+        {"zone_id": "crash_ride", "x": inside(cx - cym_off), "y": cym_y - 0.03, "width": drum_w,
+         "height": height},
+        {"zone_id": "tom1", "x": cx - drum_off, "y": navel, "width": drum_w, "height": height},
+        {"zone_id": "snare", "x": cx + drum_off, "y": navel, "width": drum_w, "height": height},
+        {"zone_id": "hihat", "x": inside(cx + cym_off), "y": cym_y, "width": drum_w, "height": height},
+    ]
+
+
+__all__ = ["REFERENCE_IDS", "REFERENCE_PADS", "reference_guide_pads", "reference_kit_layout"]
