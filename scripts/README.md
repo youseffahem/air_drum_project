@@ -2,6 +2,24 @@
 
 One-off tools. Run from the repository root with the development venv (`.venv\Scripts\python.exe`).
 
+## README assets
+
+- `make_readme_assets.py [--only kit|calibration|research]` renders the pictures and GIFs of the top-level
+  `README.md` into `docs/assets/readme/`. It runs the real decision pipeline and renderers on SYNTHETIC input
+  (a stylised scene with scripted strokes; the analytic `alternating_two_zones` scenario). Every output has
+  `synthetic` in its name and none is a recording or evidence; only the MediaPipe hand model is replaced by
+  synthetic landmarks, as in `tests/product`.
+- `make_readme_svgs.py [--only <name>]` writes the animated SVGs of the README (SMIL and CSS only, no scripts).
+  The concept figures are labelled illustrations. The waveforms of the kit figure are read from the recorded
+  WAV files of the runtime bank, so run `fetch_drum_samples.py` first.
+- `make_ar_ui_concept.py [--debug]` rebuilds the HUD of the owner's AR-view concept render
+  (`docs/assets/readme/source/ar-concept-photo.jpg`) as animated vector UI over an inpainted clean plate and
+  writes `docs/assets/readme/ar-ui-concept.svg`. It is a concept, not a screenshot: the HUD values are
+  placeholders and the hits are a scripted loop, and the picture says so in its corner.
+- `make_ar_ui_prototype.py` writes the clickable version, `docs/ui-prototype/ar-view.html` (one file, no
+  network): drums play the recorded TR-505 samples, sliders drag, the camera menu and settings open. Needs
+  the samples from `fetch_drum_samples.py`. No camera, tracking or decision code is involved.
+
 ## Phase 14
 
 - `python -m spacedrums.app.calibrate ...` is the wizard itself (see `docs/user/calibration.md`).
