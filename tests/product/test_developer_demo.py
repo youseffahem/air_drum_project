@@ -254,4 +254,5 @@ def test_full_kit_window_loop_renders_the_stage_and_toggles_diagnostics(monkeypa
     assert report["error"] is None and report["commits_by_drum"]["snare"] == 1
     assert set(report["commits_by_drum"]) == {"crash", "ride", "hihat", "snare", "tom1", "tom2", "floor_tom"}
     assert report["latency_ms"]["render_ms"]["p50"] > 0
+    assert {"imshow_ms", "pollkey_ms"} <= set(report["latency_ms"])
     assert (720, 960, 3) in shown and (480, 640, 3) in shown  # stage view, then diagnostics after 'd'

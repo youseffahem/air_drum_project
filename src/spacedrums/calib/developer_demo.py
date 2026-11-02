@@ -1,8 +1,9 @@
 """Explicit fixed developer guide. Never represents a measured calibration pass."""
 
 from spacedrums.calib.reach import ReachSettings
-from spacedrums.geometry.four_pad import four_pad_layout
+from spacedrums.geometry.four_pad import NAMES, four_pad_layout
 from spacedrums.geometry.kit_layout import kit_clearance_failures, kit_layout
+from spacedrums.geometry.reference_kit import reference_kit_layout
 
 
 def check_kit_pads(pads, roi_size, settings):
@@ -35,8 +36,12 @@ class DeveloperDemoLayout:
         if "pads" in p:
             pads = p["pads"]
             check_kit_pads(pads, self.roi_size, s)
-            self.zones = kit_layout(pads)
-            self.message = "DEV full kit: tap a fingertip down through a pad's top edge; lift to repeat"
+            if {q["zone_id"] for q in pads} <= set(NAMES):  # the reference four-piece kit (AR view)
+                self.zones = reference_kit_layout(pads)
+                self.message = "DEV reference kit: strike down through a drum's head line; lift to repeat"
+            else:
+                self.zones = kit_layout(pads)
+                self.message = "DEV full kit: tap a fingertip down through a pad's top edge; lift to repeat"
             return
         if (p["width"] * w < s.min_width_px or p["height"] * h < s.min_height_px
                 or (p["columns"][1] - p["columns"][0] - p["width"]) * w < s.horizontal_gap_px
