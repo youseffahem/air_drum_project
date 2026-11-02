@@ -1,22 +1,30 @@
 """Render the README pictures and GIFs from the project's own UI code.
 
     python scripts/make_readme_assets.py                  # everything into docs/assets/readme/
-    python scripts/make_readme_assets.py --only kit       # kit | calibration | research
+    python scripts/make_readme_assets.py --only kit       # kit | setup | fullkit | research
 
-**Everything produced here is SYNTHETIC** (integrity I-4): a stylised backdrop, scripted stick paths and,
-for the research overlay, the analytic scenarios of ``spacedrums.app.synthetic``. The decisions drawn on
-the pictures (commits, candidates, predictions) are computed by the real ``DecisionPipeline`` and the
-frames are drawn by the real ``render_kit`` / ``draw_scientific_overlay``; the stick endpoints of the kit
-animation are measured on the synthetic pixels by the real ``VisibleEndpointEstimator``. Only the
-MediaPipe hand model is replaced by synthetic landmarks (as in ``tests/product``). The window chrome,
-the sound chips and the captions around each frame are README annotation, drawn here. Nothing is a
-recording, a measurement or evidence, and every file name carries ``synthetic``.
+Every picture shows the seven-piece kit of ``app.play --demo --kit full``
+(``configs/demo.fullkit.candidate.yaml``): the stick and fingertip demos, the layout-preview flow and the
+research overlay drawn on the same seven zones.
+
+**Everything produced here is SYNTHETIC** (integrity I-4): a stylised backdrop, scripted stick and
+fingertip paths, scripted key presses and, for the research overlay, the analytic scenarios of
+``spacedrums.app.synthetic``. The decisions drawn on the pictures (commits, candidates, predictions) are
+computed by the real ``DecisionPipeline``; the frames are drawn by the real ``StageRenderer``,
+``LayoutPreview`` and ``draw_scientific_overlay``; the stick ends and fingertips are measured on the
+synthetic pixels and landmarks by the real endpoint estimators. Only the MediaPipe hand model is replaced
+by synthetic landmarks (as in ``tests/product``). The window chrome, the sound chips and the captions
+around each frame are README annotation, drawn here. Nothing is a recording, a measurement or evidence,
+and every file name carries ``synthetic``.
 """
 
 from __future__ import annotations
 
 import argparse
+import copy
 import math
+import os
+import tempfile
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -29,39 +37,67 @@ from PIL import Image, ImageDraw, ImageFont
 from spacedrums.app import play
 from spacedrums.app.main import Perception, render
 from spacedrums.app.pipeline import DecisionPipeline
+from spacedrums.app.red_tip_perception import RedTipPerception
 from spacedrums.app.synthetic import ROI_PX, build_sequence, scenario
+from spacedrums.calib.developer_demo import DeveloperDemoLayout, check_kit_pads
+from spacedrums.calib.reach import ReachSettings
 from spacedrums.capture import Roi
 from spacedrums.config import config_hash, load_config, validate
 from spacedrums.contracts import FrameView, HandId, HandObservation, ImageRef
 from spacedrums.geometry import ZoneRegistry
-from spacedrums.geometry.four_pad import SAMPLES, four_pad_layout
+from spacedrums.stick.visible import FingertipEndpointEstimator
 from spacedrums.ui import OverlayConfig, OverlayStyle, RuntimeStats
-from spacedrums.ui.kit import render_kit
+from spacedrums.ui.layout_preview import LayoutPreview
+from spacedrums.ui.preview_tone import PreviewSettings, PreviewTone
+from spacedrums.ui.stage import StageRenderer
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "assets" / "readme"
 W, H = 640, 480
 FPS_SIM = 30.0  # the synthetic timeline (never a camera rate)
-
-# An illustrative layout for the pictures (pads enlarged and centred on the figure). The fixed
-# developer guide and the calibrated layouts come from the calibration code, not from here.
-COLUMNS, ROWS, PAD_W, PAD_H = (0.25, 0.75), (0.50, 0.73), 0.17, 0.115
-STICK_PX = 120
-CAPTION_KIT = "SYNTHETIC input  |  real renderer and decision code  |  illustration, not a recording"
-CAPTION_CAL = "SYNTHETIC frames  |  the messages are the app's own  |  illustration"
+PAD_W = 0.17  # go-around width of ``hand_path`` when the next pad lies right below the previous one
+STICK_PX = 84  # synthetic stick, grip to tip, camera pixels
+RED_CAP_PX, RED_CAP_BGR = 6, (40, 38, 200)  # the painted tip of a synthetic stick
+FINGER_PX = 30  # synthetic index finger, knuckle to tip, camera pixels
+CAPTION_KIT = "SYNTHETIC input, 30 fps timeline  |  real stage renderer and decision code  |  not a recording"
+CAPTION_SETUP = "SYNTHETIC frames and key presses  |  real layout preview and decision code  |  illustration"
 CAPTION_RES = "SYNTHETIC stroke, 30 fps analytic timeline  |  real DecisionPipeline  |  not a measurement"
-TITLE_RES = "Research overlay  -  arm A active, arm B shadow"
+TITLE_RES = "Research overlay  -  seven-piece kit  -  arm A active, arm B shadow"
 RIGHT, LEFT = HandId.RIGHT, HandId.LEFT
+AUDIO_OFF = SimpleNamespace(device_state="DISABLED")  # no sound device in a README render
 
 PAGE = (11, 15, 30)  # window background, RGB
 CHROME = (27, 33, 51)
 INK = (232, 236, 247)
 MUTED = (143, 152, 181)
-ZONE_RGB = {
-    "crash_ride": (250, 210, 80),
-    "hihat": (70, 200, 245),
-    "snare": (255, 110, 215),
-    "tom1": (110, 224, 90),
+# The seven pieces in display order (left to right): chip label, zone id, source drum, and the stage
+# renderer's accent colour (``ui.stage.ACCENTS``, converted to RGB).
+KIT = (
+    ("CRASH", "crash", "18in crash", (255, 190, 60)),
+    ("HI-HAT", "hihat", "14in closed", (255, 235, 80)),
+    ("SNARE", "snare", "14x5 snare", (255, 90, 90)),
+    ("TOM 1", "tom1", "12x7 tom", (60, 150, 255)),
+    ("TOM 2", "tom2", "derived tom", (70, 205, 225)),
+    ("FLOOR", "floor_tom", "14x14 floor", (255, 110, 210)),
+    ("RIDE", "ride", "20in ride", (120, 230, 140)),
+)
+
+# Scripted strokes, camera-space hands: RIGHT plays the display-left pieces, LEFT the display-right ones.
+# A stroke never travels down through another pad's top edge (that would be a real strike): the move from
+# tom 1 to the hi-hat passes under the crash, and the floor tom is reached beside tom 2, not through it.
+_UNDER_CRASH = [(0.70, 0.40)]
+_BESIDE_TOM2 = [(0.50, 0.33), (0.50, 0.555)]
+FINGER_HITS = {
+    RIGHT: [(0.50, "hihat"), (1.05, "hihat"), (1.70, "snare"), (2.50, "crash"), (3.20, "tom1"),
+            (3.90, "hihat", _UNDER_CRASH), (4.60, "snare"), (5.25, "snare")],
+    LEFT: [(0.80, "ride"), (1.40, "ride"), (2.10, "tom2"), (2.85, "floor_tom", _BESIDE_TOM2), (3.55, "ride"),
+           (4.20, "tom2"), (4.90, "floor_tom", _BESIDE_TOM2), (5.60, "ride")],
+}
+STICK_HITS = {
+    RIGHT: [(0.50, "snare"), (1.10, "snare"), (1.80, "crash"), (2.60, "tom1"), (3.35, "hihat", _UNDER_CRASH),
+            (4.00, "hihat"), (4.70, "snare"), (5.30, "snare")],
+    LEFT: [(0.80, "ride"), (1.45, "tom2"), (2.20, "floor_tom", _BESIDE_TOM2), (2.95, "floor_tom"),
+           (3.65, "ride"), (4.35, "ride"), (5.05, "tom2"), (5.70, "ride")],
 }
 
 
@@ -94,10 +130,11 @@ def window(
     title: str,
     caption: str,
     *,
-    chips: tuple[tuple[str, str, bool], ...] = (),
+    chips: tuple[tuple[str, str, bool, tuple[int, int, int]], ...] = (),
     strip: Image.Image | None = None,
 ) -> Image.Image:
-    """Dark window around one rendered frame; chips/strip/caption are README annotation."""
+    """Dark window around one rendered frame; chips (label, sub-label, lit, RGB), strip and caption are
+    README annotation."""
     pad, bar = 22, 38
     h, w = content_bgr.shape[:2]
     chips_h = 52 if chips else 0
@@ -116,10 +153,10 @@ def window(
     y = pad + bar + h + 12
     if chips:
         cell = w / len(chips)
-        for i, (label, sub, active) in enumerate(chips):
-            x0 = pad + i * cell + 6
-            box = (x0, y, x0 + cell - 12, y + 38)
-            colour = ZONE_RGB.get(sub, (70, 200, 245))
+        small = len(chips) > 4
+        for i, (label, sub, active, colour) in enumerate(chips):
+            x0 = pad + i * cell + (3 if small else 6)
+            box = (x0, y, x0 + cell - (6 if small else 12), y + 38)
             if active:
                 glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
                 ImageDraw.Draw(glow).rounded_rectangle(box, 19, fill=(*colour, 90))
@@ -127,10 +164,11 @@ def window(
                 draw = ImageDraw.Draw(img)
             draw.rounded_rectangle(box, 19, fill=colour if active else (24, 30, 48),
                                    outline=colour if active else (52, 60, 88), width=2)
-            text_center(draw, ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2 - 7), label, font(13, True),
-                        (12, 14, 26) if active else MUTED)
-            text_center(draw, ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2 + 9), SAMPLES.get(sub, sub),
-                        font(10), (12, 14, 26) if active else (96, 106, 138))
+            text_center(draw, ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2 - 7), label,
+                        font(11 if small else 13, True), (12, 14, 26) if active else MUTED)
+            centre = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2 + 9)
+            text_center(draw, centre, sub, font(9 if small else 10),
+                        (12, 14, 26) if active else (96, 106, 138))
         y += chips_h
     if strip is not None:
         img.paste(strip, (pad, y))
@@ -194,7 +232,7 @@ def capsule(layer: np.ndarray, p0, p1, r0: float, r1: float, colour, s: int) -> 
     cv2.circle(layer, tuple(int(v) for v in p1), int(r1 * s), colour, -1, cv2.LINE_AA)
 
 
-def elbow(shoulder, fist, hand: HandId, upper: float = 112.0, fore: float = 112.0) -> tuple[float, float]:
+def elbow(shoulder, fist, upper: float = 112.0, fore: float = 112.0) -> tuple[float, float]:
     sx, sy = shoulder
     dx, dy = fist[0] - sx, fist[1] - sy
     dist = min(max(1e-3, float(np.hypot(dx, dy))), (upper + fore) * 0.995)
@@ -223,7 +261,7 @@ def figure(base: np.ndarray, fists: dict[HandId, tuple[float, float]]) -> np.nda
     cv2.ellipse(layer, (cx * s, 84 * s), (30 * s, 36 * s), 0, 0, 360, body, -1, cv2.LINE_AA)
     for hand, fist in fists.items():
         sh = shoulders[hand]
-        el = elbow(sh, fist, hand)
+        el = elbow(sh, fist)
         capsule(layer, sh, el, 15, 11.5, body, s)
         capsule(layer, el, fist, 11.5, 9, body, s)
     mask[:] = (layer.sum(axis=2) > 0) * 255
@@ -249,15 +287,20 @@ def smooth(u: float) -> float:
     return u * u * (3 - 2 * u)
 
 
-def hand_path(hits: list[tuple[float, str]], zones: dict[str, tuple[float, float]]):
+def hand_path(hits: list[tuple], zones: dict[str, tuple[float, float]]):
     """Tip position (ROI-normalised) over time for one hand: lift, travel (around a pad when the next
-    pad lies below it in the same column), accelerating stroke through the top edge, rebound."""
+    pad lies below it in the same column), accelerating stroke through the top edge, rebound.
+    A hit may carry a third item, ROI points the tip travels through on its way to that pad (to pass
+    beside a pad instead of striking down through its top edge)."""
     down, rise, height, depth = 0.21, 0.20, 0.105, 0.03
     f = height / (height + depth)
     way: list[tuple[float, float, float, str]] = []  # (t, x, y, kind)
-    for t_hit, zone in sorted(hits):
+    via: dict[float, list[tuple[float, float]]] = {}  # approach time -> travel points
+    for t_hit, zone, *through in sorted(hits):
         x, y = zones[zone]
         t_a = t_hit - math.sqrt(f) * down
+        if through:
+            via[t_a] = through[0]
         way += [(t_a, x, y - height, "A"), (t_a + down, x, y + depth, "S"),
                 (t_a + down + rise, x, y - height * 0.9, "B")]
     first = way[0]
@@ -274,6 +317,8 @@ def hand_path(hits: list[tuple[float, str]], zones: dict[str, tuple[float, float
                     return x0, y0 + (y1 - y0) * u * u  # accelerating
                 if k0 == "S" and k1 == "B":
                     return x0, y0 + (y1 - y0) * (1 - (1 - u) ** 2)  # decelerating rebound
+                if k0 == "B" and k1 == "A" and t1 in via:
+                    return _bend([(x0, y0), *via[t1], (x1, y1)], smooth(u))
                 if k0 == "B" and k1 == "A" and abs(x1 - x0) < 1e-6 and y1 > y0 + 0.02:
                     side = 1 if x0 > 0.5 else -1  # next pad lies below: go around the pad, outwards
                     wx = x0 + side * (PAD_W * 0.5 + 0.09)
@@ -296,167 +341,235 @@ def _bend(points: list[tuple[float, float]], u: float) -> tuple[float, float]:
     return points[-1]
 
 
-# ----------------------------------------------------------------------------- the product decision path
+# ----------------------------------------------------------------------------- synthetic hands
 
 
-def zone_anchors() -> dict[str, tuple[float, float]]:
-    """(x centre, y of the top strike edge) of every pad, camera coordinates."""
-    cfg = play.play_config(demo=True)
-    cfg["zones"] = four_pad_layout(COLUMNS, ROWS, PAD_W, PAD_H)
-    return {z.zone_id: (sum(p[0] for p in z.shape.points) / len(z.shape.points), z.impact_surface.p0[1])
-            for z in ZoneRegistry.from_config(cfg["zones"])}
-
-
-def synthetic_hand(frame_id: int, t: float, hand: HandId, grip: np.ndarray) -> HandObservation:
-    """A closed fist, rotated 180 degrees, with its stick pointing down (as in tests/product)."""
-    lm = np.zeros((21, 2))
-    lm[0] = grip - [12, 27]
-    for f, k in enumerate((5, 9, 13, 17)):
-        b = grip - [0, f * 10]
-        lm[k] = b
-        lm[k + 1], lm[k + 2], lm[k + 3] = b - [8, 0], b - [15, 0], b - [21, 0]
-    lm[1], lm[2], lm[3], lm[4] = grip - [6, 10], grip - [10, 4], grip - [12, -3], grip - [13, -9]
+def finger_hand(frame_id: int, t: float, hand: HandId, tip: np.ndarray) -> HandObservation:
+    """A hand pointing down: index fingertip (landmark 8) at ``tip``, its knuckle (5) above it. The
+    fingertip estimator reads only these two landmarks; the others sit in the fist above the knuckle."""
+    knuckle = tip - [0, FINGER_PX]
+    lm = np.tile(knuckle - [0, 14], (21, 1)).astype(float)
+    lm[0] = knuckle - [0, 34]
+    lm[5], lm[6], lm[7], lm[8] = knuckle, knuckle + [0, FINGER_PX / 3], knuckle + [0, 2 * FINGER_PX / 3], tip
     return HandObservation(frame_id, t, hand, True, "SYNTHETIC", tuple(map(tuple, lm / [W, H])), None, 0.95,
                            (0, 0, 1, 1))
 
 
-def draw_scene(sample, tips: dict[HandId, np.ndarray], base: np.ndarray) -> tuple[np.ndarray, dict]:
-    fists = {h: (float(t[0]), float(t[1] - STICK_PX)) for h, t in tips.items()}
-    rgb = figure(base, fists)
-    img = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-    for h, tip in tips.items():
-        grip = np.array(fists[h])
-        cv2.line(img, tuple(grip.astype(int)), tuple(tip.astype(int)), (200, 222, 236), 6, cv2.LINE_AA)
-    hands = {h: synthetic_hand(sample.frame_id, sample.t_capture, h, np.array(fists[h])) for h in tips}
-    return img, hands
+# ----------------------------------------------------------------------------- the seven-piece kit, live path
 
 
-def kit_run(hits: dict[HandId, list[tuple[float, str]]], period: float):
-    """Run the product decision path over the scripted strokes; yields (display, commits) per frame."""
-    cfg = play.play_config(demo=True)
-    cfg["zones"] = four_pad_layout(COLUMNS, ROWS, PAD_W, PAD_H)
-    validate(cfg)
-    registry = ZoneRegistry.from_config(cfg["zones"])
-    anchors = zone_anchors()
-    paths = {h: hand_path(v, anchors) for h, v in hits.items()}
-    base = backdrop()
-    seq = build_sequence(registry, [], duration_s=period)
-    rows = []
-    for sample, _ in seq:
+class FullKit:
+    """``app.play --demo --kit full`` on synthetic frames: the configured seven-piece kit, the shared
+    decision pipeline and the stage renderer with the default (natural) preview. ``mode`` picks the tip
+    source: ``fingers`` (``--fingers``, the fingertip estimator on synthetic hand landmarks) or ``red``
+    (``--red-tips``, the red-tip detector and tracker on the synthetic pixels; no hand model)."""
+
+    def __init__(self, *, mode: str) -> None:
+        self.mode = mode
+        self.cfg = play.play_config(demo=True, kit="full", red_tips=mode == "red")
+        self.roi = Roi.from_rect([0, 0, W, H])
+        self.clock = [100.0]
+        self.hands: dict[HandId, HandObservation] = {}
+        rig = self
+
+        class SyntheticHands:
+            def __init__(self, settings):
+                self.asset = SimpleNamespace(sha256="SYNTHETIC")
+
+            def detect(self, view):
+                return SimpleNamespace(left=rig.hands[LEFT], right=rig.hands[RIGHT], processing_s=0.0)
+
+            def close(self):
+                pass
+
+        if mode == "red":  # as app.play --red-tips
+            self.perception = RedTipPerception(self.cfg)
+        else:  # as app.play --fingers
+            with mock.patch("spacedrums.hands.HandLandmarker", SyntheticHands):
+                self.perception = Perception(self.cfg)
+            self.perception.estimator = FingertipEndpointEstimator(self.perception.stick_settings)
+        settings = PreviewSettings.from_config(self.cfg["product"].get("preview")).preset("natural")
+        self.stage = StageRenderer(dim=settings.dim, vignette=settings.vignette)
+        self.tone = PreviewTone(settings)
+        self.base = backdrop()
+        self.set_pads(self.cfg["product"]["developer_demo"]["pads"])
+
+    def set_pads(self, pads: list[dict]) -> None:
+        """As app.play after a layout-preview nudge: new zones, registry and decision state."""
+        self.cfg["product"]["developer_demo"]["pads"] = [dict(p) for p in pads]
+        self.cfg["zones"] = DeveloperDemoLayout(self.cfg).zones
+        validate(self.cfg)
+        self.registry = ZoneRegistry.from_config(self.cfg["zones"])
+        self.pipeline = DecisionPipeline(
+            self.cfg, registry=self.registry, session_id="README-SYNTHETIC", active_arm="A",
+            hardware_id="SYNTHETIC", config_hash=config_hash(self.cfg), audio=None,
+            clock=lambda: self.clock[0], gain_fn=lambda z, p: 0.5, developer_demo=True,
+        )
+
+    def anchors(self) -> dict[str, tuple[float, float]]:
+        """(x centre, y of the top strike edge) of every pad, camera ROI units."""
+        return {z.zone_id: (sum(p[0] for p in z.shape.points) / len(z.shape.points), z.impact_surface.p0[1])
+                for z in self.registry}
+
+    def step(self, sample, tips: dict[HandId, np.ndarray]):
+        """Draw the synthetic camera frame for these tips (camera pixels), then run perception and the
+        decision pipeline on it. Returns (view, endpoint evidence, pipeline result)."""
+        fingers = self.mode == "fingers"
+        reach = FINGER_PX if fingers else STICK_PX
+        fists = {h: (float(t[0]), float(t[1] - reach)) for h, t in tips.items()}
+        img = cv2.cvtColor(figure(self.base, fists), cv2.COLOR_RGB2BGR)
+        colour, width = ((134, 160, 214), 7) if fingers else ((200, 222, 236), 6)
+        for h, tip in tips.items():
+            grip = tuple(int(v) for v in fists[h])
+            cv2.line(img, grip, tuple(int(v) for v in tip), colour, width, cv2.LINE_AA)
+            if not fingers:  # the painted cap
+                cv2.circle(img, tuple(int(v) for v in tip), RED_CAP_PX, RED_CAP_BGR, -1, cv2.LINE_AA)
+        if fingers:
+            self.hands = {h: finger_hand(sample.frame_id, sample.t_capture, h, tips[h]) for h in tips}
+        sample = replace(sample, roi_px=(0, 0, W, H), image_ref=ImageRef.memory(img))
+        view = FrameView(sample, img, img)
+        self.clock[0] = sample.t_frame_available
+        observations = self.perception(view)
+        evidence = self.perception.estimator.evidence
+        result = self.pipeline.step(sample, observations, t_now=self.clock[0], endpoint_evidence=evidence)
+        return view, evidence, result
+
+    def render(self, view, evidence, result) -> np.ndarray:
+        shown = self.tone(view.full)
+        return self.stage.render(shown, self.roi, self.registry, evidence, result, audio=AUDIO_OFF)
+
+    def close(self) -> None:
+        self.perception.close()
+
+
+def samples(seconds: float):
+    """Synthetic capture samples of the 30 fps timeline (the frame ids and clock of ``app.synthetic``)."""
+    registry = ZoneRegistry.from_config(DeveloperDemoLayout(play.play_config(demo=True, kit="full")).zones)
+    return [s for s, _ in build_sequence(registry, [], duration_s=seconds)]
+
+
+def groove(rig: FullKit, hits: dict, period: float) -> tuple[list[np.ndarray], list[list[str]]]:
+    """Play the scripted strokes once; returns the stage frames and the committed zones per frame."""
+    paths = {h: hand_path(v, rig.anchors()) for h, v in hits.items()}
+    frames, commits = [], []
+    for sample in samples(period):
         t = sample.frame_id / FPS_SIM
         tips = {h: np.array(p(t, period)) * [W, H] for h, p in paths.items()}
-        img, hands = draw_scene(sample, tips, base)
-        sample = replace(sample, roi_px=(0, 0, W, H), image_ref=ImageRef.memory(img))
-        rows.append((FrameView(sample, img, img), hands))
-    lookup = {v.sample.frame_id: h for v, h in rows}
+        view, evidence, result = rig.step(sample, tips)
+        frames.append(rig.render(view, evidence, result))
+        commits.append([c.zone_id for c in result.commits])
+    return frames, commits
 
-    class SyntheticHands:
-        def __init__(self, settings):
-            self.asset = SimpleNamespace(sha256="SYNTHETIC")
 
-        def detect(self, view):
-            h = lookup[view.sample.frame_id]
-            return SimpleNamespace(left=h[LEFT], right=h[RIGHT], processing_s=0.0)
+def check(name: str, hits: dict, commits: list[list[str]]) -> None:
+    order = [(round(n / FPS_SIM, 2), z) for n, cs in enumerate(commits) for z in cs]
+    expected = sorted(hit[1] for v in hits.values() for hit in v)
+    print(f"  {name}: {len(order)} commits for {len(expected)} scripted strokes")
+    print("   commits:", order)
+    if sorted(z for _, z in order) != expected:
+        print("   WARNING: commits differ from the scripted strokes; check the pictures")
 
-        def close(self):
-            pass
 
-    body = SimpleNamespace(left=0.40, right=0.60, shoulder_y=0.31, hip_y=0.72)
-    roi = Roi.from_rect([0, 0, W, H])
-    clock = [100.0]
-    with mock.patch("spacedrums.hands.HandLandmarker", SyntheticHands):
-        perception = Perception(cfg)
-    pipeline = DecisionPipeline(
-        cfg, registry=registry, session_id="README-SYNTHETIC", active_arm="A", hardware_id="SYNTHETIC",
-        config_hash=config_hash(cfg), audio=None, clock=lambda: clock[0], gain_fn=lambda z, p: 0.5,
-        developer_demo=True,
-    )
-    for view, _ in rows:
-        clock[0] = view.sample.t_frame_available
-        observations = perception(view)
-        result = pipeline.step(view.sample, observations, t_now=clock[0],
-                               endpoint_evidence=perception.estimator.evidence)
-        shown = render_kit(view.full, roi, registry, sticks=[s for _, s in observations.values()], body=body,
-                           message="DEV fixed guide: cross a yellow top edge downward; lift out to repeat")
-        yield shown, [c.zone_id for c in result.commits]
-    perception.close()
+def chips_at(commits: list[list[str]], n: int) -> tuple:
+    """The seven sound chips; a chip glows for 0.3 s after each commit on its piece."""
+    glow = int(0.30 * FPS_SIM)
+    lit = {z for k in range(max(0, n - glow), n + 1) for z in commits[k]}
+    return tuple((label, sub, zid in lit, rgb) for label, zid, sub, rgb in KIT)
+
+
+def kit_gif(frames, commits, title: str, path: Path) -> None:
+    gif, durations = [], []
+    for n in range(0, len(frames), 3):  # 10 frames/s of the 30 fps timeline keeps the file small
+        small = cv2.resize(frames[n], (600, 450), interpolation=cv2.INTER_AREA)
+        gif.append(window(small, title, CAPTION_KIT, chips=chips_at(commits, n)))
+        durations.append(100)
+    save_gif(gif, path, durations)
 
 
 def make_kit() -> None:
-    hits = {
-        RIGHT: [(0.60, "crash_ride"), (1.50, "snare"), (2.10, "snare"), (2.70, "snare"), (3.60, "crash_ride"),
-                (4.50, "snare")],
-        LEFT: [(0.60, "hihat"), (1.20, "hihat"), (1.80, "hihat"), (2.70, "tom1"), (3.30, "tom1"),
-               (4.20, "hihat")],
-    }
-    expected = sorted((round(t, 2), z) for v in hits.values() for t, z in v)
-    period = 5.4
-    frames, committed, order = [], [], []
-    for n, (shown, commits) in enumerate(kit_run(hits, period)):
-        frames.append(shown)
-        committed.append(commits)
-        order += [(round(n / FPS_SIM, 2), z) for z in commits]
-    print(f"  kit: {len(order)} commits for {len(expected)} scripted strokes")
-    print("   commits:", order)
-    if sorted(z for _, z in order) != sorted(z for _, z in expected):
-        print("   WARNING: commits differ from the scripted strokes; check the pictures")
-    chips = ("CRASH / RIDE", "crash_ride"), ("HI-HAT", "hihat"), ("SNARE", "snare"), ("TOM 1", "tom1")
-    glow = int(0.30 * FPS_SIM)
-    caption = CAPTION_KIT
+    """The seven-piece kit played with red-tipped sticks (``app.play --demo --kit full --red-tips``, a
+    coloured-marker mode). The visible-endpoint estimator for plain sticks loses the tip where a synthetic
+    stick crosses the synthetic body, so it is not used for this picture."""
+    rig = FullKit(mode="red")
+    frames, commits = groove(rig, STICK_HITS, 6.0)
+    rig.close()
+    check("kit (sticks)", STICK_HITS, commits)
+    title = "Space Drums  -  seven-piece kit, red-tipped sticks"
+    kit_gif(frames, commits, title, OUT / "kit-demo-synthetic.gif")
+    still = max(range(len(frames)), key=lambda n: sum(len(c) for c in commits[max(0, n - 8): n + 1]))
+    small = cv2.resize(frames[still], (640, 480), interpolation=cv2.INTER_AREA)
+    still_img = window(small, title, CAPTION_KIT, chips=chips_at(commits, still))
+    save_png(still_img, OUT / "kit-product-view-synthetic.png")
+
+
+def make_fullkit() -> None:
+    """The seven-piece kit played with fingertips (``app.play --demo --kit full --fingers``)."""
+    rig = FullKit(mode="fingers")
+    frames, commits = groove(rig, FINGER_HITS, 6.0)
+    rig.close()
+    check("fullkit (fingers)", FINGER_HITS, commits)
+    kit_gif(frames, commits, "Space Drums  -  seven-piece kit, fingertips as sticks",
+            OUT / "full-kit-stage-synthetic.gif")
+
+
+# ----------------------------------------------------------------------------- setup flow (layout preview)
+
+
+def make_setup() -> None:
+    """The seven-piece kit's setup flow, ``app.play --demo --fingers --layout-preview``: a short groove
+    builds the measured reach, then scripted key presses move, scale and save the kit. The preview,
+    its messages and the validation of every nudge are the app's own."""
+    rig = FullKit(mode="fingers")
+    reach = ReachSettings(**rig.cfg["product"].get("reach", {}))
+    preview = LayoutPreview(rig.cfg["product"]["developer_demo"]["pads"],
+                            lambda pads: check_kit_pads(pads, (rig.roi.w, rig.roi.h), reach),
+                            save_dir=Path("data") / "dev-product" / "dev-product-SYNTHETIC")
+    hits = {RIGHT: [(0.45, "hihat"), (1.05, "snare"), (1.75, "crash"), (2.50, "tom1")],
+            LEFT: [(0.75, "ride"), (1.40, "tom2"), (2.15, "floor_tom", _BESIDE_TOM2)]}
+    play_s, freeze_s = 3.0, 2.78  # hands hold still after the last rebound
+    keys = [("2  MOVE", "k", "down")] * 3 + [("2  MOVE", "l", "right")] * 2 + \
+           [("3  SCALE", "]", "larger")] * 2 + [("3  SCALE", "[", "smaller"), ("4  SAVE", "s", "save")]
+    paths = {h: hand_path(v, rig.anchors()) for h, v in hits.items()}
+    seq = samples(play_s + len(keys) / FPS_SIM + 0.2)
     gif, durations = [], []
-    for n in range(0, len(frames), 2):
-        active = {z for k in range(max(0, n - glow), n + 1) for z in committed[k]}
-        gif.append(window(frames[n], "Space Drums  -  fixed-guide demo path",
-                          caption, chips=tuple((lab, zid, zid in active) for lab, zid in chips)))
-        durations.append(67)
-    save_gif(gif, OUT / "kit-demo-synthetic.gif", durations)
-    still = max(range(len(frames)), key=lambda n: sum(len(c) for c in committed[max(0, n - 8): n + 1]))
-    active = {z for k in range(max(0, still - glow), still + 1) for z in committed[k]}
-    save_png(window(frames[still], "Space Drums  -  fixed-guide demo path", caption,
-                    chips=tuple((lab, zid, zid in active) for lab, zid in chips)),
-             OUT / "kit-product-view-synthetic.png")
 
+    def frame(sample, tips, title, ms):
+        """Every frame is processed and rendered, as in the app; ``ms=None`` leaves it out of the GIF."""
+        view, evidence, result = rig.step(sample, tips)
+        preview.observe(evidence, result)
+        img = rig.render(view, evidence, result)
+        preview.draw(img, rig.stage, rig.roi, W)
+        if ms is not None:
+            small = cv2.resize(img, (720, 540), interpolation=cv2.INTER_AREA)
+            gif.append(window(small, f"Space Drums  -  seven-piece kit setup  -  {title}", CAPTION_SETUP))
+            durations.append(ms)
 
-# ----------------------------------------------------------------------------- calibration flow
-
-
-def make_calibration() -> None:
-    """The four states of the product's automatic calibration, with the app's own messages."""
-    cfg = play.play_config(demo=True)
-    cfg["zones"] = four_pad_layout(COLUMNS, ROWS, PAD_W, PAD_H)
-    registry = ZoneRegistry.from_config(cfg["zones"])
-    anchors = zone_anchors()
-    body = SimpleNamespace(left=0.40, right=0.60, shoulder_y=0.31, hip_y=0.72)
-    roi = Roi.from_rect([0, 0, W, H])
-    base = backdrop()
-    states = [
-        ("1  STAND", None, None, "Stand in the frame, with your waist and both sticks in view", False),
-        ("2  REACH", registry, "crash_ride", "Play relaxed strokes at Crash / Ride; alternate your hands",
-         True),
-        ("3  VERIFY", registry, "crash_ride", "Try the fitted Crash / Ride with both hands", True),
-        ("4  READY", registry, None, "Ready to play", False),
-    ]
-    right = hand_path([(0.45, "crash_ride"), (1.05, "crash_ride")], anchors)
-    rest = {LEFT: np.array([0.27, 0.58]) * [W, H], RIGHT: np.array([0.73, 0.58]) * [W, H]}
-    frames, durations = [], []
-    sample = build_sequence(registry, [], duration_s=0.2).frames[0][0]
-    for label, reg, target, message, moving in states:
-        n_frames = 14 if moving else 6
-        for k in range(n_frames):
-            tips = dict(rest)
-            if moving:
-                tips[RIGHT] = np.array(right(k * 0.1, 1.5)) * [W, H]
-            else:
-                tips[RIGHT] = rest[RIGHT]
-            img, _ = draw_scene(sample, tips, base)
-            sticks = [SimpleNamespace(present=True, axis_origin=((t[0]) / W, (t[1] - STICK_PX) / H),
-                                      tip=(t[0] / W, t[1] / H)) for t in tips.values()]
-            shown = render_kit(img, roi, reg, sticks=sticks, body=body, message=message, target=target)
-            title = f"Space Drums  -  automatic calibration  -  {label}"
-            frames.append(window(shown, title, CAPTION_CAL))
-            durations.append(110 if moving else 330)
-        durations[-1] = 900
-    save_gif(frames, OUT / "calibration-flow-synthetic.gif", durations)
+    n_play = int(play_s * FPS_SIM)
+    held = {}
+    for sample in seq[:n_play]:
+        t = min(sample.frame_id / FPS_SIM, freeze_s)
+        held = {h: np.array(p(t, 99.0)) * [W, H] for h, p in paths.items()}
+        frame(sample, held, "1  PLAY  (your reach builds up)", 100 if sample.frame_id % 3 == 0 else None)
+    durations[-1] = 900
+    for (stage, key, what), sample in zip(keys, seq[n_play:], strict=False):
+        if key == "s":
+            with tempfile.TemporaryDirectory() as tmp:  # the message names the relative session path
+                cwd = os.getcwd()
+                os.chdir(tmp)
+                try:
+                    (Path(tmp) / preview.save_dir).mkdir(parents=True)
+                    preview.handle_key(ord(key))
+                finally:
+                    os.chdir(cwd)
+        else:
+            moved = preview.handle_key(ord(key))
+            if moved is not None:
+                rig.set_pads(moved)  # zones, registry and decision state, as app.play does
+        frame(sample, held, f"{stage}  (key {key}: {what})", 600)
+    durations[-1] = 2200
+    rig.close()
+    print(f"  setup: final message: {preview.message}")
+    save_gif(gif, OUT / "layout-preview-flow-synthetic.gif", durations)
 
 
 # ----------------------------------------------------------------------------- research overlay
@@ -482,15 +595,19 @@ def research_background() -> np.ndarray:
 
 
 def make_research() -> None:
-    cfg = load_config(ROOT / "configs" / "prototype.candidate.yaml")
+    """The research application's arms (prototype configuration) on the seven-piece kit's zones: arm A
+    active, arm B in shadow, the analytic ``alternating_two_zones`` scenario on the snare and floor tom."""
+    cfg = copy.deepcopy(load_config(ROOT / "configs" / "prototype.candidate.yaml").data)
+    cfg["zones"] = DeveloperDemoLayout(play.play_config(demo=True, kit="full")).zones
+    validate(cfg)
     registry = ZoneRegistry.from_config(cfg["zones"])
     clock = Ticker()
     pipeline = DecisionPipeline(
-        cfg.data, registry=registry, session_id="README-SYNTHETIC", active_arm="A", shadow_arms=("B",),
-        hardware_id="SYNTHETIC", config_hash=cfg.config_hash, audio=None, clock=clock,
+        cfg, registry=registry, session_id="README-SYNTHETIC", active_arm="A", shadow_arms=("B",),
+        hardware_id="SYNTHETIC", config_hash=config_hash(cfg), audio=None, clock=clock,
         gain_fn=lambda z, p: 0.5,
     )
-    seq = scenario("alternating_two_zones", registry)
+    seq = scenario("alternating_two_zones", registry, zone="snare", zone2="floor_tom")
     roi, style, base = Roi.from_rect(ROI_PX), OverlayStyle(), research_background()
     results = []
     for sample, obs in seq:
@@ -504,28 +621,25 @@ def make_research() -> None:
                 if str(c.source) == "REACTIVE" and reactive is None:
                     reactive = k
     print(f"  research: first RULE candidate at frame {first_rule}, REACTIVE crossing at frame {reactive}")
-    lo, hi = 9, 36
+    lo, hi = max(0, first_rule - 6), min(len(results) - 1, reactive + 19)
     commit_frames = {k for k, (_, r) in enumerate(results) if r.commits}
     gif, durations = [], []
     for k in range(lo, hi + 1):
         obs, res = results[k]
         shown = render(base, roi, registry, res, obs, pipeline.active_arm, style,
                        overlay_config=OverlayConfig(), runtime=RuntimeStats(active_arm="A"))
-        strip = timeline(k, lo, hi, first_rule, reactive, commit_frames)
+        strip = timeline(k, lo, hi, first_rule, reactive)
         gif.append(window(shown, TITLE_RES, CAPTION_RES, strip=strip))
         durations.append(900 if k in commit_frames else 170)
     save_gif(gif, OUT / "research-overlay-synthetic.gif", durations)
     obs, res = results[reactive]
     shown = render(base, roi, registry, res, obs, pipeline.active_arm, style, overlay_config=OverlayConfig(),
                    runtime=RuntimeStats(active_arm="A"))
-    save_png(window(shown, TITLE_RES, CAPTION_RES,
-                    strip=timeline(reactive, lo, hi, first_rule, reactive, commit_frames)),
+    save_png(window(shown, TITLE_RES, CAPTION_RES, strip=timeline(reactive, lo, hi, first_rule, reactive)),
              OUT / "research-overlay-synthetic.png")
 
 
-def timeline(
-    k: int, lo: int, hi: int, first_rule: int | None, reactive: int | None, commits: set[int]
-) -> Image.Image:
+def timeline(k: int, lo: int, hi: int, first_rule: int | None, reactive: int | None) -> Image.Image:
     """Frame ruler under the overlay: where arm B's candidate first appears and where arm A crosses."""
     w, h = W, 74
     img = Image.new("RGB", (w, h), (20, 26, 44))
@@ -555,13 +669,15 @@ def timeline(
 # ----------------------------------------------------------------------------- main
 
 
+STEPS = {"kit": make_kit, "setup": make_setup, "fullkit": make_fullkit, "research": make_research}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--only", choices=("kit", "calibration", "research"), default=None)
+    ap.add_argument("--only", choices=tuple(STEPS), default=None)
     args = ap.parse_args(argv)
     cv2.setNumThreads(1)
-    steps = {"kit": make_kit, "calibration": make_calibration, "research": make_research}
-    for name, fn in steps.items():
+    for name, fn in STEPS.items():
         if args.only in (None, name):
             print(f"[{name}]")
             fn()

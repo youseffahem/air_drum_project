@@ -1,5 +1,5 @@
 # ruff: noqa: E501  (SVG markup literals)
-"""Write the animated SVGs of the README (hero, typing line, pipeline, concept figures, roadmap, ...).
+"""Write the animated SVGs of the README (hero, typing line, pipeline, concept figures, kit, roadmap, ...).
 
     python scripts/make_readme_svgs.py                    # everything into docs/assets/readme/
     python scripts/make_readme_svgs.py --only hero        # one asset
@@ -7,7 +7,8 @@
 The SVGs are self-contained (no scripts, no external fonts or images) so GitHub renders them inside an
 ``<img>``; the motion is SMIL and CSS only. They are **illustrations**: the concept figures state in the
 picture that they are not data, and the one place that carries real numbers (the sample waveforms of the
-kit figure) reads them from the recorded WAV files of the runtime bank. No measurement appears here.
+kit figure) reads them from the recorded WAV files of the acoustic bank, and the kit is laid out from
+configs/demo.fullkit.candidate.yaml. No measurement appears here.
 """
 
 from __future__ import annotations
@@ -127,13 +128,75 @@ def keyed_translate(points: list[tuple[float, float, float, str]], cycle: float)
             f'repeatCount="indefinite" calcMode="spline" keyTimes="{kt}" values="{vals}" keySplines="{ks}"/>')
 
 
+# ----------------------------------------------------------------------------- the seven-piece kit
+
+# Display names, the stage renderer's accent colours (``ui.stage.ACCENTS`` as RGB) and the recorded
+# source of each piece (``assets/samples/LICENSES.md``). Positions come from the kit's own config.
+PIECES = {
+    "crash": ("CRASH", "#ffbe3c", True, "Paiste 18in crash"),
+    "ride": ("RIDE", "#78e68c", True, "20in ride"),
+    "hihat": ("HI-HAT", "#ffeb50", True, "Stagg 14in hi-hat, closed"),
+    "tom1": ("TOM 1", "#3c96ff", False, "12x7in rack tom"),
+    "tom2": ("TOM 2", "#46cde1", False, "rack tom, 6 semitones down (derived)"),
+    "snare": ("SNARE", "#ff5a5a", False, "14x5in birch snare"),
+    "floor_tom": ("FLOOR TOM", "#ff6ed2", False, "14x14in floor tom"),
+}
+
+
+def full_kit_pads() -> list[dict]:
+    """The seven pads exactly as ``app.play --demo --kit full`` places them (mirrored display, ROI units:
+    x = centre, y = top strike edge)."""
+    import yaml
+
+    doc = yaml.safe_load((ROOT / "configs" / "demo.fullkit.candidate.yaml").read_text(encoding="utf-8"))
+    return doc["product"]["developer_demo"]["pads"]
+
+
+def piece_svg(zone: str, w: float, h: float, label_size: float = 10.5) -> str:
+    """One pad drawn as the stage draws it: a rounded footprint, a brass cymbal or a drum head, the strike
+    edge along the top and the label on the head. Origin = the pad's top-left corner."""
+    name, accent, cymbal, _ = PIECES[zone]
+    r = max(5.0, min(w, h) * 0.16)
+    out = [rect(0, 0, w, h, r, "#2c3146", accent, 2.2)]
+    if cymbal:
+        out.append(f'<ellipse cx="{f(w / 2)}" cy="{f(h / 2)}" rx="{f(w / 2 - 6)}" ry="{f(h / 2 - 5)}" fill="url(#brass)" stroke="#e9e3d2" stroke-opacity=".6"/>')
+        for k in (0.72, 0.46):
+            out.append(f'<ellipse cx="{f(w / 2)}" cy="{f(h / 2)}" rx="{f((w / 2 - 6) * k)}" ry="{f((h / 2 - 5) * k)}" fill="none" stroke="#8a6420" stroke-opacity=".55"/>')
+        out.append(f'<ellipse cx="{f(w / 2)}" cy="{f(h / 2)}" rx="{f(w * 0.10)}" ry="{f(h * 0.15)}" fill="#c9a24c" stroke="#8a6420"/>')
+    else:
+        head = "url(#silver)" if zone == "snare" else "url(#tomhead)"
+        out.append(f'<ellipse cx="{f(w / 2)}" cy="{f(h / 2)}" rx="{f(w / 2 - 7)}" ry="{f(h / 2 - 6)}" fill="{head}" stroke="#e9e3d2" stroke-opacity=".7"/>')
+        out.append(f'<ellipse cx="{f(w / 2)}" cy="{f(h / 2)}" rx="{f(w * 0.36)}" ry="{f(h * 0.30)}" fill="none" stroke="#9aa0b0" stroke-opacity=".6"/>')
+    out.append(f'<line x1="{f(r)}" y1="2" x2="{f(w - r)}" y2="2" stroke="{accent}" stroke-width="2.6" stroke-linecap="round"/>')
+    out.append(text(w / 2, h / 2 + label_size * 0.36, name, label_size, "#1c1f2a", "middle", "bb", 'letter-spacing="1"'))
+    return "".join(out)
+
+
+PIECE_DEFS = (
+    '<radialGradient id="brass" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#f6e3a1"/><stop offset=".5" stop-color="#d4a94a"/><stop offset="1" stop-color="#7d5a1f"/></radialGradient>'
+    '<radialGradient id="silver" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#fbfcff"/><stop offset=".55" stop-color="#c3c9d6"/><stop offset="1" stop-color="#6b7388"/></radialGradient>'
+    '<radialGradient id="tomhead" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#e6f0ff"/><stop offset=".55" stop-color="#8fb0de"/><stop offset="1" stop-color="#3f5a8c"/></radialGradient>'
+)
+
+
+def flashes(zone: str, w: float, h: float, times: list[float], cycle: float) -> str:
+    """Strike feedback at each time: the head flashes in the piece's colour and a ring leaves the edge."""
+    accent = PIECES[zone][1]
+    out = []
+    for t in times:
+        out.append(f'<ellipse cx="{f(w / 2)}" cy="{f(h / 2)}" rx="{f(w / 2 - 6)}" ry="{f(h / 2 - 5)}" fill="{accent}" opacity="0">{pulse(t, cycle, 0.45, {}, 0.55)}</ellipse>')
+        out.append(f'<ellipse cx="{f(w / 2)}" cy="3" rx="8" ry="3" fill="none" stroke="{accent}" stroke-width="3" opacity="0">'
+                   f'{pulse(t, cycle, 0.9, {"rx": (8, w * 0.75), "ry": (3, h * 0.65)}, 0.85)}</ellipse>')
+    return "".join(out)
+
+
 # ----------------------------------------------------------------------------- hero
 
 
-def stick_waypoints(hits: list[tuple[float, int]], pads: dict[int, tuple[float, float]], cycle: float,
+def stick_waypoints(hits: list[tuple[float, str]], pads: dict[str, tuple[float, float]], cycle: float,
                     raise_px: float, down: float = 0.20, rise: float = 0.22):
-    """(t, x, y, ease) for one stick: raised above each pad, strike at ``t``, rebound, travel to the next.
-    ``pads[i]`` = (x centre, y of the top edge). Moves between pads in the same column go around."""
+    """(t, x, y, ease) for one stick: raised above each pad, strike at ``t``, rebound, then an arc over the
+    kit to the next pad. ``pads[z]`` = (x centre, y of the top edge)."""
     pts: list[tuple[float, float, float, str]] = []
     first = pads[hits[0][1]]
     pts.append((0.0, first[0], first[1] - raise_px, "io"))
@@ -143,10 +206,9 @@ def stick_waypoints(hits: list[tuple[float, int]], pads: dict[int, tuple[float, 
         if prev is not None:
             px, py = prev
             t_ready = t - down
-            if abs(px - x) < 1 and y > py:  # the next pad lies below: go around outwards
-                side = 1 if x > 640 else -1
+            if abs(px - x) > 1:  # travel in an arc above both pads
                 mid_t = (pts[-1][0] + t_ready) / 2
-                pts.append((mid_t, x + side * 150, (py + y) / 2 - raise_px * 0.4, "io"))
+                pts.append((mid_t, (px + x) / 2, min(py, y) - raise_px * 0.9, "io"))
             pts.append((t_ready, x, y - raise_px, "io"))
         pts.append((t, x, y + 6, "in"))
         pts.append((t + rise, x, y - raise_px * 0.85, "out"))
@@ -157,16 +219,16 @@ def stick_waypoints(hits: list[tuple[float, int]], pads: dict[int, tuple[float, 
 
 def hero() -> str:
     w, h, cycle = 1280, 480, 6.0
-    pad_w, pad_h = 224, 92
-    cols, rows = (668, 968), (150, 292)
-    names = {0: "CRASH / RIDE", 1: "HI-HAT", 2: "SNARE", 3: "TOM 1"}
-    metal = {0: "brass", 1: "brass", 2: "silver", 3: "silver"}
-    glow = {0: B, 1: A, 2: C, 3: OK}
-    pos = {i: (cols[i % 2], rows[i // 2]) for i in range(4)}
-    pads_top = {i: (pos[i][0] + pad_w / 2, pos[i][1] + 14) for i in range(4)}
-    # Two sticks. Display-left hand: crash, snare; display-right hand: hi-hat, tom 1 (indices into pads).
-    left_hits = [(0.55, 0), (1.55, 2), (2.15, 2), (3.35, 0), (4.55, 2), (5.15, 2)]
-    right_hits = [(0.55, 1), (1.15, 1), (2.35, 3), (2.95, 3), (4.15, 1), (4.75, 3)]
+    x0, sw, y0, sh = 610.0, 600.0, 110.0, 640.0  # display ROI units -> banner pixels
+    geo = {p["zone_id"]: (x0 + p["x"] * sw, y0 + (p["y"] - 0.30) * sh, p["width"] * sw, p["height"] * sh)
+           for p in full_kit_pads()}
+    tops = {z: (cx, top) for z, (cx, top, _, _) in geo.items()}
+    # Two sticks: the display-left hand plays hi-hat, snare, crash and tom 1; the display-right hand ride,
+    # tom 2 and floor tom.
+    left_hits = [(0.45, "hihat"), (0.95, "hihat"), (1.55, "snare"), (2.25, "crash"), (2.95, "tom1"),
+                 (3.55, "snare"), (4.15, "hihat"), (4.75, "snare"), (5.35, "snare")]
+    right_hits = [(0.70, "ride"), (1.25, "ride"), (1.90, "tom2"), (2.60, "floor_tom"), (3.25, "ride"),
+                  (3.85, "tom2"), (4.45, "floor_tom"), (5.10, "ride"), (5.65, "ride")]
     body = []
     body.append(rect(0, 0, w, h, 24, "url(#bg)"))
     body.append(rect(0, 0, w, h, 24, "url(#gA)"))
@@ -175,37 +237,17 @@ def hero() -> str:
     for x, y, d in [(1180, 20, 0), (900, 10, 3.6), (1230, 140, 7.2)]:
         body.append(f'<g class="sh" style="animation-delay:-{f(d)}s"><line x1="{x}" y1="{y}" x2="{x + 70}" '
                     f'y2="{y - 40}" stroke="url(#trail)" stroke-width="2" stroke-linecap="round"/></g>')
-    # floor glow under the kit
-    body.append('<ellipse cx="934" cy="440" rx="420" ry="26" fill="url(#floor)"/>')
-    # pads
-    for i in range(4):
-        x, y = pos[i]
-        body.append(f'<g transform="translate({x} {y})">')
-        body.append(rect(0, 0, pad_w, pad_h, 14, "#2c3146", "#cfd3df", 2))
-        body.append(rect(4, 4, pad_w - 8, pad_h - 8, 11, "#3b4158"))
-        body.append(f'<ellipse cx="{pad_w / 2}" cy="{pad_h / 2}" rx="{pad_w / 2 - 22}" ry="{pad_h / 2 - 14}" '
-                    f'fill="url(#{metal[i]})" stroke="#e9e3d2" stroke-opacity=".7"/>')
-        if metal[i] == "brass":
-            body.append(f'<ellipse cx="{pad_w / 2}" cy="{pad_h / 2}" rx="20" ry="9" fill="#c9a24c" stroke="#8a6420"/>')
-            body.append(f'<circle cx="{pad_w / 2}" cy="{pad_h / 2}" r="3" fill="#3a2d12"/>')
-        body.append('<line x1="18" y1="14" x2="206" y2="14" stroke="#ffe27a" stroke-width="3" stroke-linecap="round" '
-                    'stroke-opacity=".9"/>')
-        flashes = [t for t, p in left_hits + right_hits if p == i]
-        for t in flashes:
-            body.append(f'<ellipse cx="{pad_w / 2}" cy="{pad_h / 2}" rx="{pad_w / 2 - 22}" ry="{pad_h / 2 - 14}" '
-                        f'fill="{glow[i]}" opacity="0">{pulse(t, cycle, 0.45, {}, 0.5)}</ellipse>')
-            body.append(f'<ellipse cx="{pad_w / 2}" cy="14" rx="10" ry="4" fill="none" stroke="{glow[i]}" '
-                        f'stroke-width="3" opacity="0">'
-                        f'{pulse(t, cycle, 0.9, {"rx": (10, 150), "ry": (4, 54)}, 0.85)}</ellipse>')
-        body.append(text(pad_w / 2, pad_h + 20, names[i], 12, MUTED, "middle", "b", 'letter-spacing="2"'))
-        body.append("</g>")
-    # sticks
+    body.append('<ellipse cx="910" cy="440" rx="420" ry="26" fill="url(#floor)"/>')  # floor glow under the kit
+    for zone, (cx, top, pw, ph) in geo.items():
+        times = [t for t, z in left_hits + right_hits if z == zone]
+        body.append(f'<g transform="translate({f(cx - pw / 2)} {f(top)})">{piece_svg(zone, pw, ph)}'
+                    f'{flashes(zone, pw, ph, times, cycle)}</g>')
     for hits, tint in ((left_hits, "#ffd9a0"), (right_hits, "#ffe9c4")):
-        pts = stick_waypoints(hits, pads_top, cycle, 66)
+        pts = stick_waypoints(hits, tops, cycle, 52)
         body.append(f'<g>{keyed_translate(pts, cycle)}')
-        body.append('<line x1="0" y1="-84" x2="0" y2="0" stroke="#12141f" stroke-width="9" stroke-linecap="round"/>')
-        body.append(f'<line x1="0" y1="-84" x2="0" y2="0" stroke="{tint}" stroke-width="5" stroke-linecap="round"/>')
-        body.append('<circle cx="0" cy="-86" r="11" fill="#b58a73" stroke="#7b5646" stroke-width="2"/>')
+        body.append('<line x1="0" y1="-74" x2="0" y2="0" stroke="#12141f" stroke-width="9" stroke-linecap="round"/>')
+        body.append(f'<line x1="0" y1="-74" x2="0" y2="0" stroke="{tint}" stroke-width="5" stroke-linecap="round"/>')
+        body.append('<circle cx="0" cy="-76" r="11" fill="#b58a73" stroke="#7b5646" stroke-width="2"/>')
         body.append(f'<circle cx="0" cy="0" r="12" fill="none" stroke="{A}" stroke-width="2" stroke-dasharray="4 5" '
                     'opacity=".9"><animateTransform attributeName="transform" type="rotate" from="0 0 0" '
                     'to="360 0 0" dur="3s" repeatCount="indefinite"/></circle>')
@@ -220,8 +262,8 @@ def hero() -> str:
         body.append(f'<text x="72" y="{y}" font-size="116" class="bb" fill="url(#title)" '
                     f'textLength="{ 470 if word == "SPACE" else 480}" lengthAdjust="spacingAndGlyphs">{word}</text>')
     body.append(text(74, 330, "Play a drum kit in mid-air.", 29, INK, "start", "b"))
-    body.append(text(74, 362, "Ordinary sticks. One webcam. Causal strike anticipation.", 17, MUTED))
-    chips = ["1 webcam", "2 sticks", "0 sensors", "100 % offline"]
+    body.append(text(74, 362, "Fingers or sticks. One webcam. A seven-piece kit.", 17, MUTED))
+    chips = ["1 webcam", "7 pieces", "0 sensors", "100 % offline"]
     x = 74
     for k, label in enumerate(chips):
         cw = 14 * len(label) * 0.62 + 30
@@ -243,14 +285,13 @@ def hero() -> str:
     defs = f"""
 <clipPath id="round"><rect width="{w}" height="{h}" rx="24"/></clipPath>
 <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#060a1b"/><stop offset=".55" stop-color="#120c30"/><stop offset="1" stop-color="#08122a"/></linearGradient>
-<radialGradient id="gA" cx=".78" cy=".55" r=".5"><stop offset="0" stop-color="{A}" stop-opacity=".30"/><stop offset="1" stop-color="{A}" stop-opacity="0"/></radialGradient>
+<radialGradient id="gA" cx=".72" cy=".55" r=".5"><stop offset="0" stop-color="{A}" stop-opacity=".30"/><stop offset="1" stop-color="{A}" stop-opacity="0"/></radialGradient>
 <radialGradient id="gB" cx=".1" cy=".05" r=".6"><stop offset="0" stop-color="{C}" stop-opacity=".22"/><stop offset="1" stop-color="{C}" stop-opacity="0"/></radialGradient>
 <linearGradient id="title" gradientUnits="userSpaceOnUse" x1="72" y1="0" x2="552" y2="0" spreadMethod="repeat">
  <stop offset="0" stop-color="#7be0ff"/><stop offset=".33" stop-color="#9b8cff"/><stop offset=".5" stop-color="#ff7ee0"/><stop offset=".66" stop-color="#9b8cff"/><stop offset="1" stop-color="#7be0ff"/>
  <animateTransform attributeName="gradientTransform" type="translate" values="0 0;480 0" dur="6s" repeatCount="indefinite"/>
 </linearGradient>
-<radialGradient id="brass" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#f6e3a1"/><stop offset=".5" stop-color="#d4a94a"/><stop offset="1" stop-color="#7d5a1f"/></radialGradient>
-<radialGradient id="silver" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#fbfcff"/><stop offset=".55" stop-color="#b9c0cd"/><stop offset="1" stop-color="#6b7388"/></radialGradient>
+{PIECE_DEFS}
 <radialGradient id="floor" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="{A}" stop-opacity=".25"/><stop offset="1" stop-color="{A}" stop-opacity="0"/></radialGradient>
 <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff"/></linearGradient>
 <linearGradient id="eqg" gradientUnits="userSpaceOnUse" x1="72" y1="0" x2="1208" y2="0"><stop offset="0" stop-color="{A}"/><stop offset=".5" stop-color="#9b8cff"/><stop offset="1" stop-color="{C}"/></linearGradient>
@@ -263,9 +304,10 @@ def hero() -> str:
 @keyframes shoot{0%{transform:translate(0,0);opacity:0}3%{opacity:1}16%{transform:translate(-420px,235px);opacity:0}100%{transform:translate(-420px,235px);opacity:0}}
 .sh{animation:shoot 10.8s linear infinite;opacity:0}
 """
-    return svg(w, h, "Space Drums", "Animated banner: two drumsticks play a four-pad virtual drum kit under a "
-               "starfield; the title reads Space Drums, play a drum kit in mid-air with ordinary sticks and "
-               "one webcam.", "".join(body), defs, css)
+    return svg(w, h, "Space Drums", "Animated banner: two drumsticks play a seven-piece virtual drum kit (crash, "
+               "ride, hi-hat, snare, two toms and a floor tom, laid out as in the app) under a starfield; the title "
+               "reads Space Drums, play a drum kit in mid-air with fingers or sticks and one webcam.",
+               "".join(body), defs, css)
 
 
 # ----------------------------------------------------------------------------- typing line
@@ -277,6 +319,7 @@ def typing() -> str:
         "Track ordinary drumsticks with a single webcam",
         "Anticipate strikes from causal stick motion",
         "Commit once per strike, then schedule the sample",
+        "Four pads or a seven-piece kit, in a live AR view",
         "Run offline. Measure everything. Fabricate nothing.",
     ]
     cw, x0 = 12.0, 54.0
@@ -310,7 +353,7 @@ def typing() -> str:
                     f'keyTimes="{key}" values="{cur_x}"/>'
                     f'<animate attributeName="opacity" dur="0.9s" repeatCount="indefinite" calcMode="discrete" '
                     f'keyTimes="0;.6" values="1;0.15"/></rect></g>')
-    return svg(w, h, "Space Drums tagline", "Typewriter line cycling through four short descriptions of the "
+    return svg(w, h, "Space Drums tagline", "Typewriter line cycling through five short descriptions of the "
                "project.", "".join(body), "".join(clips))
 
 
@@ -675,124 +718,152 @@ def waveform(wav: Path, w: float = 190.0, h: float = 34.0, bins: int = 76) -> tu
 
 
 def kit_layout() -> str:
-    w, h, cycle = 940, 596, 9.6
-    pads = [("CRASH / RIDE", "crash_ride", "tr505-crash", "brass", B, (96, 124)),
-            ("HI-HAT", "hihat", "tr505-hihat-closed", "brass", A, (644, 124)),
-            ("SNARE", "snare", "tr505-snare", "silver", C, (96, 332)),
-            ("TOM 1", "tom1", "tr505-tom-h", "silver", OK, (644, 332))]
-    samples = ROOT / "assets" / "samples" / "recorded"
-    body = [rect(0, 0, w, h, 24, "url(#bg)"), f'<g clip-path="url(#round)">{stars(40, w, h, 61)}</g>']
-    body.append(text(36, 40, "THE KIT  ·  FOUR PADS  ·  MIRRORED DISPLAY", 12, MUTED, "start", "b", 'letter-spacing="3"'))
-    # figure and guide brackets
-    cx = w / 2
-    body.append(f'<g fill="url(#body)" stroke="#9aa6d6" stroke-opacity=".35"><circle cx="{cx}" cy="150" r="36"/>'
-                f'<path d="M{cx - 92} 232Q{cx - 92} 196 {cx - 52} 192H{cx + 52}Q{cx + 92} 196 {cx + 92} 232L{cx + 78} 420H{cx - 78}Z"/>'
-                f'<rect x="{cx - 14}" y="180" width="28" height="22"/></g>')
-    for sx, sy, dx, dy in ((cx - 110, 176, 1, 1), (cx + 110, 176, -1, 1), (cx - 110, 438, 1, -1), (cx + 110, 438, -1, -1)):
-        body.append(f'<path d="M{sx + 34 * dx} {sy}H{sx}V{sy + 34 * dy}" fill="none" stroke="#84dcef" stroke-width="3" stroke-linecap="round"/>')
-    body.append(text(cx, 462, "stand here", 12, "#84dcef", "middle", "mono", 'opacity=".9"'))
-    t_hits = [0.6, 1.8, 3.0, 4.2, 6.0, 7.2]
-    order = [0, 1, 2, 3, 0, 3]  # the pad struck at each time, in display order
-    for slot, (name, _zid, sample, metal, col, (px, py)) in enumerate(pads):
-        body.append(f'<g transform="translate({px} {py})">')
-        body.append(rect(0, 0, 200, 88, 14, "#2c3146", "#cfd3df", 2))
-        body.append(rect(4, 4, 192, 80, 11, "#3b4158"))
-        body.append(f'<ellipse cx="100" cy="44" rx="78" ry="30" fill="url(#{metal})" stroke="#e9e3d2" stroke-opacity=".7"/>')
-        if metal == "brass":
-            body.append('<ellipse cx="100" cy="44" rx="18" ry="8" fill="#c9a24c" stroke="#8a6420"/><circle cx="100" cy="44" r="3" fill="#3a2d12"/>')
-        body.append('<line x1="16" y1="12" x2="184" y2="12" stroke="#ffe27a" stroke-width="3" stroke-linecap="round" opacity=".9"/>')
-        times = [t for t, s in zip(t_hits, order, strict=False) if s == slot]
-        for t in times:
-            body.append(f'<ellipse cx="100" cy="44" rx="78" ry="30" fill="{col}" opacity="0">{pulse(t, cycle, 0.5, {}, 0.5)}</ellipse>')
-            body.append(f'<ellipse cx="100" cy="12" rx="8" ry="3" fill="none" stroke="{col}" stroke-width="3" opacity="0">{pulse(t, cycle, 1.0, {"rx": (8, 130), "ry": (3, 46)}, 0.85)}</ellipse>')
-        body.append(text(100, 112, name, 13, INK, "middle", "bb", 'letter-spacing="2"'))
-        body.append(text(100, 130, sample, 11.5, col, "middle", "mono b"))
+    """The seven-piece kit as the app lays it out (left) and the recorded sample of every piece (right):
+    each strike flashes its pad and runs a playhead over that piece's waveform for the sample's length."""
+    w, h, cycle = 1240, 640, 10.8
+    hits = [(0.5, "hihat"), (1.1, "snare"), (1.7, "tom1"), (2.3, "tom2"), (2.9, "floor_tom"), (3.7, "crash"),
+            (5.0, "ride"), (6.3, "hihat"), (6.8, "snare"), (7.3, "floor_tom"), (8.0, "crash")]
+    samples = ROOT / "assets" / "samples" / "acoustic"
+    body = [rect(0, 0, w, h, 24, "url(#bg)"), f'<g clip-path="url(#round)">{stars(44, w, h, 61)}</g>']
+    body.append(text(36, 40, "THE SEVEN-PIECE KIT  ·  ACOUSTIC SAMPLES  ·  MIRRORED DISPLAY", 12, MUTED, "start", "b",
+                     'letter-spacing="3"'))
+    # left: the kit map, display ROI units -> pixels, with the player standing behind it
+    x0, sw, y0, sh = 30.0, 590.0, 66.0, 760.0
+    body.append(rect(24, 60, 604, 500, 18, "#0d1330", LINE, 1.2))
+    cx = x0 + 0.5 * sw
+    body.append(f'<g fill="url(#body)" stroke="#9aa6d6" stroke-opacity=".35" opacity=".85"><circle cx="{f(cx)}" cy="128" r="34"/>'
+                f'<path d="M{f(cx - 96)} 214Q{f(cx - 96)} 178 {f(cx - 54)} 174H{f(cx + 54)}Q{f(cx + 96)} 178 {f(cx + 96)} 214L{f(cx + 80)} 470H{f(cx - 80)}Z"/>'
+                f'<rect x="{f(cx - 14)}" y="158" width="28" height="22"/></g>')
+    for p in full_kit_pads():
+        zone = p["zone_id"]
+        pw, ph = p["width"] * sw, p["height"] * sh * 0.9
+        px, py = x0 + p["x"] * sw - pw / 2, y0 + (p["y"] - 0.26) * sh
+        times = [t for t, z in hits if z == zone]
+        body.append(f'<g transform="translate({f(px)} {f(py)})">{piece_svg(zone, pw, ph, 11)}{flashes(zone, pw, ph, times, cycle)}</g>')
+    body.append(text(326, 586, "the kit as the app draws it (configs/demo.fullkit.candidate.yaml)", 11.5, MUTED, "middle",
+                     "", ITALIC))
+    # right: one row per piece with its recorded sample
+    rx, ry, row_h, wave_w = 652.0, 60.0, 71.4, 330.0
+    for i, zone in enumerate(["crash", "ride", "hihat", "snare", "tom1", "tom2", "floor_tom"]):
+        name, accent, _, source = PIECES[zone]
+        group = "salamander-" + zone.replace("_", "-")
+        y = ry + i * row_h
+        times = [t for t, z in hits if z == zone]
+        body.append(rect(rx, y, 564, row_h - 8, 12, "#0d1330", LINE, 1))
+        body.append(f'<circle cx="{f(rx + 20)}" cy="{f(y + 22)}" r="6" fill="{accent}"/>')
+        body.append(text(rx + 34, y + 27, name, 13.5, INK, "start", "bb", 'letter-spacing="1.5"'))
+        body.append(text(rx + 34, y + 45, group, 11, accent, "start", "mono b"))
+        body.append(text(rx + 34, y + 59, source, 10.5, MUTED))
         try:
-            d, dur = waveform(samples / f"{sample}.wav")
-            body.append(f'<g transform="translate(5 142)">{rect(-5, -4, 200, 42, 10, "#0b1128", LINE, 1)}'
-                        f'<path d="{d}" fill="{col}" fill-opacity=".35" stroke="{col}" stroke-width="1" transform="translate(5 2)"/>')
-            for t in times:
-                body.append(f'<line x1="5" y1="-2" x2="5" y2="38" stroke="#fff" stroke-width="1.8" opacity="0">'
-                            f'<animate attributeName="x1" dur="{cycle}s" repeatCount="indefinite" keyTimes="0;{f(t / cycle)};{f(min(t + dur, cycle - 0.1) / cycle)};1" values="5;5;195;195"/>'
-                            f'<animate attributeName="x2" dur="{cycle}s" repeatCount="indefinite" keyTimes="0;{f(t / cycle)};{f(min(t + dur, cycle - 0.1) / cycle)};1" values="5;5;195;195"/>'
-                            f'<animate attributeName="opacity" dur="{cycle}s" repeatCount="indefinite" keyTimes="0;{f(max(t - 0.001, 0) / cycle)};{f(t / cycle)};{f(min(t + dur, cycle - 0.1) / cycle)};1" values="0;0;.9;.9;0"/></line>')
-            body.append(f'{text(192, 52, f"{dur:.2f} s", 10, MUTED, "end", "mono")}</g>')
+            d, dur = waveform(samples / f"{group}-hard-1.wav", wave_w, 34.0, 120)
         except (OSError, RuntimeError, ImportError) as exc:  # the samples are fetched, not tracked
-            raise SystemExit(f"{sample}.wav is missing or unreadable ({exc}); run scripts/fetch_drum_samples.py first") from exc
-        body.append("</g>")
-    body.append(text(cx, 566, "Camera coordinates never change; only the picture on screen is mirrored. Samples are recorded, never synthesised at run time.", 12, MUTED, "middle"))
-    defs = (BG_DEFS.format(w=w, h=h) +
-            '<linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5681"/><stop offset="1" stop-color="#262d4a"/></linearGradient>'
-            '<radialGradient id="brass" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#f6e3a1"/><stop offset=".5" stop-color="#d4a94a"/><stop offset="1" stop-color="#7d5a1f"/></radialGradient>'
-            '<radialGradient id="silver" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="#fbfcff"/><stop offset=".55" stop-color="#b9c0cd"/><stop offset="1" stop-color="#6b7388"/></radialGradient>')
-    return svg(w, h, "The four-pad kit", "Animated layout of the four pads in display order with the waveform of each "
-               "recorded sample; pads pulse as they are struck.", "".join(body), defs, STAR_CSS)
+            raise SystemExit(f"{group}-hard-1.wav is missing or unreadable ({exc}); "
+                             "run scripts/fetch_acoustic_samples.py first") from exc
+        gx, gy = rx + 214, y + 12
+        body.append(f'<g transform="translate({f(gx)} {f(gy)})">'
+                    f'<path d="{d}" fill="{accent}" fill-opacity=".32" stroke="{accent}" stroke-width="1"/>')
+        for t in times:
+            # The playhead runs in real time and disappears when the sample ends (or the loop restarts).
+            end = min(t + dur, cycle - 0.1)
+            x_end = wave_w * min(1.0, (end - t) / dur)
+            kt = f"0;{f(t / cycle)};{f(end / cycle)};1"
+            body.append(f'<rect x="0" y="0" width="{f(wave_w)}" height="34" fill="{accent}" opacity="0">{pulse(t, cycle, 0.5, {}, 0.18)}</rect>')
+            body.append(f'<line x1="0" y1="-3" x2="0" y2="37" stroke="#fff" stroke-width="1.8" opacity="0">'
+                        f'<animate attributeName="x1" dur="{f(cycle)}s" repeatCount="indefinite" keyTimes="{kt}" values="0;0;{f(x_end)};{f(x_end)}"/>'
+                        f'<animate attributeName="x2" dur="{f(cycle)}s" repeatCount="indefinite" keyTimes="{kt}" values="0;0;{f(x_end)};{f(x_end)}"/>'
+                        f'<animate attributeName="opacity" dur="{f(cycle)}s" repeatCount="indefinite" calcMode="discrete" '
+                        f'keyTimes="0;{f(t / cycle)};{f(end / cycle)}" values="0;.9;0"/></line>')
+        body.append(f'</g>{text(rx + 556, y + 59, f"{dur:.2f} s", 10, MUTED, "end", "mono")}')
+    body.append(text(w / 2, 612, "Samples: “The Salamander Drumkit” by Alexander Holm, CC BY-SA 3.0 (hard layer, take 1 shown). "
+                     "Tom 2 is the rack tom transposed down 6 semitones. Only the picture is mirrored.", 11.5, MUTED, "middle"))
+    defs = (BG_DEFS.format(w=w, h=h) + PIECE_DEFS +
+            '<linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5681"/><stop offset="1" stop-color="#262d4a"/></linearGradient>')
+    return svg(w, h, "The seven-piece kit", "Animated layout of the seven-piece kit as the app draws it, beside the "
+               "waveform of each piece's recorded acoustic sample; a struck pad flashes and a playhead runs over its "
+               "waveform.", "".join(body), defs, STAR_CSS)
 
 
 # ----------------------------------------------------------------------------- roadmap
 
 
 def roadmap() -> str:
-    w, h, cycle = 1240, 520, 18.0
+    """The 20 phases (00 to 19) as one track. A light runs the track once per cycle and lights every phase
+    as it passes; at the end the final-release badge comes up. Every phase was delivered with code, tests
+    and a gate record; the picture states no gate verdict and no measurement."""
+    w, h, cycle = 1240, 520, 16.0
     names = ["Definition", "Architecture", "Capture", "Hands +|stick", "Geometry +|audio", "Rule|baselines", "Data|collection",
              "Dataset +|labels", "Features", "GBDT +|evaluation", "Temporal|AI", "Multi-task", "Extensions", "Realtime|inference",
-             "Calibration", "Debug|dashboard", "Performance", "Hardening", "Evaluation", "Ablations", "Final|integration",
-             "Thesis|material", "Graduation|demo", "Packaging"]
+             "Calibration", "Debug|dashboard", "Performance", "Hardening", "Evaluation", "Ablations"]
     groups = [("foundations", A, range(0, 3)), ("perception to baselines", "#9b8cff", range(3, 10)),
               ("learning", B, range(10, 14)), ("product", OK, range(14, 18)), ("evaluation", C, range(18, 20))]
+    per_row, step = 10, 119
 
     def colour(i: int) -> str:
-        return next((c for _, c, r in groups if i in r), DIM)
+        return next(c for _, c, r in groups if i in r)
 
     def x_of(i: int) -> float:
-        return 74 + (i % 12) * 98
+        return 84 + (i % per_row) * step
 
     def y_of(i: int) -> float:
-        return 128 if i < 12 else 322
+        return 132 if i < per_row else 318
 
-    x11, x12, y0, y1 = x_of(11), x_of(12), y_of(0), y_of(12)
+    xe, xs, y0, y1 = x_of(per_row - 1), x_of(per_row), y_of(0), y_of(per_row)
     y_mid = (y0 + y1) / 2 + 6
-    ret = (f"H{x11 + 34}Q{x11 + 62} {y0} {x11 + 62} {y0 + 28}V{y_mid - 28}Q{x11 + 62} {y_mid} {x11 + 34} {y_mid}"
-           f"H{x12 - 34}Q{x12 - 62} {y_mid} {x12 - 62} {y_mid + 28}V{y1 - 28}Q{x12 - 62} {y1} {x12 - 34} {y1}H{x12}")
+    ret = (f"H{xe + 34}Q{xe + 62} {y0} {xe + 62} {y0 + 28}V{y_mid - 28}Q{xe + 62} {y_mid} {xe + 34} {y_mid}"
+           f"H{xs - 34}Q{xs - 62} {y_mid} {xs - 62} {y_mid + 28}V{y1 - 28}Q{xs - 62} {y1} {xs - 34} {y1}H{xs}")
+    track = f"M{x_of(0)} {y0}H{xe}{ret}H{x_of(19)}"
+    # Arrival of the light at each phase, as a share of the run (the run takes 70 % of the cycle). The
+    # quarter bends are about 44 px long; the rest of the track is straight.
+    row = (per_row - 1) * step
+    turn = 34 + 44 + (y_mid - 28 - y0 - 28) + 44 + (xe + 34 - xs + 34) + 44 + (y1 - 28 - y_mid - 28) + 44 + 34
+    total = 2 * row + turn
+
+    def arrive(i: int) -> float:
+        along = i * step if i < per_row else row + turn + (i - per_row) * step
+        return 0.7 * cycle * along / total
+
     body = [rect(0, 0, w, h, 24, "url(#bg)"), f'<g clip-path="url(#round)">{stars(36, w, h, 71)}</g>']
-    body.append(text(36, 40, "ROADMAP  ·  24 PHASES  ·  EACH ENDS AT AN OWNER-SIGNED EXIT GATE", 12, MUTED, "start", "b", 'letter-spacing="3"'))
-    rails = f"M{x_of(0)} {y0}H{x11}{ret}H{x_of(23)}"
-    body.append(f'<path d="{rails}" stroke="{LINE}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')
-    run = f"M{x_of(0)} {y0}H{x11}{ret}H{x_of(19)}"
+    body.append(text(36, 40, "ROADMAP  ·  20 PHASES  ·  COMPLETE  ·  EACH ONE CLOSED WITH A GATE RECORD", 12, MUTED,
+                     "start", "b", 'letter-spacing="3"'))
+    body.append(f'<path d="{track}" stroke="{LINE}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')
+    # the lit track grows behind the light
+    body.append(f'<path d="{track}" stroke="url(#lit)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" '
+                f'pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1"><animate attributeName="stroke-dashoffset" dur="{f(cycle)}s" '
+                f'repeatCount="indefinite" keyTimes="0;.7;.97;1" values="1;0;0;1"/></path>')
     for i, nm in enumerate(names):
-        x, y = x_of(i), y_of(i)
-        built, pending, col = i <= 19, 3 <= i <= 19, colour(i)
-        if built:
-            body.append(f'<circle cx="{x}" cy="{y}" r="22" fill="{col}" fill-opacity=".16" stroke="{col}" stroke-width="2.4"/>')
-            if pending:
-                body.append(f'<circle cx="{x}" cy="{y}" r="29" fill="none" stroke="{col}" stroke-width="1.6" stroke-dasharray="3 5" opacity=".85">'
-                            f'<animateTransform attributeName="transform" type="rotate" from="0 {x} {y}" to="360 {x} {y}" dur="14s" repeatCount="indefinite"/></circle>')
-        else:
-            body.append(f'<circle cx="{x}" cy="{y}" r="22" fill="none" stroke="{DIM}" stroke-width="2" stroke-dasharray="4 5">'
-                        f'<animate attributeName="opacity" values=".45;.9;.45" dur="3.6s" begin="{f((i - 20) * 0.5)}s" repeatCount="indefinite"/></circle>')
-        body.append(text(x, y + 5.5, f"{i:02d}", 15, INK if built else MUTED, "middle", "bb"))
+        x, y, col, t0 = x_of(i), y_of(i), colour(i), arrive(i)
+        body.append(f'<circle cx="{x}" cy="{y}" r="22" fill="{col}" fill-opacity=".16" stroke="{col}" stroke-width="2.4"/>')
+        body.append(f'<circle cx="{x}" cy="{y}" r="22" fill="{col}" fill-opacity=".42" opacity="0">{appear(t0, cycle, cycle - 0.5, 0.3)}</circle>')
+        body.append(f'<circle cx="{x}" cy="{y}" r="22" fill="none" stroke="{col}" stroke-width="2" opacity="0">'
+                    f'{pulse(t0, cycle, 0.9, {"r": (22, 40)}, 0.9)}</circle>')
+        body.append(text(x, y + 5.5, f"{i:02d}", 15, INK, "middle", "bb"))
         for j, ln in enumerate(nm.split("|")):
-            body.append(text(x, y + 46 + j * 14, ln, 11.5, INK if built else DIM, "middle", "b" if built else ""))
-    body.append(f'<circle r="7" fill="#fff" filter="url(#dot)" opacity="1"><animateMotion dur="{cycle}s" repeatCount="indefinite" path="{run}" keyPoints="0;1;1" keyTimes="0;.7;1" calcMode="linear"/>'
-                f'<animate attributeName="opacity" dur="{cycle}s" repeatCount="indefinite" keyTimes="0;.68;.72;1" values="1;1;0;0"/></circle>')
-    ax, ay = x_of(19), y_of(19)
-    body.append(f'<g>{rect(ax - 214, ay + 84, 262, 46, 12, "#0d1330", OK, 1.4)}{text(ax - 83, ay + 104, "latest: standing four-pad product", 12, OK, "middle", "b")}'
-                f'{text(ax - 83, ay + 120, "candidate (ADR-0045), live acceptance pending", 10.5, MUTED, "middle")}'
-                f'<path d="M{ax + 4} {ay + 84}Q{ax + 4} {ay + 56} {ax} {ay + 36}" fill="none" stroke="{OK}" stroke-width="1.6" stroke-dasharray="3 4"/></g>')
-    # legends
-    body.append(f'<circle cx="44" cy="466" r="8" fill="{MUTED}" fill-opacity=".16" stroke="{MUTED}" stroke-width="2"/>{text(62, 471, "built", 12, MUTED)}')
-    body.append(f'<circle cx="124" cy="466" r="7" fill="{MUTED}" fill-opacity=".16" stroke="{MUTED}" stroke-width="2"/><circle cx="124" cy="466" r="11" fill="none" stroke="{MUTED}" stroke-dasharray="2 3"/>'
-                f'{text(144, 471, "built, evidence still pending (participants, live runs, sign-off)", 12, MUTED)}')
-    body.append(f'<circle cx="540" cy="466" r="8" fill="none" stroke="{DIM}" stroke-width="2" stroke-dasharray="3 3"/>{text(558, 471, "planned", 12, MUTED)}')
-    lx = 36
+            body.append(text(x, y + 46 + j * 14, ln, 11.5, INK, "middle", "b"))
+    body.append(f'<circle r="7" fill="#fff" filter="url(#dot)" opacity="1"><animateMotion dur="{f(cycle)}s" repeatCount="indefinite" path="{track}" keyPoints="0;1;1" keyTimes="0;.7;1" calcMode="linear"/>'
+                f'<animate attributeName="opacity" dur="{f(cycle)}s" repeatCount="indefinite" keyTimes="0;.68;.72;1" values="1;1;0;0"/></circle>')
+    # final-release badge under phase 19
+    ax, ay, t_end = x_of(19), y_of(19), arrive(19)
+    bw = 336
+    bx = ax + 34 - bw  # the connector from phase 19 lands on the badge's top edge
+    body.append(f'<g opacity="0">{appear(t_end, cycle, cycle - 0.5, 0.4)}'
+                f'{rect(bx, ay + 82, bw, 50, 14, "#0d1330", OK, 1.6)}'
+                f'{text(bx + bw / 2, ay + 103, "FINAL RELEASE", 13, OK, "middle", "bb", LS15)}'
+                f'{text(bx + bw / 2, ay + 121, "standing four-pad kit · seven-piece kit · AR view", 11, MUTED, "middle")}'
+                f'<path d="M{ax + 4} {ay + 82}Q{ax + 4} {ay + 56} {ax} {ay + 36}" fill="none" stroke="{OK}" stroke-width="1.6" stroke-dasharray="3 4"/></g>')
+    # legend
+    body.append(f'<circle cx="44" cy="478" r="8" fill="{MUTED}" fill-opacity=".16" stroke="{MUTED}" stroke-width="2"/>'
+                f'{text(62, 483, "delivered: code, tests and a gate record", 12, MUTED)}')
+    lx = 360
     for label, col, _ in groups:
-        body.append(f'<rect x="{lx}" y="490" width="12" height="12" rx="3" fill="{col}"/>{text(lx + 18, 500.5, label, 11.5, MUTED)}')
+        body.append(f'<rect x="{lx}" y="472" width="12" height="12" rx="3" fill="{col}"/>{text(lx + 18, 482.5, label, 11.5, MUTED)}')
         lx += 18 + len(label) * 6.4 + 26
     return svg(w, h, "Space Drums roadmap",
-               "Twenty-four phases from project definition to final packaging. Phases 00 to 19 have their machinery built; "
-               "phases 20 to 23 are planned; evidence from participants and live runs is still pending for most.",
+               "Twenty phases from project definition to the ablation study, all delivered with code, tests and a "
+               "gate record. A light runs along the track and lights each phase in turn; at the end the final-release "
+               "badge appears: standing four-pad kit, seven-piece kit and AR view.",
                "".join(body), BG_DEFS.format(w=w, h=h) +
-               '<filter id="dot" x="-300%" y="-300%" width="700%" height="700%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>',
+               '<filter id="dot" x="-300%" y="-300%" width="700%" height="700%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+               f'<linearGradient id="lit" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="{w}" y2="0"><stop offset="0" stop-color="{A}"/><stop offset=".5" stop-color="#9b8cff"/><stop offset="1" stop-color="{C}"/></linearGradient>',
                STAR_CSS)
 
 

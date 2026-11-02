@@ -4,14 +4,17 @@ One-off tools. Run from the repository root with the development venv (`.venv\Sc
 
 ## README assets
 
-- `make_readme_assets.py [--only kit|calibration|research]` renders the pictures and GIFs of the top-level
-  `README.md` into `docs/assets/readme/`. It runs the real decision pipeline and renderers on SYNTHETIC input
-  (a stylised scene with scripted strokes; the analytic `alternating_two_zones` scenario). Every output has
-  `synthetic` in its name and none is a recording or evidence; only the MediaPipe hand model is replaced by
-  synthetic landmarks, as in `tests/product`.
+- `make_readme_assets.py [--only kit|setup|fullkit|research]` renders the pictures and GIFs of the top-level
+  `README.md` into `docs/assets/readme/`, all on the seven-piece kit of `configs/demo.fullkit.candidate.yaml`.
+  It runs the real decision pipeline, endpoint estimators (fingertips; red-tip detector) and renderers (stage,
+  layout preview, research overlay) on SYNTHETIC input: a stylised scene with scripted strokes and key presses,
+  and the analytic `alternating_two_zones` scenario. Every output has `synthetic` in its name and none is a
+  recording or evidence; only the MediaPipe hand model is replaced by synthetic landmarks, as in `tests/product`.
+  It prints the commits of each scripted groove and warns when they differ from the script.
 - `make_readme_svgs.py [--only <name>]` writes the animated SVGs of the README (SMIL and CSS only, no scripts).
-  The concept figures are labelled illustrations. The waveforms of the kit figure are read from the recorded
-  WAV files of the runtime bank, so run `fetch_drum_samples.py` first.
+  The concept figures are labelled illustrations. The hero and the kit figure read the pad layout from the
+  kit's config, and the kit figure's waveforms are read from the acoustic WAV files, so run
+  `fetch_acoustic_samples.py` first.
 - `make_ar_ui_concept.py [--debug]` rebuilds the HUD of the owner's AR-view concept render
   (`docs/assets/readme/source/ar-concept-photo.jpg`) as animated vector UI over an inpainted clean plate and
   writes `docs/assets/readme/ar-ui-concept.svg`. It is a concept, not a screenshot: the HUD values are
