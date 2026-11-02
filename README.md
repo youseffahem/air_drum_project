@@ -502,9 +502,8 @@ The project must **never** fabricate recordings, dataset samples, accuracy, late
 <div align="center">
 <table>
 <tr>
-<td align="center" width="33%"><img src="docs/figures/phase-02/guide-hw01-dshow-640x480.png" alt="The stand-here guide on the development laptop's webcam in a dark room" width="100%"><br><sub><b>Real HW-01 capture</b> (Phase 02): the stand-here guide, with the measured capture line. Dark room.</sub></td>
-<td align="center" width="33%"><img src="docs/figures/phase-04/mvp4-layout-synthetic.png" alt="The four-zone research layout with impact surfaces and inward normals" width="100%"><br><sub><b>MVP-4 research layout</b> (Phase 04, synthetic): impact surfaces in red, inward normals in green.</sub></td>
-<td align="center" width="33%"><img src="docs/figures/phase-05/synthetic-repeated-commit-frame.png" alt="A synthetic frame with a reactive candidate and a committed strike on the snare" width="100%"><br><sub><b>First playable prototype</b> (Phase 05, synthetic): a candidate and its commit.</sub></td>
+<td align="center" width="50%"><img src="docs/figures/phase-04/mvp4-layout-synthetic.png" alt="The four-zone research layout with impact surfaces and inward normals" width="100%"><br><sub><b>MVP-4 research layout</b> (Phase 04, synthetic): impact surfaces in red, inward normals in green.</sub></td>
+<td align="center" width="50%"><img src="docs/figures/phase-05/synthetic-repeated-commit-frame.png" alt="A synthetic frame with a reactive candidate and a committed strike on the snare" width="100%"><br><sub><b>First playable prototype</b> (Phase 05, synthetic): a candidate and its commit.</sub></td>
 </tr>
 </table>
 </div>

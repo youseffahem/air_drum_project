@@ -7,7 +7,7 @@ filled by reflection to make the 1280x720 native canvas; the sides are therefore
 No camera, window or audio device is opened.
 
 Usage:
-  python scripts/render_ar_snapshot.py --frame docs/presentation/assets/recorded-camera-frame-140.png \
+  python scripts/render_ar_snapshot.py --frame <camera-frame.png> \
       --reference docs/design/ar-reference.png --output data/ar-snapshots
   python scripts/render_ar_snapshot.py --frame F.png --kit full --hit snare --hit-age 0.06 --output OUT
 """

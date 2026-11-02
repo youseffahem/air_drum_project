@@ -4,6 +4,8 @@ All paths below are relative to `docs/presentation/` in the SpaceDrums repositor
 
 Final presentation: 15 slides, 16:9, all six roles. Planned talk: about 11 minutes 20 seconds. See validation results for the reproducible test failure and the outstanding desktop PowerPoint check.
 
+> Camera photos (seven screenshots and contact sheets in `assets/`, and slide previews 6, 8 and 13) were removed on 2026-11-03 at the owner's request. The deck shows a "Camera photo removed" placeholder in their place.
+
 | Path | Purpose |
 |---|---|
 | [MANIFEST.md](MANIFEST.md) | This complete deliverable index |
@@ -14,13 +16,6 @@ Final presentation: 15 slides, 16:9, all six roles. Planned talk: about 11 minut
 | [assets/architecture.png](assets/architecture.png) | Genuine visual evidence or source-grounded diagram; see asset index |
 | [assets/audio-pipeline.png](assets/audio-pipeline.png) | Genuine visual evidence or source-grounded diagram; see asset index |
 | [assets/core-contracts.png](assets/core-contracts.png) | Genuine visual evidence or source-grounded diagram; see asset index |
-| [assets/hand-diagnostics-window.jpg](assets/hand-diagnostics-window.jpg) | Genuine visual evidence or source-grounded diagram; see asset index |
-| [assets/hand-replay-window.jpg](assets/hand-replay-window.jpg) | Genuine visual evidence or source-grounded diagram; see asset index |
-| [assets/recorded-camera-frame-140.png](assets/recorded-camera-frame-140.png) | Genuine visual evidence or source-grounded diagram; see asset index |
-| [assets/recorded-four-pad-preview.png](assets/recorded-four-pad-preview.png) | Genuine visual evidence or source-grounded diagram; see asset index |
-| [assets/red-tip-dark-contact-sheet.jpg](assets/red-tip-dark-contact-sheet.jpg) | Genuine visual evidence or source-grounded diagram; see asset index |
-| [assets/red-tip-default-contact-sheet.jpg](assets/red-tip-default-contact-sheet.jpg) | Genuine visual evidence or source-grounded diagram; see asset index |
-| [assets/stick-diagnostics-window.jpg](assets/stick-diagnostics-window.jpg) | Genuine visual evidence or source-grounded diagram; see asset index |
 | [assets/strike-pipeline.png](assets/strike-pipeline.png) | Genuine visual evidence or source-grounded diagram; see asset index |
 | [evidence/asset-provenance.json](evidence/asset-provenance.json) | Image dimensions, origins and SHA-256 fingerprints |
 | [evidence/camera-ab-redtips.json](evidence/camera-ab-redtips.json) | Existing native/standard capture comparison and conditions |
@@ -48,14 +43,11 @@ Final presentation: 15 slides, 16:9, all six roles. Planned talk: about 11 minut
 | [previews/slide-03.png](previews/slide-03.png) | Rendered slide 3; PNG fallback |
 | [previews/slide-04.png](previews/slide-04.png) | Rendered slide 4; PNG fallback |
 | [previews/slide-05.png](previews/slide-05.png) | Rendered slide 5; PNG fallback |
-| [previews/slide-06.png](previews/slide-06.png) | Rendered slide 6; PNG fallback |
 | [previews/slide-07.png](previews/slide-07.png) | Rendered slide 7; PNG fallback |
-| [previews/slide-08.png](previews/slide-08.png) | Rendered slide 8; PNG fallback |
 | [previews/slide-09.png](previews/slide-09.png) | Rendered slide 9; PNG fallback |
 | [previews/slide-10.png](previews/slide-10.png) | Rendered slide 10; PNG fallback |
 | [previews/slide-11.png](previews/slide-11.png) | Rendered slide 11; PNG fallback |
 | [previews/slide-12.png](previews/slide-12.png) | Rendered slide 12; PNG fallback |
-| [previews/slide-13.png](previews/slide-13.png) | Rendered slide 13; PNG fallback |
 | [previews/slide-14.png](previews/slide-14.png) | Rendered slide 14; PNG fallback |
 | [previews/slide-15.png](previews/slide-15.png) | Rendered slide 15; PNG fallback |
 | [project-audit.md](project-audit.md) | Source-grounded audit, evidence, contradictions and claim boundaries |
