@@ -72,8 +72,6 @@ def main() -> int:
         initial = source_hashes()
         execution = {
             **provenance(),
-            "codex_model": "not used",
-            "codex_reasoning_effort": "not applicable",
             "executor_model": args.executor_model,
             "executor_reasoning_effort": args.executor_effort,
         }

@@ -9,7 +9,6 @@
 |---|---|
 | Phase | 07 — Dataset Creation & Labelling |
 | Phase document | `phases/phase-07-dataset-labeling.md` |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-22 |
 | Reviewer(s) | Project owner — review pending |
 | Review date | 2026-09-22 (submission) |
 | Code state | **Working tree is DIRTY**: the entire Phase 07 tree is uncommitted. `HEAD` at the time of the final verification: **`f29588a6aad8b40d045507888ee7289bbaac2e2f`** (`[P06] Close C-06-6 clean-tree verification`). 51 paths changed/added (§9). No commit, tag, push or amend was performed by the submitter. Every run cited below was taken on this dirty tree and is therefore **development evidence, not citable as MEASURED on a clean tree** (`docs/reproducibility-policy.md` §4) — condition **C-07-7** carries the clean-tree reruns, exactly as C-06-6 did for Phase 06. |

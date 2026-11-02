@@ -26,7 +26,6 @@ from _p11 import fold_stats
 from _p11_fixture import kinematic_fixture
 from _p12 import (
     DEV,
-    NOT_CODEX,
     calibration_for_trained,
     dev_pick,
     evaluate_sessions,
@@ -209,7 +208,7 @@ def main():
         description="EXPLORATORY post-hoc Gaussian variance head on frozen references (not pre-declared)",
     ) as run:
         torch.set_num_threads(1)
-        context = {**provenance(), "hardware": hardware(), **NOT_CODEX}
+        context = {**provenance(), "hardware": hardware()}
         write_json(run.dir / "execution.json", context)
         write_json(run.dir / "source-hashes.json", source_hashes())
         dataset, cv, sessions = kinematic_fixture(cfg, identities=DEV["identities"], seconds=DEV["seconds"])

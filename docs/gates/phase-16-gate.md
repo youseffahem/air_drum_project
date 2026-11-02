@@ -1,7 +1,7 @@
 # Phase 16 exit gate — performance optimization
 
 **Status: PENDING owner/reviewer.** Date: 2026-09-26 (+03:00).
-Submitter: Codex. Reviewer: project owner; signature **PENDING**.
+Reviewer: project owner; signature **PENDING**.
 
 The submitter recommends **FAIL for full-phase acceptance** until the missing
 research inputs and clean reproduction are resolved. This is not a reviewer
@@ -18,9 +18,6 @@ person was available at the webcam.
 - Initial provenance: `experiments/phase-16/execution-start.json`, recorded
   `2026-09-26T12:42:20.588402+03:00`. Dependency run began at 12:40 (+03:00).
   Every run has timezone-stamped start/finish and source hashes; final audit below.
-- Actual exposed model: **GPT-6 family; exact deployed variant unavailable**.
-  Actual picker reasoning setting: **unavailable to the agent**. The recommended
-  Astra / Extra High settings are not asserted as actual execution settings.
 - HW-01: i7-7820HQ, 4 physical / 8 logical cores, 15.9 GB RAM, CPU, Windows,
   AC power / Balanced plan. Exact environment and lock hashes are in run manifests.
 

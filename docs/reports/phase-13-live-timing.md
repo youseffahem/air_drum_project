@@ -2,7 +2,7 @@
 
 Status: PENDING live timing and gate-eligible measurements; development replay diagnostics.
 Hardware: HW-01, Intel i7-7820HQ, Windows Python 3.11, TorchScript CPU, one intra-op thread.
-Date: 2026-09-26 (+03:00). Actual Codex model and effort: UNVERIFIED.
+Date: 2026-09-26 (+03:00).
 
 The runs use uncommitted Phase 13 changes (`git_dirty: true`). Their recorded durations
 are development diagnostics, not MEASURED gate evidence under the reproducibility

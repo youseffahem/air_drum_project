@@ -10,19 +10,6 @@ Execution reports: [profiling](../docs/perf/phase-16-profiling.md),
 [gate record](../docs/gates/phase-16-gate.md). These development results do not
 authorize Phase 17 or promote REQ-023 / REQ-304.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Performance Engineering / Realtime Optimization
-- **Why this choice:** Threading or multiprocessing, model quantisation, and native-FPS handling can alter frame order, predictions, processing delay, and offline lead-time interpretation. Astra fits the system-wide profiling and code work; Extra High is justified by incremental before/after attribution, regression tolerances, causality/parity checks, and safe rollback decisions.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Profile the integrated live pipeline (Phase 13 + 15) on the target CPU, establish per-stage latency budgets from measurements, reduce end-to-end processing latency and frame drops through targeted optimisations (ROI-limited processing, threading/multiprocessing, model export/quantisation, allocation and copy reduction), attempt **true native 60 FPS** end-to-end if the camera delivers it (Phase 02 evidence), and verify with the Phase 09 harness that no optimisation changes the system's predictions or commits beyond a stated tolerance. Every change is reported as measured before/after.
@@ -199,8 +186,6 @@ Optimisation candidates (each individually measured and reversible):
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

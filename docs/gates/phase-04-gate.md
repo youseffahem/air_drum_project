@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 04 — Virtual Drum Geometry & Audio Engine |
 | Phase document | `phases/phase-04-drum-geometry-audio.md` |
-| Submitter | Codex acting as developer for the project owner |
 | Reviewer(s) | Project owner — review pending |
 | Review date | 2026-09-21 |
 | Code state | base `d6bc0ba97369f53e6ed12bd3e9c5ecf0e6974321` / dirty: yes (owner required no commit) |

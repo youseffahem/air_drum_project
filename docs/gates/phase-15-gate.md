@@ -4,17 +4,15 @@
 |---|---|
 | Phase | 15 — Visualization / Debug Dashboard |
 | Phase document | `phases/phase-15-debug-dashboard.md` |
-| Submitter | Codex, acting for project owner |
 | Reviewer / review date | Project owner — PENDING |
-| Execution environment | GPT-5 Codex at start, then GPT-6 Codex after a runtime model switch; exact GPT-6 variant and reasoning effort **UNVERIFIED** (not exposed); recommended GPT-6 Sol/High not claimed |
 | Start | 2026-09-26 11:01 +03:00; `f40e90b50e6766e9baf18e2e6a94c9d50c5187c7`, clean |
 | Final verification | 2026-09-26 12:24 +03:00; `f40e90b50e6766e9baf18e2e6a94c9d50c5187c7`, dirty with Phase 15 work; full pytest, lint, seven import contracts and export reproduction passed |
 | **Verdict** | **PENDING reviewer**; submitter cannot issue PASS |
 
 ## Dependency verification
 
-Before Phase 15 edits, `scripts/verify_phase14.py --require-clean --executor-model "GPT-5 Codex"
---executor-effort "UNVERIFIED"` passed all 26 commands on clean owner commit `f40e90b...`.
+Before Phase 15 edits, `scripts/verify_phase14.py --require-clean`
+passed all 26 commands on clean owner commit `f40e90b...`.
 Evidence: `experiments/phase-14/20260926-1102-p14-gate-verification/`. This closes Phase 14's
 executable post-owner-commit condition only. Its live-person calibration/repeatability evidence
 and owner signature remain PENDING; this Phase 15 authorization is recorded rather than treating

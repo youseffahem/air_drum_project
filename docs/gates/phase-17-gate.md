@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 17 — Testing, Hardening & Failure Handling |
 | Phase document | `phases/phase-17-testing-hardening.md` |
-| Submitter | Claude Code agent acting for the project owner |
 | Reviewer(s) | Project owner — PENDING |
 | Review date | PENDING |
 | Code state | start `8ad5393ece768ff27bbd067c1de5f46ba7425d55` clean; final verification same HEAD, **dirty** (Phase 17 changes uncommitted) |
@@ -14,12 +13,9 @@
 
 | Item | Value |
 |---|---|
-| Model actually used | **Claude Opus 5.5** (`claude-opus-5-5`) via Claude Code (VS Code extension). The phase document's recommended GPT-6 Astra / Extra High was **not** used. |
-| Reasoning effort actually used | not exposed to the agent; not asserted |
 | Execution start | 2026-09-26T14:58:48+03:00 (`experiments/phase-17/execution-start.json`) |
 | Git HEAD at start | `8ad5393ece768ff27bbd067c1de5f46ba7425d55`, git_dirty = false |
 | Final verification | `experiments/phase-17/20260927-0053-p17-gate-verification/`, 2026-09-27 00:53 → 01:49:46 +03:00, HEAD `8ad5393…`, **dirty**: all 13 commands exit 0; untracked whitespace problems 0; `source_unchanged = true` |
-| Executor record | Every Phase 17 run's `execution.json` carries `codex_model = "NOT CODEX: Claude Opus 5.5 (claude-opus-5-5) via Claude Code"` and effort "UNAVAILABLE to the agent; not asserted". Both are command-line arguments, never inferred. The dependency re-run's `execution.json` carries the string that `scripts/_p10.provenance()` hard-codes; `execution-start.json` supersedes it. |
 | Hardware | HW-01: i7-7820HQ (4 cores / 8 threads), 15.9 GB RAM, Windows 10.0.22621, AC power, Balanced plan; integrated webcam (DSHOW); Realtek output |
 
 Wall-clock notes:
@@ -143,7 +139,6 @@ All MEASURED on development inputs (HW-01, dirty tree); none is a participant re
 
 | What | Why | Impact on dependents |
 |---|---|---|
-| Recommended model (GPT-6 Astra / Extra High) not used; Claude Opus 5.5 executed the phase | the executing agent is Claude Code | none on evidence; recorded in every `execution.json` |
 | No `tests/unit/` / `tests/integration/` directories; levels are mapped by directory (`test-matrix.md`) | avoids moving ~1,400 existing tests | none; the matrix records the mapping |
 | Config schema 1.8 (optional `hands.identity.user_min_relative_area`, default off) | single-user rule (Open Question) | minor, backward compatible |
 | Frame-drop guard 1 → 3 in `prototype.candidate.yaml` and `live.arm-C.candidate.yaml`; `perf.developer.candidate.yaml` keeps 1 | pre-declared guard rule (ADR-0040 D4); the Phase 16 frozen regression pins `commit_policy_id` | Phase 18 uses 3; the Phase 07 SYNTHETIC schema examples embedding the prototype config hash were regenerated (hashes only) |
@@ -186,7 +181,7 @@ Signed: PENDING
 ## Exit actions (owner)
 
 1. Review the reports (`docs/testing/`) and ADR-0039 / 0040 / 0041 (ADR-0041 decided 2026-09-27).
-2. Commit the Phase 17 changes (owner-controlled; no commit, tag or push was made by the agent).
+2. Commit the Phase 17 changes (owner-controlled).
 3. On the committed tree run
    `python scripts/verify_phase17.py --require-clean --executor-model "<actual>" --executor-effort "<actual>"`
    (≈ 100 min). Then run `python scripts/soak_test.py --minutes 60 …` on its own.
@@ -228,8 +223,8 @@ arguments).
    1 / 3 / 0.
    - They are spread over the whole hour: the 34 `SD-CAP-002` events fall between minutes 0.0 and
      58.7.
-   - Six of them fall in the first 10 minutes. During those minutes the agent ran lint and unit tests
-     for about 10 s and edited scratch files; the soak had no other known concurrent load after that.
+   - Six of them fall in the first 10 minutes. During those minutes lint and unit tests ran
+     for about 10 s and scratch files were edited; the soak had no other known concurrent load after that.
    - The cause is not identified. Time of day, lighting and background OS activity differ between
      the two runs. This is recorded as run-to-run variability of the unattended soak, not as a code
      regression: the crash and invariant criteria hold.

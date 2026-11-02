@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 03 — Hand / Stick Tracking |
 | Phase document | `phases/phase-03-hand-stick-tracking.md` |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Reviewer(s) | Project owner — **verdict approved 2026-09-21** (PASS-WITH-CONDITIONS); C-03-5 decided MANIFEST-ONLY; owner confirmed that **no participant recordings are required** to close any condition (developer-only captures suffice for C-03-2/C-03-3). Signature line in §9. |
 | Review date | 2026-09-21 (submission and owner approval) |
 | Code state | Phase 03 tree committed by the owner as **`191778882f646444395b58c71134c3942974c5d8`** ("[P03] Phase 03 gate…"). Development runs were taken on the uncommitted tree at `4dd0c2e` (`git_dirty: true`); **all cited runs were repeated on the clean tree at `1917788…` with `git_dirty: false` (C-03-4, §3a) and reproduce the development figures exactly.** Tag `gate-03-pass` not yet created (owner). |

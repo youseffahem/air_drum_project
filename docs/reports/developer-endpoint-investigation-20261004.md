@@ -93,7 +93,7 @@ All image-profile constants are provisional developer algorithm parameters. They
 
 **Manually reviewed diagnostic set:** nearest saved frame to each half-second-plus-integer timestamp, 24 frames total. Reviewed grids and enlarged raw tip crops before inspecting profile-candidate results; annotated 37 tips on 22 frames. Thirty tips are scorable, with 3–5 px annotation uncertainty; 7 blurred tips are excluded from precise errors. The remaining opportunities include the lowered/absent second hand and frames 116/613 with ambiguous ownership or severe blur.
 
-Labels were visually placed and reviewed by Codex, not an independent human annotator. They mark the apparent physical cap centre. This is neither exhaustive ground truth nor a held-out accuracy test: algorithm development subsequently used these results.
+Labels were placed and reviewed visually, not by an independent human annotator. They mark the apparent physical cap centre. This is neither exhaustive ground truth nor a held-out accuracy test: algorithm development subsequently used these results.
 
 After inspecting cap size, annotation uncertainty and the baseline error distribution, **10 px** was selected as a developer comparison tolerance. It separates several-pixel localisation differences from the 97–122 px fragment/object errors. The raw errors and uncertainty classifications remain available so this cutoff cannot hide borderline points.
 

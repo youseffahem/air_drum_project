@@ -81,8 +81,8 @@ def add_executor_args(ap: argparse.ArgumentParser) -> None:
 
 def execution(args: argparse.Namespace) -> dict[str, Any]:
     p = provenance()
-    p["codex_model"] = args.executor_model
-    p["codex_reasoning_effort"] = args.executor_effort
+    p["executor_model"] = args.executor_model
+    p["executor_reasoning_effort"] = args.executor_effort
     p["executor_note"] = "executor fields are command-line arguments (Phase 17 rule); never inferred"
     return p
 

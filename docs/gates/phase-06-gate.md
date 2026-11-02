@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 06 — Data Collection Pipeline |
 | Phase document | `phases/phase-06-data-collection.md` |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21/22 |
 | Reviewer(s) | Project owner — review pending |
 | Review date | 2026-09-22 (submission) |
 | Code state | Phase 06 tree committed by the owner as **`b8642764f0216e250b1855981034c4650b0c9f94`** ("phase 6", on top of `483f58bc…`). Development runs were taken on the dirty tree at `483f58bc…`; **all three cited runs were repeated on the clean tree at `b864276…` with `git_dirty: false` (C-06-6, §3a) and their decision-level artefacts are identical.** Tag `gate-06-pass` not created (owner; verdict pending). |

@@ -6,19 +6,6 @@ PENDING Exit Gate — development integration implemented; participant-fold pari
 selected shipped model and live developer strike timing remain PENDING.
 Gate record: [phase-13-gate.md](../docs/gates/phase-13-gate.md) — reviewer PENDING, 2026-09-26.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Realtime ML Systems
-- **Why this choice:** Live Arm C joins model hashes and feature schemas with per-hand streaming state, variable frame intervals, worker delay, fallback, and audio timing. Astra fits the full-pipeline integration; Extra High is justified by causality, dropped-frame safety, and frame-by-frame offline/online parity across interacting runtime states.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Integrate the shipped temporal model (from Phase 10/11/12 ship ADR) into the live application as **Arm C**, alongside Arms A and B, with strict causal feeding from the live tracker, per-hand model state, model export/loading with hash verification, a latency budget check, automatic fallback to Baseline B (or A) when the model is unavailable or too slow, a runtime arm switch, live timing records, and an **offline/online parity test** (`TEST-PARITY-1`) proving that the live pipeline produces the same predictions and commits as the Phase 09 replay on recorded sessions.
@@ -208,8 +195,6 @@ timing: t_features_done, t_inference_done, t_candidate, t_commit, t_audio_schedu
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

@@ -9,7 +9,6 @@ Run context:
 - **Code state:** dirty tree on HEAD `8ad5393`, the same source as the final gate verification
   (`experiments/phase-17/20260927-0053-p17-gate-verification/`). The run's source audit confirmed the
   source was unchanged during the hour.
-- **Executor:** Claude Opus 5.5 via Claude Code.
 - **Run:** `experiments/phase-17/20260927-0150-soak-60min/`, 2026-09-27 01:50:20 → 02:50:20
   (+03:00).
 

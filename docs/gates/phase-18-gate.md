@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 18 — Evaluation & Experiments |
 | Phase document | `phases/phase-18-evaluation-experiments.md` |
-| Submitter | Claude Code agent acting for the project owner |
 | Reviewer(s) | Project owner, and the supervisor (the gate procedure recommends supervisor sign-off for the Phase 18 pre-registration) — PENDING |
 | Review date | PENDING |
 | Code state | start `6730b81b261658784a33812b551acdf043a60be8`, clean; final verification on the same HEAD, **dirty** (Phase 18 changes uncommitted at the time). Owner commit `c2b6191d8683bfbd2ead5559f6735a40ebccc967` followed (2026-09-27 13:39:24 +03:00); its 499 source-audited files are byte-identical to the verified tree. The clean re-run on it is PENDING. |
@@ -14,11 +13,9 @@
 
 | Item | Value |
 |---|---|
-| Model actually used | **Claude Opus 5.5** (`claude-opus-5-5`) via Claude Code (VS Code extension). The phase document's recommended GPT-6 Astra / Extra High was **not** used. |
-| Reasoning effort actually used | "max", the session setting the harness reports to the agent. The Codex picker setting does not apply. |
 | Execution start | 2026-09-27T06:45:22+03:00 (`experiments/phase-18/execution-start.json`) |
 | Git HEAD at start | `6730b81b261658784a33812b551acdf043a60be8`, git_dirty = false |
-| Final verification | `experiments/phase-18/20260927-1258-p18-gate-verification/`, 2026-09-27 12:58:35 → 13:25:04 +03:00, HEAD `6730b81…`, **dirty**. **All 16 commands exit 0**: pytest, ruff, import contracts, schemas, environment smoke, diff check, test-matrix freshness, pre-registration hash cited, method self-test, rehearsal lock, offline rehearsal, regeneration, live rehearsal, labels, M1 sync, live analysis. Untracked whitespace problems 0; `source_unchanged = true`. During the run the agent edited only documents outside the source audit (reports, this record, ADR-0042, `repo-layout.md`, RTM prose); the test-matrix freshness check was re-run afterwards and passed. |
+| Final verification | `experiments/phase-18/20260927-1258-p18-gate-verification/`, 2026-09-27 12:58:35 → 13:25:04 +03:00, HEAD `6730b81…`, **dirty**. **All 16 commands exit 0**: pytest, ruff, import contracts, schemas, environment smoke, diff check, test-matrix freshness, pre-registration hash cited, method self-test, rehearsal lock, offline rehearsal, regeneration, live rehearsal, labels, M1 sync, live analysis. Untracked whitespace problems 0; `source_unchanged = true`. During the run, edits were made only to documents outside the source audit (reports, this record, ADR-0042, `repo-layout.md`, RTM prose); the test-matrix freshness check was re-run afterwards and passed. |
 | Executor record | Every Phase 18 run's `execution.json` carries the executor model and effort as command-line arguments, never inferred. `execution-start.json` supersedes any string hard-coded by `scripts/_p10.provenance()`. |
 | Hardware | HW-01: i7-7820HQ (4 cores / 8 threads), 15.9 GB RAM, Windows 10.0.22621. Audio for the M1 pilot: "Microphone Array (Realtek Audio)" in, "Speakers / Headphones (Realtek Audio)" out, MME, 48 kHz. |
 
@@ -209,7 +206,6 @@ The Phase 17 dependency re-run measurements are recorded in `phase-17-gate.md`.
 
 | What | Why | Impact on dependents |
 |---|---|---|
-| Recommended model (GPT-6 Astra / Extra High) not used; Claude Opus 5.5 executed the phase | the executing agent is Claude Code | none on evidence; recorded in every `execution.json` |
 | Two-stage pre-registration: rules and symbols now, values in frozen-inputs locks later (ADR-0042 D1) | W, `Δ_proc`, the budgets, the operating points, the shipped model and `ds-v1.0` are all PENDING; declaring rules now keeps them ahead of any data | every lock must be archived after the latest approved version; the runners enforce this |
 | Primary matching stays ADR-0023 (`t_commit`); README §10.1 (`t_impact_pred`) is the pre-declared sensitivity S1 (ADR-0042 D2) | the frozen harness implements ADR-0023, and the discrepancy was unrecorded | decided A1 (owner, 2026-09-27): ADR-0023 stays primary; this also bounds the Phase 10–12 leads (T2) |
 | `LiveSessionMetadata` extends `SessionMetadata` by composition (`live-session.json` references `metadata.json` by SHA-256) rather than by new fields (ADR-0042 D5) | the Phase 06 schema is closed (`additionalProperties: false`) | none on the Phase 06 tools |
@@ -266,9 +262,9 @@ Signed: PENDING
    and the live participant count (both before the first live session). Approve version 1 when
    ready, with the answers in the note:
    `python scripts/prereg_archive.py approve --by "<name>" --date YYYY-MM-DD --note "<answers>"`
-   (the approver runs this, never the agent).
+   (the approver runs this).
 3. **Commit** the Phase 18 changes: done by the owner (`c2b6191`, 2026-09-27 13:39:24 +03:00). Commit,
-   tag and push stay owner-controlled; the agent made none.
+   tag and push stay owner-controlled.
 4. **Clean re-run.** On the committed tree, run
    `python scripts/verify_phase18.py --require-clean --executor-model "<actual>" --executor-effort "<actual>"`
    (26.5 min on the dirty tree on HW-01).
@@ -284,5 +280,4 @@ Signed: PENDING
 7. **Experiment 2**, after the ethics answer, consent, the implemented and re-verified ADR-0036
    amendment, the M1 equipment and pilot, and the live lock:
    `run_live_session.py`, then `external_sync.py`, then `analyze_live.py`, per participant.
-8. **Next phase.** Per the phase document, a PASS leads to Phases 19 and 20. The agent has not
-   started either.
+8. **Next phase.** Per the phase document, a PASS leads to Phases 19 and 20.

@@ -75,9 +75,7 @@
     "performed": true,
     "passed": true,
     "slideCount": 15,
-    "sha256": "2b8dbe5f1ff831303c2e76271fccf42444aefe12a2237b45b9e26158ddf9d6cd",
-    "runtimeNodeModules": "<user>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules",
-    "nodeExecutable": "<user>\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe"
+    "sha256": "2b8dbe5f1ff831303c2e76271fccf42444aefe12a2237b45b9e26158ddf9d6cd"
   },
   "nativeTableArithmetic": {
     "performed": true,

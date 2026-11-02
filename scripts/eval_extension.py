@@ -25,7 +25,6 @@ from _p12 import (
     EXTENSIONS,
     FAMILIES,
     FOLDS,
-    NOT_CODEX,
     PROBABILISTIC,
     RULES,
     SEEDS,
@@ -298,7 +297,7 @@ def main():
         experiments_dir=args.output,
         description="Phase 12 extension grid on the SYNTHETIC fixture; no held-out evaluation or adoption",
     ) as run:
-        context = {**provenance(), "hardware": hardware(), **NOT_CODEX}
+        context = {**provenance(), "hardware": hardware()}
         write_json(run.dir / "source-hashes.json", source_hashes())
         write_json(run.dir / "execution.json", context)
         dataset, cv, sessions = kinematic_fixture(cfg, identities=DEV["identities"], seconds=DEV["seconds"])

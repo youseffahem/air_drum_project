@@ -111,7 +111,7 @@ candidate has 4), so the current values are not eligible. The rule selects **`g_
   effect on fabrication, P07 or the developer captures. This follows the declared rule.
 - **`g_max_frames = 3` is kept.** This is an **explicit engineering deviation from the
   pre-declared sweep rule**, which selected `g_max_frames = 6` (and the post-hoc sensitivity agreed).
-  The agent proposed the deviation, and the owner decided it. The engineering reasons:
+  The owner decided the deviation. The engineering reasons:
   1. The deciding difference is 1 (declared) or 2 (post-hoc) arm-B commits in 216 / 336 synthetic
      placements. They come from B's post-reset anticipation, which `g_max` does not remove, only
      postpones to longer losses. The count keeps falling up to the largest value tested (6), so the

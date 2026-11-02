@@ -12,7 +12,7 @@
 - Decision record: `experiments/phase-18/20260927-1232-methods-decide/result.json`
   (`scripts/external_methods_pilot.py --decide`).
 - Machinery: `spacedrums.live_eval.{acoustic, video, sync, software}`, `scripts/external_methods_pilot.py`.
-- Hardware: HW-01. Executor: Claude Opus 5.5 via Claude Code, recorded in each run's `execution.json`.
+- Hardware: HW-01.
 - All runs are on a dirty tree (Phase 18 uncommitted), so they are development evidence.
 
 ## 1. SYNTHETIC machinery self-test

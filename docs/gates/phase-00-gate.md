@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 00 — Project Definition & Environment |
 | Phase document | `phases/phase-00-project-definition.md` |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-20 |
 | Reviewer(s) | Project owner — **review pending** |
 | Review date | *pending* |
 | Code state | git repository initialised (branch `main`), **no commits yet** → no `git_sha`. Document-only phase; the only script is `scripts/env_smoke.py`. |

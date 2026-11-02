@@ -302,7 +302,8 @@ def build_rehearsal(args: argparse.Namespace) -> int:
         fold = cv["folds"][R["fold"]]
         fold_dir = run.dir / "features" / f"fold-{fold['fold']}"
         context = {**provenance(), "hardware": hardware()}
-        context["codex_model"], context["codex_reasoning_effort"] = args.executor_model, args.executor_effort
+        context["executor_model"] = args.executor_model
+        context["executor_reasoning_effort"] = args.executor_effort
         schema = sessions[0].schema
         gru_dir = run.dir / "models" / "c-gru"  # train_fold creates it (and refuses an existing one)
         _, gru_manifest, _, gru_val = train_and_export(

@@ -7,19 +7,6 @@ overhead MEASURED and within the experiment-mode bound; participant/live experim
 owner review PENDING. Gate record: [phase-15-gate.md](../docs/gates/phase-15-gate.md) — reviewer
 PENDING, 2026-09-26.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Sol
-- **Reasoning effort:** High
-- **Recommended profile:** Engineering / Observability
-- **Why this choice:** The dashboard consumes existing records for overlays, replay, timing labels, and exports, with a non-blocking bus and measured UI overhead. Sol fits this well-specified integration workload; High covers replay alignment, predicted-versus-estimated timing labels, and the requirement to leave the causal production path unchanged.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Build the developer/debug overlay and dashboard (Q58) that exposes, live and in replay, every internal quantity the research needs to inspect: tracking state, hand landmarks, stick axis and tip (with method id), stick velocity, predicted trajectory, predicted strike and zone, Time-to-Impact, intensity proxy, confidence/probability where applicable, commit decisions (with reasons for rejection), timing information (per-strike decomposition), active arm and fallback status, and capture/audio statistics. Provide export of frames/plots/logs for thesis figures. Measure and bound the overlay's own overhead.
@@ -182,8 +169,6 @@ replay source ──► same loop in replay mode ──► same UI + GT labels o
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

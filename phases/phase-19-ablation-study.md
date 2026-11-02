@@ -6,19 +6,6 @@ PREPARATION ONLY under the owner's 2026-09-27 scheduling exception. Phase 18 rem
 See [preparation record](../docs/gates/phase-19-gate.md). Experimental execution and Phase 19
 completion are not authorized; the experimental acceptance criteria below remain unmet.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Experimental ML / Ablation Analysis
-- **Why this choice:** One-factor ablations change feature groups, history, horizons, trajectory structure, tip method, and frame rate under frozen folds, seeds, and operating rules. Astra fits the research workflow; Extra High is justified by confounding and leakage risks, matched participant analysis, conditional feasibility, and interpretation of null or adverse results.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Quantify the contribution of individual inputs, temporal context, prediction horizon, the trajectory-first structure, and the frame rate to the temporal model's anticipation performance, using the frozen harness, the same participant-level folds, the same seeds, the same `W`, `Δ_proc`, and FP budget as Phase 18. Only ablations that are **implemented and experimentally feasible** are included; each answers one pre-declared question with an outcome-neutral interpretation rule.
@@ -208,8 +195,6 @@ Interpretation rule (pre-declared): a change is "material" if the per-participan
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

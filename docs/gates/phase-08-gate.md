@@ -1,6 +1,6 @@
 # Phase 08 — Exit Gate
 
-Submitted 2026-09-22. Submitter: Codex. Reviewer: project owner, pending.
+Submitted 2026-09-22. Reviewer: project owner, pending.
 Proposed verdict: **FAIL for the full phase; implementation machinery is complete**.
 
 The implementation acceptance criteria have executable evidence, but the required input

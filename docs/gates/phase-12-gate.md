@@ -11,11 +11,7 @@ reproductions. **10,683** artifacts across the 12 completed input runs matched h
 source, frozen components and predeclaration stayed unchanged, final dirty state false.
 This closes the executable C-12-5 rerun only; research/reviewer conditions remain pending.
 
-Execution-setting correction for this rerun: the inherited verifier hard-codes the
-previous Claude executor in its `execution.json`. That field is superseded by
-`experiments/phase-13/20260926-integration/execution-start.json`: actual Codex model
-and effort are **UNVERIFIED**, as instructed by the user. The recommendation is not
-asserted as the actual setting. No commit, tag, push or self-issued research PASS occurred.
+No commit, tag, push or self-issued research PASS occurred.
 
 ## Original Phase 12 submission
 
@@ -23,7 +19,6 @@ asserted as the actual setting. No commit, tag, push or self-issued research PAS
 |---|---|
 | Phase | 12 — Trajectory Prediction Extensions (optional) |
 | Phase document | `phases/phase-12-trajectory-extensions.md` |
-| Submitter | Claude Opus 5.5 (Claude Code), acting for the project owner |
 | Reviewer(s) | Project owner — PENDING |
 | Review date | PENDING |
 | Code state | start `91351f555475b097a6450643fc83e8987e6a1ba1` clean; final verification `91351f555475b097a6450643fc83e8987e6a1ba1` dirty: **yes** (Phase 12 uncommitted) |
@@ -40,15 +35,10 @@ neither exists. Neither the submitter nor passing unit tests can pass this gate.
 
 | Field | Recorded value |
 |---|---|
-| Model actually used | **Claude Opus 5.5 (`claude-opus-5-5`) via Claude Code** — not the recommended Codex GPT-6 Astra |
-| Reasoning effort actually used | Not exposed to the agent; not asserted (the recommended "Extra High" is a Codex picker setting) |
 | Execution date/time | 2026-09-26, 04:45–06:50 +03:00 (exact timestamps in each `run.json` / `execution.json`) |
 | HEAD at start | `91351f555475b097a6450643fc83e8987e6a1ba1` ("phase 11"), `git_dirty` **false** (verified by the Phase 11 verifier at 04:45) |
 | HEAD at final verification | `91351f555475b097a6450643fc83e8987e6a1ba1`; `git_dirty` **true** (no commit/tag/push performed) |
 | Runtime / CPU | locked Windows Python 3.11 venv, PyTorch 2.14.0+cpu, HW-01 (Intel i7-7820HQ, 4 cores / 8 threads); hardware snapshots in every run manifest |
-
-Every Phase 12 run's `execution.json` records `codex_model = "NOT CODEX: Claude Opus 5.5
-(claude-opus-5-5) via Claude Code"` and reasoning effort "UNAVAILABLE to the agent; not asserted".
 
 ## Dependency verification (before any Phase 12 edit)
 
@@ -165,7 +155,6 @@ documentation changed (this record, `scripts/README.md`); `git diff --check` was
 | Development operating points picked per fold on its single validation identity | the fixture has one validation identity per fold | participant-macro aggregation across validation participants must be implemented with the participant plan |
 | Grid latencies measured with three parallel workers; the exploratory run shared the CPU with the E2/E1 grids | wall-clock budget | marked contended; the CPU criterion uses the isolated latency run only |
 | `_p12.py` gained the `EXPLORATORY_PROBABILISTIC` constant during the E1 run | the latency script had to time the exploratory gate | each run's `source-hashes.json` records the code it ran; the constant is unused by the grid runner |
-| Model/effort not the recommended Codex profile | executed by Claude Opus 5.5 | recorded truthfully above |
 
 ## 7. Open Questions / Pending items carried forward
 

@@ -4,19 +4,6 @@
 
 PENDING — development implementation and synthetic verification; participant evidence and reviewer gate remain pending.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Deep ML / Multitask Learning
-- **Why this choice:** Shared-encoder training introduces masked losses, task conflicts, loss-weight search, head ablations, and geometry-consistency gates across several target semantics. Astra fits the research and implementation workload; Extra High is justified by the coupled optimization and leakage-sensitive joint evaluation while preserving the live trajectory-first invariant.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Extend the selected Phase 10 temporal model with a **shared causal encoder and multiple task heads** — future trajectory (primary, retained), strike-within-horizon probability, Time-to-Impact, impact zone, impact position, and intensity proxy — and determine **experimentally** whether multi-task learning improves, degrades, or leaves unchanged the trajectory-first strike pipeline on lead time, FP/FN, timing error, zone accuracy, and intensity agreement, under the same harness, folds, and rules. Define how the heads' outputs may be used (consistency checks and gating) without bypassing geometry.
@@ -221,8 +208,6 @@ Phase 05 commit policy: unchanged; may consume p(strike), agreement flags as opt
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

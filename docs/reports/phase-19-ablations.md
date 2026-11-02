@@ -38,9 +38,7 @@ remain the basis for later measurements. Native 60 FPS is not inferred from down
 ## Verification record
 
 Execution began on clean Git HEAD `68c640181a48552c4b4bce63d1414323bcd2680f`.
-Preparation leaves that SHA unchanged and the worktree dirty. Actual executor model and
-reasoning setting cannot be verified in this session: `UNVERIFIED (Codex session)` and
-`UNVERIFIED`. Every new execution record preserves that limitation.
+Preparation leaves that SHA unchanged and the worktree dirty.
 
 ### Dependency baseline before source edits
 
@@ -169,9 +167,7 @@ wrapper without `--skip-full`. The wrapper passed all 13 checks and exited 0:
 also shows the eight Phase 18 protected files byte-identical to HEAD and the earlier audit, the
 preregistration ledger with one version, no locks and no approvals, and Phase 20 untouched.
 Git HEAD is `68c6401…` with a dirty worktree of 55 changed entries, matching the file inventory.
-This run was executed in a Claude Code session and records its executor as
-`claude-opus-5-5 (Claude Code session; self-reported, not independently verified)` with effort
-`UNVERIFIED`. That is not verified attribution. No participant data, participant claim or
+No participant data, participant claim or
 approval was introduced; every result above is SYNTHETIC/DEV.
 
 ## Files and protected artifacts

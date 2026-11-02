@@ -3,7 +3,6 @@
 | Field | Value |
 |---|---|
 | Status | **PARTIAL — factorial PENDING.** The distance × lighting protocol (`docs/protocols/camera-distance-benchmark.md` §7, Phase 02 Task 02.7 tracking columns) needs a person at the camera for a movement script per cell; no new recording was made in Phase 03 (owner instruction). What could be measured from the existing captures is below and is labelled; the recommendation is recorded as **ADR-0017 (Proposed)**. |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Runs | clean-tree (commit `1917788…`, `git_dirty: false`): `20260921-1449-p03-tip-benchmark` (swing captures + distance stills, IMAGE mode for stills), `20260921-1447/1448/1452-p03-hands-check-*`; development originals: `20260921-1405`, `1403`, `1003/1004`, `1046-*` — identical detection outputs (benchmark report §6) |
 | Tooling | `scripts/benchmark_tip_methods.py --distance` (stills) and `--capture <cell>` (movement-script cells); fills presence rate, axis confidence, support, override/ambiguity rates, tracker histogram; tip error once annotated |
 

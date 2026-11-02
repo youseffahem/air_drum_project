@@ -28,7 +28,6 @@ from _p12 import (
     DEV,
     EXPLORATORY_PROBABILISTIC,
     F_CPU,
-    NOT_CODEX,
     PROBABILISTIC,
     ext_config,
     load_any,
@@ -337,7 +336,7 @@ def main():
             "E3 feasibility gate before training" if args.feasibility else "extension path latency and memory"
         ),
     ) as run:
-        context = {**provenance(), "hardware": hardware(), **NOT_CODEX}
+        context = {**provenance(), "hardware": hardware()}
         write_json(run.dir / "execution.json", {**context, "input_runs": [str(r) for r in args.runs or []]})
         write_json(run.dir / "source-hashes.json", source_hashes())
         summary = feasibility(args, run, context) if args.feasibility else trained(args, run, context)

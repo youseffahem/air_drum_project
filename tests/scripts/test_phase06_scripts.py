@@ -259,7 +259,8 @@ def test_record_session_live_refuses_without_kind():
     assert res.returncode != 0 and "--kind" in (res.stdout + res.stderr)
 
 
-@pytest.mark.skipif(not DEV_CAPTURE.exists(), reason="developer capture not present on this machine")
+@pytest.mark.skipif(not (DEV_CAPTURE / "frame_00000.png").exists(),
+                    reason="developer capture frames not present on this machine")
 def test_record_session_devcapture_ingest_check(tmp_path):
     exp = tmp_path / "exp"
     raw = tmp_path / "raw"

@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 14 — Calibration |
 | Phase document | `phases/phase-14-calibration.md` |
-| Submitter | Claude Code agent acting for the project owner |
 | Reviewer(s) | Project owner — PENDING |
 | Review date | PENDING |
 | Code state | start `a8ea862d41bc6846421596b523777d689a31f5f9` clean; final verification same HEAD, **dirty** (Phase 14 changes uncommitted) |
@@ -14,8 +13,6 @@
 
 | Item | Value |
 |---|---|
-| Model actually used | **Claude Opus 5.5** (`claude-opus-5-5`) via Claude Code. The phase document's recommended GPT-6 Astra / High was **not** used. |
-| Reasoning effort actually used | max (session setting reported to the agent by the harness) |
 | Execution start | 2026-09-26T09:46:41+03:00 |
 | Git HEAD at start | `a8ea862d41bc6846421596b523777d689a31f5f9`, git_dirty = false |
 | Final verification | 2026-09-26T10:58:27+03:00, HEAD `a8ea862d41bc6846421596b523777d689a31f5f9`, git_dirty = true |
@@ -94,7 +91,7 @@ not assumed.
 | `replay-swing-L2-exp-6` | DEVELOPER_REPLAY diagnostic on data/dev-captures/swing-L2-exp-6 | pass (exit 0) | `24-replay-swing-L2-exp-6.log` |
 | `replay-swing-L2-exp-7` | DEVELOPER_REPLAY diagnostic on data/dev-captures/swing-L2-exp-7 | pass (exit 0) | `25-replay-swing-L2-exp-7.log` |
 
-Run `experiments/phase-14/20260926-1047-p14-gate-verification` (2026-09-26T10:47:28+03:00 → 2026-09-26T10:58:27+03:00; HEAD `a8ea862d41bc6846421596b523777d689a31f5f9`, git_dirty true; status **COMPLETED**). All commands passed: True; source unchanged during the run: True; untracked-file whitespace problems: 0. Executor recorded in `execution.json`: Claude Opus 5.5 (claude-opus-5-5).
+Run `experiments/phase-14/20260926-1047-p14-gate-verification` (2026-09-26T10:47:28+03:00 → 2026-09-26T10:58:27+03:00; HEAD `a8ea862d41bc6846421596b523777d689a31f5f9`, git_dirty true; status **COMPLETED**). All commands passed: True; source unchanged during the run: True; untracked-file whitespace problems: 0.
 
 ## 4. Measurements produced in this phase
 

@@ -8,19 +8,6 @@ SYNTHETIC data only. The offline confirmatory run (no `ds-v1.0`), the external-m
 pilots, every live session with a person (ethics Open Question), reviewer action and clean
 post-owner-commit reproduction remain outstanding. See the gate record.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Experimental ML / Evaluation
-- **Why this choice:** The final pre-registered comparison combines participant-level offline analysis, counterbalanced live blocks, external synchronization, uncertainty estimates, and reproducibility. Astra fits the scientific and systems workload; Extra High is justified by causal evaluation, leakage control, and precise separation of measured action-to-sound latency from software estimates.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Run the **final, pre-registered, confirmatory evaluation** of the project's research question: compare **A (reactive)**, **B (rule-based anticipation)**, and **C (temporal AI; plus C-GBDT as the learned baseline)** on held-out participants offline (frozen harness, frozen models, frozen operating points) and **live** (end-to-end timing measured externally), reporting prediction lead time, false positives, false negatives, timing error, zone accuracy, trajectory accuracy, intensity agreement, inference latency, end-to-end latency decomposition, and — only where externally measured — effective action-to-sound latency. The design must allow any arm to win on any metric, and the report must state limitations.
@@ -229,8 +216,6 @@ This is the evidence for (or against) the contribution: whether causal temporal 
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

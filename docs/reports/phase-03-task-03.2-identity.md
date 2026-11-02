@@ -4,7 +4,6 @@
 |---|---|
 | Task | 03.2 — Left/Right Identity Assignment (`phases/phase-03-hand-stick-tracking.md`, Checkpoint 03.A) |
 | Status | **IMPLEMENTED** (code + synthetic-sequence tests) · swap-rate **MEASURED** on the existing dev captures (no crossings) · deliberate-crossing swap rate **PENDING** (§6: needs a dev capture with crossings; none was recorded, per the owner's instruction) |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Code state | Development runs on the uncommitted tree at `4dd0c2e` (`git_dirty: true`). **Clean-tree reruns (C-03-4) on commit `191778882f646444395b58c71134c3942974c5d8`, `git_dirty: false`: `20260921-1447-p03-hands-check-video-idtemporal` and `20260921-1448-p03-hands-check-video-idraw` reproduce every figure in §3 exactly (both-hands 103 / 32 / 0 and 99 / 10 / 0; overrides 4 / 28; jumps 0; ambiguous 0 / 4).** |
 | Hardware | HW-01 (`docs/hardware-inventory.md`), mains power, `cv2.getNumThreads() = 8` |
 | Related | ADR-0014 §Decision 10; Task 03.1 note (`phase-03-task-03.1-hand-landmarker.md`); README §8 (Q33–Q35); contracts.md §3.2 |

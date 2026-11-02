@@ -17,19 +17,6 @@ Execution reports: [test matrix](../docs/testing/test-matrix.md),
 [ADR-0040](../docs/decisions/ADR-0040-hardening-rules.md) and
 [ADR-0041](../docs/decisions/ADR-0041-reacquisition-thresholds.md) (decided by the owner; deviation from the declared rule).
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Verification / Reliability Engineering
-- **Why this choice:** Fault injection spans tracking, capture timing, model fallback, audio loss, background motion, and DEGRADED commits, while invariant and soak suites must protect the complete system. Astra fits the broad debugging work; Extra High is justified by cross-component failure-mode analysis and evidence that recovery never fabricates strikes or violates causality.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Consolidate the test suites from all previous phases into a complete test matrix (unit / integration / system), add **failure-injection** tests for every identified failure mode (tracking loss, occlusion, lighting change, camera stall, frame drops, audio device loss, model fallback, hand swap, background people), enforce the system's **safety invariants** (no commit in `INVALID/STALE`, no future-frame access, refractory respected, one strike per episode, no strike fabrication during switches), run soak tests, decide experimentally whether `DEGRADED` commits may be enabled, and produce a failure catalogue with the system's documented behaviour in each case. This phase hardens the product and protects the validity of Phase 18.
@@ -230,8 +217,6 @@ Invariant monitors (always on in debug/test builds):
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

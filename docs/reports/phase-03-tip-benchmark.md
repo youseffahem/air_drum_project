@@ -2,7 +2,6 @@
 
 | Field | Value |
 |---|---|
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Code state | Development runs (§2–§5) were taken on the uncommitted tree at `4dd0c2e` (`git_dirty: true`). **Clean-tree reruns on commit `191778882f646444395b58c71134c3942974c5d8` (`git_dirty: false`) reproduce every detection/tracking figure exactly — see §7.** The clean run ids are the citable ones. |
 | Hardware | HW-01 — Intel i7-7820HQ (4C/8T), Windows 11 22621, mains power, `cv2.getNumThreads() = 8` |
 | Data | Phase 02 developer captures only (owner, **not** dataset recordings): `swing-L2-exp-5/6/7` (171/171/172 frames, L2, manual exposure −5/−6/−7, DSHOW 640×480, ROI `[40, 20, 560, 440]`), `distance/d080…d220` single frames. **No new recording was made in Phase 03.** |

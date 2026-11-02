@@ -4,19 +4,6 @@
 
 PENDING — development implementation and synthetic verification; no extension adopted; participant evidence and reviewer gate remain pending.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Deep ML / Trajectory Prediction
-- **Why this choice:** If this optional phase is attempted, causal attention, longer horizons, multimodal trajectories, uncertainty propagated through geometry, and decoding changes each need CPU feasibility and pre-declared go/no-go comparisons. Astra fits the experimental architecture work; Extra High is justified for reasoning across those interacting representations, causality tests, and baseline comparisons. A documented skip requires no model execution.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Investigate **optional** extensions of the trajectory predictor — longer horizons, richer trajectory representations, temporal attention / Tiny Transformer, uncertainty estimation, and improved trajectory decoding — each with an explicit go/no-go criterion measured with the frozen harness. This phase is **not mandatory**: if Phases 10–11 already provide the research contribution (measured lead time vs. FP comparison against baselines), Phase 12 may be skipped with a written justification, or reduced to the subset of extensions that is computationally and temporally affordable.
@@ -204,8 +191,6 @@ Extensions plug into the Phase 10 pipeline at defined points:
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

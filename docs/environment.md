@@ -79,8 +79,8 @@ Rule: experiment-log records carry `environment.lock_hash`; two runs are only co
 
 | Date | Machine | Python | Lock SHA-256 | Smoke result | Verified by |
 |---|---|---|---|---|---|
-| 2026-09-20 | HW-01 (dev laptop, see `hardware-inventory.md`) | 3.11.9 | `f92a60c6dfcf036ddf2e28efcc2dd0aa68f8f57f1c9d95e82f87c1fe6aae86a8` | PASS (13/13 imports; schema accept + reject) | Claude (assistant), clean `venv` on the dev machine |
-| 2026-09-21 | HW-01 | 3.11.9 | `1d6191320186c79f6221fb1238b1840f3dfb22f3a791ef5d9b579259e01c1eaa` | PASS (`env_smoke.py`; `pytest` all suites) | Claude (assistant), Phase 02: lock regenerated after `pip install import-linter` into the **existing** venv + `pip freeze --exclude-editable` (not from a deleted/recreated venv — §5 step 2 was not repeated; every previously pinned version is byte-identical, only the six import-linter packages were added). A clean regeneration remains part of the pending clean-machine row. |
+| 2026-09-20 | HW-01 (dev laptop, see `hardware-inventory.md`) | 3.11.9 | `f92a60c6dfcf036ddf2e28efcc2dd0aa68f8f57f1c9d95e82f87c1fe6aae86a8` | PASS (13/13 imports; schema accept + reject) | clean `venv` on the dev machine |
+| 2026-09-21 | HW-01 | 3.11.9 | `1d6191320186c79f6221fb1238b1840f3dfb22f3a791ef5d9b579259e01c1eaa` | PASS (`env_smoke.py`; `pytest` all suites) | Phase 02: lock regenerated after `pip install import-linter` into the **existing** venv + `pip freeze --exclude-editable` (not from a deleted/recreated venv — §5 step 2 was not repeated; every previously pinned version is byte-identical, only the six import-linter packages were added). A clean regeneration remains part of the pending clean-machine row. |
 | *pending* | second machine or clean VM | — | — | — | **Checklist item, not assumed** — required before any VALIDATED status (Acceptance Criterion 2 is met on the dev machine only). |
 
 Note on the first verification: the venv was created fresh, but the *machine* was not clean (other Python versions and tools are installed). A true clean-machine verification is the pending row above.

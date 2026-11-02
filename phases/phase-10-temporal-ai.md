@@ -4,19 +4,6 @@
 
 PENDING — development implementation and synthetic verification; participant evidence and reviewer gate remain pending.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** Extra High
-- **Recommended profile:** Deep ML / Temporal Modeling
-- **Why this choice:** The core phase designs causal GRU/TCN trajectory models, masked sequence windows, stateful inference, export parity, and a multi-criteria horizon/operating-point sweep against the frozen Phase 09 harness. Astra supports the end-to-end ML and code work; Extra High is justified by sustained leakage, temporal-contract, and evaluation reasoning before the single held-out test run.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Build, train, and evaluate the **core research component**: a small **causal temporal model** (GRU and TCN candidates; Tiny Transformer deferred to Phase 12 unless justified) that, from the recent per-hand motion history (Phase 08 features), predicts the **future stick-tip trajectory** over a horizon; feed that predicted trajectory through the **unchanged Phase 04 geometry** to obtain predicted strikes with Time-to-Impact; commit through the **unchanged Phase 05 policy**; and measure, with the frozen Phase 09 harness, whether this yields useful prediction lead time against false-positive, false-negative, timing-error, trajectory-error, and CPU-latency constraints — compared with Baselines A, B, and C-GBDT. The phase selects a model family and horizon **on multi-criteria evidence**, not accuracy alone.
@@ -309,8 +296,6 @@ Same folds, same `W`, same `Δ_proc` policy, same geometry and commit policy, sa
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

@@ -3,7 +3,6 @@
 | Field | Value |
 |---|---|
 | Status | **PENDING for every MEASURED quantity of the phase.** `L_prior` repeatability, wizard duration and per-zone Arm A validation detections need a person following the wizard at the camera; no developer live calibration exists (owner action, §4). The analysis and all machinery are IMPLEMENTED and exercised on SYNTHETIC and replayed developer inputs (§2, §3), which are labelled as such and are not the phase measurements. |
-| Submitter | Claude Code agent (Claude Opus 5.5, `claude-opus-5-5`; reasoning effort: max), acting for the project owner, 2026-09-26 |
 | Evidence run | `experiments/phase-14/20260926-1047-p14-gate-verification/` (HEAD `a8ea862…`, **dirty** tree: Phase 14 changes uncommitted; diagnostics only until the clean rerun) |
 | Method | `scripts/calibration_repeatability.py` over repeated calibration files of one subject/setup (same camera profile hash, ROI, template and fit mode) |
 

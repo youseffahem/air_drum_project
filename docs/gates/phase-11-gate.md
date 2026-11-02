@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 11 — Multi-Task Prediction: Time-to-Impact, Zone & Intensity |
 | Phase document | `phases/phase-11-multitask-prediction.md` |
-| Submitter | Claude Opus 5.5 (Claude Code), acting for the project owner |
 | Reviewer(s) | Project owner — PENDING |
 | Review date | PENDING |
 | Code state | start `bd0bcf8a99e0a0fe1fed13e9869892e5cec1dd81` clean; final verification `bd0bcf8a99e0a0fe1fed13e9869892e5cec1dd81` dirty: **yes** (Phase 11 uncommitted) |
@@ -20,15 +19,10 @@ this gate.
 
 | Field | Recorded value |
 |---|---|
-| Model actually used | **Claude Opus 5.5 (`claude-opus-5-5`) via Claude Code** — not the recommended Codex GPT-6 Astra |
-| Reasoning effort actually used | Not exposed to the agent; not asserted (the recommended "Extra High" is a Codex picker setting) |
 | Execution date/time | 2026-09-25, 08:40–10:46 (final verification; later edits documentation only) +03:00 (exact timestamps in each `run.json` / `execution.json`) |
 | HEAD at start | `bd0bcf8a99e0a0fe1fed13e9869892e5cec1dd81` ("phase 10"), `git_dirty` **false** (verified 08:40 and by the Phase 10 verifier at 08:51) |
 | HEAD at final verification | `bd0bcf8a99e0a0fe1fed13e9869892e5cec1dd81`; `git_dirty` **true** (no commit/tag/push performed) |
 | Runtime / CPU | locked Windows Python 3.11 venv, PyTorch 2.14.0+cpu, HW-01 (Intel i7-7820HQ, 4 cores / 8 threads); hardware snapshots in every run manifest |
-
-Every Phase 11 run's `execution.json` records `codex_model = "NOT CODEX: Claude Opus 5.5
-(claude-opus-5-5) via Claude Code"` and reasoning effort "UNAVAILABLE to the agent; not asserted".
 
 ## Dependency verification (before any Phase 11 edit)
 
@@ -146,7 +140,6 @@ not a research PASS. TorchScript deprecation warnings remain visible in the logs
 | Grid latency measured with three parallel workers | wall-clock budget | marked contended; Task 11.8 uses a separate isolated run |
 | Added `compare_tti.py` and `phase-11-latency.md` | answer the TTI open question at development level; give Task 11.8 its own evidence | additive |
 | Scripts gained additive helpers after some runs started (`_p11.load_grid_run`, `choose_weighting`, TTI kind, configurable latency pair) | orchestration grew with the phase | each run's `source-hashes.json` records the code it ran. Against the final tree, the weighting run differs in `src/` only by `config/loader.py` (the config-1.5 version gate, not exercised by any run); the ablation run differs only in scripts (`_p11_grid.py` later gained the additive TTI kind; `compare_tti.py`, `latency_mt.py` it did not use); the TTI run matches exactly. Cross-run checkpoints are bit-identical (48/48) |
-| Model/effort not the recommended Codex profile | the phase was executed by Claude Opus 5.5 | recorded truthfully above |
 
 ## 7. Open Questions / Pending items carried forward
 

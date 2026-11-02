@@ -35,8 +35,6 @@ def main():
         description="Multi-task fold training/export; evidence kind in the model manifest",
     ) as run:
         context = {**provenance(), "hardware": hardware()}
-        context["codex_model"] = "NOT CODEX: Claude Opus 5.5 (claude-opus-5-5) via Claude Code"
-        context["codex_reasoning_effort"] = "UNAVAILABLE to the agent; not asserted"
         write_json(run.dir / "settings.json", settings)
         write_json(run.dir / "source-hashes.json", source_hashes())
         _, manifest, _, metrics = train_and_export_mt(

@@ -72,8 +72,6 @@ def main():
         description="C-MT consistency gates and commit-time intensity sources (SYNTHETIC)",
     ) as run:
         context = {**provenance(), "hardware": hardware()}
-        context["codex_model"] = "NOT CODEX: Claude Opus 5.5 (claude-opus-5-5) via Claude Code"
-        context["codex_reasoning_effort"] = "UNAVAILABLE to the agent; not asserted"
         write_json(run.dir / "execution.json", {**context, "input_run": str(args.run)})
         write_json(run.dir / "source-hashes.json", source_hashes())
         write_json(

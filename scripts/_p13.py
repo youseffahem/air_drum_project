@@ -18,9 +18,6 @@ from spacedrums.timing import now, wall_clock_iso
 def execution():
     return {
         **provenance(),
-        "codex_model": "UNVERIFIED",
-        "codex_reasoning_effort": "UNVERIFIED",
-        "setting_evidence": "Picker settings unverified by agent and user; user instructed no inference.",
     }
 
 

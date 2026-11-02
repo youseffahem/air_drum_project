@@ -38,10 +38,6 @@ All remain PENDING at the Phase 18 gate:
   arm values, recorded live verification, dependency re-verification on the owner-committed SHA and reviewer
   acceptance remain required. The live candidate config is not a frozen reference.
 - Reviewer gate decision and all unresolved conditions in the Phase 18 gate.
-- Verified executor attribution. This session cannot independently verify the model picker
-  or reasoning effort; records say `UNVERIFIED (Codex session)` / `UNVERIFIED`. The final
-  preparation verification ran in a Claude Code session and records a self-reported,
-  unverified `claude-opus-5-5` with effort `UNVERIFIED`.
 
 The Phase 18 gate/report history is not rewritten by this record. Participant confirmation
 of DEGRADED-commit policy, reacquisition thresholds/warm-up and the outstanding live

@@ -3,7 +3,6 @@
 Status: **Submitter proposal**, recorded 2026-09-26 (+03:00) before any Phase 12 extension was
 implemented, trained or evaluated. The phase's compute/time budget is an owner decision and is
 **PENDING (Open Question)**; the owner may replace this proposal (including by a skip) at the gate.
-Submitter: Claude Opus 5.5 (`claude-opus-5-5`) via Claude Code, acting for the project owner.
 
 ## Situation at entry
 

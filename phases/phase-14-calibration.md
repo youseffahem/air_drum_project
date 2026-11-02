@@ -7,19 +7,6 @@ triggers, calibrated config 1.7, per-hand `L_prior`, model verified against the 
 developer live calibrations, `L_prior` repeatability, wizard duration and validation strikes PENDING.
 Gate record: [phase-14-gate.md](../docs/gates/phase-14-gate.md) — reviewer PENDING, 2026-09-26.
 
-## Codex Model for This Phase
-
-- **Model:** GPT-6 Astra
-- **Reasoning effort:** High
-- **Recommended profile:** Computer Vision / Runtime Calibration
-- **Why this choice:** The wizard must fit an ROI, per-hand stick priors, and deterministic zone geometry while keeping the calibrated ZONE features and session hashes compatible with the live model. Astra fits the cross-module CV work; High is sufficient because the algorithmic choices are bounded by existing tracking, geometry, and Arm A validation contracts.
-
-> Set the model and reasoning effort in the Codex picker before running this phase.
-> This section is a workload recommendation only; text in the prompt does not switch the active model.
-> Record the actual model and reasoning setting used in the phase evidence.
-> If the recommended model is unavailable, use the strongest available compatible model and record the actual setting used.
-> The selected model is not a substitute for tests, acceptance criteria, or empirical evidence.
-
 ## Purpose
 
 Implement the Calibration Wizard (Q57) that determines, for a given camera placement and user, the playing area (ROI confirmation and "stand here" fit), the virtual drum-zone positions and sizes (scaled fixed layouts with optional adjustment), per-user parameters that the tracker benefits from (apparent stick-length prior `L_prior`, hand-size reference), and the coordinate mappings — persisted as a versioned calibration file that the pipeline loads. Include a validation step (test strikes) and re-calibration triggers. The wizard must not change the core detection/prediction architecture (Q20) and must keep zone geometry deterministic.
@@ -192,8 +179,6 @@ Step 6 Save: calib-v1 file with camera profile id, ROI, L_prior per hand, zone l
 
 The Phase execution evidence MUST record:
 
-- Codex model actually used
-- Reasoning effort actually used
 - execution date/time (with timezone)
 - Git HEAD SHA at start
 - Git HEAD SHA at final verification

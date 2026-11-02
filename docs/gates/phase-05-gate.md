@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 05 — Rule-Based Baseline & First Playable Prototype |
 | Phase document | `phases/phase-05-rule-based-baseline.md` |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Reviewer(s) | Project owner — review pending |
 | Review date | 2026-09-21 (submission) |
 | Code state | Phase 05 tree committed by the owner as **`4c42b8f7cf35163f5c8a610c1f489cef0bf812c9`** ("[P05] Phase 05 rule-based baseline; gate PROPOSED PASS-WITH-CONDITIONS"). Development runs were taken on the dirty tree at `36f2d4e…`; **all five cited runs were repeated on the clean tree at `4c42b8f…` with `git_dirty: false` (C-05-5, §3a) and their decision-level artefacts are identical.** Tag `gate-05-pass` not created (owner; verdict pending). |

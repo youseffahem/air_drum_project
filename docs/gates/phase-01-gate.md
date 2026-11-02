@@ -4,8 +4,7 @@
 |---|---|
 | Phase | 01 — System Architecture & Contracts |
 | Phase document | `phases/phase-01-system-architecture.md` |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-20 |
-| Reviewer(s) | Final gate review performed by Claude **on the project owner's explicit instruction** (2026-09-21, scope in §11); project owner countersignature **pending** (gate-procedure §4: a gate is not passed by the submitter alone — the verdict below becomes effective on the owner's signature in §10) |
+| Reviewer(s) | Final gate review performed **on the project owner's explicit instruction** (2026-09-21, scope in §11); project owner countersignature **pending** (gate-procedure §4: a gate is not passed by the submitter alone — the verdict below becomes effective on the owner's signature in §10) |
 | Review date | 2026-09-21 |
 | Code state | Phase 00 artefacts committed as `865805b93fe5bffa7775cde7b104016c0e964047` ("phase 00"). Phase 01 artefacts **uncommitted** (dirty: yes, 54 paths) at the owner's instruction; the owner's commit after signature becomes the citable `git_sha`. Specification phase; the only executable code is `scripts/validate_contracts.py` and `tests/contracts/` (schema tests). |
 | **Verdict** | **PASS** — all seven acceptance criteria MET after the review corrections listed in §7; integrity checklist has no NO; Definition of Done satisfied. Effective on owner signature (§10). Follow-up obligations that are *not* conditions on this phase's criteria are listed in §9. |
@@ -180,7 +179,7 @@ None — this phase produces no measurements. The only numbers in the artefacts 
 
 ## 10. Reviewer statement
 
-Review performed 2026-09-21 by Claude on the project owner's explicit instruction ("Perform a final Phase 01 gate review only"), scope §11. Inspected: `project-discovery.md` Q1–Q60 and closing sections against every Phase 01 artefact for the eleven contradiction classes in §2.1; the Phase 00 RTM, out-of-scope register, reproducibility policy, repo layout and ADR-0001…0003; the roadmap README §5–§10 and Phases 02–19 for expectations on Phase 01 contracts. Ran: `pytest` (99 passed), `scripts/validate_contracts.py` (PASS, 204 checks), `ruff check .` (clean), `scripts/env_smoke.py` (PASS), I-6 keyword grep, relative-link check (0 broken). Not verified: nothing was executed against a camera, audio device or data — none exists in this phase.
+Review performed 2026-09-21 on the project owner's explicit instruction ("Perform a final Phase 01 gate review only"), scope §11. Inspected: `project-discovery.md` Q1–Q60 and closing sections against every Phase 01 artefact for the eleven contradiction classes in §2.1; the Phase 00 RTM, out-of-scope register, reproducibility policy, repo layout and ADR-0001…0003; the roadmap README §5–§10 and Phases 02–19 for expectations on Phase 01 contracts. Ran: `pytest` (99 passed), `scripts/validate_contracts.py` (PASS, 204 checks), `ruff check .` (clean), `scripts/env_smoke.py` (PASS), I-6 keyword grep, relative-link check (0 broken). Not verified: nothing was executed against a camera, audio device or data — none exists in this phase.
 
 Verdict **PASS**, effective on the owner's signature (gate-procedure §4).
 

@@ -118,8 +118,6 @@ def main():
         description="Batch-one CPU latency/parameters/memory, MT vs single-task (development compute)",
     ) as run:
         context = {**provenance(), "hardware": hardware()}
-        context["codex_model"] = "NOT CODEX: Claude Opus 5.5 (claude-opus-5-5) via Claude Code"
-        context["codex_reasoning_effort"] = "UNAVAILABLE to the agent; not asserted"
         write_json(run.dir / "execution.json", {**context, "input_run": str(args.run)})
         variants = (args.single, args.multi)
         pairs, report = _pairs(args.run, args.fold, args.seed, variants), {"pair": list(variants)}

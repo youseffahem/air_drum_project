@@ -39,8 +39,6 @@ def provenance():
         "harness_version": HARNESS_VERSION,
         "harness_hashes": {p.name: sha(p) for p in sorted((ROOT / "src/spacedrums/eval").glob("*.py"))},
         "lock_hash": sha(ROOT / "requirements.lock"),
-        "codex_model": "GPT-6 family exposed by system; exact deployed variant unavailable",
-        "codex_reasoning_effort": "UNAVAILABLE to the agent; picker setting not asserted",
     }
 
 

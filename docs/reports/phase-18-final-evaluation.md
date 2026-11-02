@@ -108,8 +108,6 @@ repeat them.
 - **Code state.** All Phase 18 runs used a **dirty** tree (Phase 18 uncommitted), so they are
   development evidence. The clean re-run (`verify_phase18.py --require-clean`) waits for the owner
   commit.
-- **Executor.** Claude Opus 5.5 via Claude Code, recorded in each run's `execution.json` and in
-  `experiments/phase-18/execution-start.json`. The recommended GPT-6 Astra was not used.
 - **Frozen code.** The Phase 09 harness (`spacedrums.eval`), the models, the thresholds, `app` and
   `ui` are unchanged. Phase 18 added a package, schemas, scripts, tests and documents.
 

@@ -4,7 +4,6 @@
 |---|---|
 | Task | 03.1 — Hand Landmark Estimator Wrapper (`phases/phase-03-hand-stick-tracking.md`, Checkpoint 03.A) |
 | Status | **IMPLEMENTED** (code + tests) · integration evidence **MEASURED** on two dev-capture runs · owner handedness check **CLOSED 2026-09-21** (§6, P-03.1-1) |
-| Submitter | Claude (AI assistant) acting for the project owner, 2026-09-21 |
 | Code state | Development runs on the uncommitted tree at `4dd0c2e` (`git_dirty: true`). **Clean-tree reruns (C-03-4) on commit `191778882f646444395b58c71134c3942974c5d8`, `git_dirty: false`: `20260921-1448-p03-hands-check-video-idraw` (VIDEO, RAW identity = this note's configuration) and `20260921-1452-p03-hands-check-image-idraw` (IMAGE, RAW) reproduce every presence count in §2.1 exactly (99 / 10 / 0 and 69 / 2 / 0 both-hands frames); estimator timings differ within noise (exp-5 VIDEO p50 33.8 → 25.2 ms, IMAGE 46.9 → 38.3 ms).** |
 | Hardware | HW-01 (`docs/hardware-inventory.md`): Intel i7-7820HQ, 4C/8T, Windows 11 22621, on mains power; `cv2.getNumThreads() = 8` |
 | Related | ADR-0014; `docs/architecture/contracts.md` §3.2; `docs/environment.md` §7; Phase 02 gate items F-3, C-5 |

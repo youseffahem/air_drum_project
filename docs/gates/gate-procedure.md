@@ -8,7 +8,7 @@
 
 | Role | Who | Responsibility |
 |---|---|---|
-| **Submitter** | Whoever executed the phase (developer; may be an AI assistant acting for the owner) | Assembles the inputs (§2), pre-fills the record, states honestly what is and is not done. |
+| **Submitter** | Whoever executed the phase (developer) | Assembles the inputs (§2), pre-fills the record, states honestly what is and is not done. |
 | **Reviewer** | **Project owner**, and the **supervisor** where the institution or the phase requires it (Phases 06/07 ethics and dataset freeze, 18 pre-registration, 21 thesis, 23 release — supervisor sign-off recommended). | Checks every acceptance criterion against evidence, fills the integrity checklist, issues the verdict. The submitter may not be the sole reviewer. |
 
 ## 2. Inputs to a gate review

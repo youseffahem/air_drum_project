@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 from _p10 import hardware, provenance, source_hashes, write_json
-from _p12 import BAND_SIGMAS, F_CPU, NOT_CODEX, RULES, dev_pick, load_run_rows, predeclaration_record
+from _p12 import BAND_SIGMAS, F_CPU, RULES, dev_pick, load_run_rows, predeclaration_record
 from _runlog import RunLog
 
 from spacedrums.config import load_config
@@ -419,7 +419,7 @@ def main():
         experiments_dir=args.output,
         description="Mechanical application of the pre-declared go/no-go rule to SYNTHETIC development runs",
     ) as run:
-        context = {**provenance(), "hardware": hardware(), **NOT_CODEX}
+        context = {**provenance(), "hardware": hardware()}
         write_json(run.dir / "execution.json", context)
         write_json(run.dir / "source-hashes.json", source_hashes())
         results = []

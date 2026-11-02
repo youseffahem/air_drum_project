@@ -13,7 +13,7 @@
   every listed report must quote that version's digest ("pre-registration hash verified in the
   report").
 * ``approve`` records an owner or supervisor approval against the latest archived version
-  (gate procedure §1). The approver runs it; an agent never runs it on their behalf.
+  (gate procedure §1). The approver runs it.
 """
 
 from __future__ import annotations

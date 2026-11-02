@@ -9,8 +9,6 @@ Status: **development evidence**. All of it comes from:
 Run context:
 - **Machine:** HW-01 (i7-7820HQ, Windows 10.0.22621, CPU), 2026-09-26/27 (+03:00).
 - **Code state:** dirty tree on HEAD `8ad5393ece768ff27bbd067c1de5f46ba7425d55`.
-- **Executor:** Claude Opus 5.5 (`claude-opus-5-5`) via Claude Code; reasoning effort not exposed
-  to the agent.
 - **Matching:** the Phase 09 matcher with the candidate W = 50 ms (no primary W is frozen).
 
 **No participant data exists.** The participant replay set, every person-dependent physical test

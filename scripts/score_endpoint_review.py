@@ -150,7 +150,7 @@ def main():
         methods[mode] = [json.loads(s) for s in (args.output / f"{mode}.jsonl").read_text().splitlines()]
     metrics = {name: score(labels, pred, rows, args.tolerance_px) for name, pred in methods.items()}
     result = {
-        "status": "developer diagnostic subset, visually reviewed by Codex; not independent ground truth",
+        "status": "developer diagnostic subset, visually reviewed; not independent ground truth",
         "tolerance_px": args.tolerance_px,
         "methods": metrics,
     }
@@ -214,7 +214,7 @@ select,button{font:inherit;padding:8px;margin:8px;background:#25344a;color:white
 img{width:100%;height:auto}a{color:#8cd9ff}.note{max-width:1000px;line-height:1.5}</style>
 <h1>Offline stick endpoint investigation · 608 saved frames</h1>
 <p class="note">Experimental prototype. Production tracker unchanged.
-The diagnostic set is manually reviewed by Codex, not independent human ground truth.
+The diagnostic set is reviewed manually; it is not independent human ground truth.
 White crosses mark reviewed tips; green marks acceptance, not guaranteed correctness.</p>
 <p><a href="accuracy.json">Pixel errors and annotations</a> · <a href="comparison.json">Continuity</a> ·
 <a href="benchmark.json">CPU benchmark</a> · <a href="manual-labels.json">Labels and uncertainty</a></p>

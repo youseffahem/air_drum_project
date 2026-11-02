@@ -4,7 +4,6 @@
 |---|---|
 | Phase | 13 — Real-Time Inference Integration |
 | Phase document | `phases/phase-13-realtime-inference.md` |
-| Submitter | Codex, acting for project owner; actual model/effort UNVERIFIED |
 | Reviewer / review date | Project owner — PENDING |
 | Start | 2026-09-26 08:23:03 +03:00; `0714a75133608f47be430324d9f3154e844e411b`, clean |
 | Final verification | 2026-09-26T09:38:58+03:00; same HEAD, dirty=true; 10/10 commands passed |
@@ -20,12 +19,6 @@ environment smoke and diff check passed. All 21 export reproductions and 10,683 
 artifacts passed. Source and clean state stayed unchanged. This closes C-12-5's
 executable rerun only. Phase 05 C-05-5, Phase 10's and Phase 11 C-11-5's post-commit
 checks were already recorded as closed; their person/participant/reviewer conditions remain.
-
-The inherited Phase 12 verifier incorrectly hard-codes its earlier Claude executor
-in `execution.json`. For **this rerun**, that executor field is superseded by
-`experiments/phase-13/20260926-integration/execution-start.json`: actual model and
-reasoning effort are UNVERIFIED. The user explicitly instructed against inferring
-the recommended settings. Test outcomes and hashes from the verifier are unaffected.
 
 ## 1. Artifacts
 

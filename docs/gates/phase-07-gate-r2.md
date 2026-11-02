@@ -2,7 +2,7 @@
 
 Reopened 2026-09-22 on the owner's explicit Phase 08 instruction. This record supersedes
 `phase-07-gate.md` for current condition status; that submission and its historical evidence remain intact.
-Submitter: Codex. Reviewer: project owner, pending. Proposed verdict: **PASS-WITH-CONDITIONS
+Reviewer: project owner, pending. Proposed verdict: **PASS-WITH-CONDITIONS
 for infrastructure; participant dataset Definition of Done remains unsatisfied**.
 
 ## Owner commit and clean verification

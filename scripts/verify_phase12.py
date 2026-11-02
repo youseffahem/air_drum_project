@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from _p10 import provenance, source_hashes, write_json
-from _p12 import NOT_CODEX, predeclaration_record
+from _p12 import predeclaration_record
 from _runlog import RunLog, git_dirty, git_sha, sha256_file
 
 from spacedrums.config import load_config
@@ -83,7 +83,7 @@ def main():
         experiments_dir=args.experiments_dir,
         description="Development gate checks; participant evidence/owner decisions remain pending",
     ) as run:
-        context, hashes = {**provenance(), **NOT_CODEX}, source_hashes()
+        context, hashes = {**provenance()}, source_hashes()
         write_json(run.dir / "execution.json", context)
         write_json(run.dir / "source-hashes.json", hashes)
         evidence = []

@@ -37,10 +37,6 @@ from spacedrums.models.temporal.ext.uncertainty import member_rows
 from spacedrums.models.temporal.train import TrainConfig, diagnostics, predictions
 
 ROOT = Path(__file__).resolve().parents[1]
-NOT_CODEX = {
-    "codex_model": "NOT CODEX: Claude Opus 5.5 (claude-opus-5-5) via Claude Code",
-    "codex_reasoning_effort": "UNAVAILABLE to the agent; not asserted",
-}
 PREDECLARATION = ROOT / "experiments/phase-12/predeclaration/predeclaration.json"
 DECLARED_DOCS = ("docs/experiments/phase-12-entry-decision.md", "docs/experiments/phase-12-prereg.md")
 

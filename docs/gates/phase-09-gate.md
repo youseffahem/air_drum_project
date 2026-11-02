@@ -1,6 +1,6 @@
 # Phase 09 — Exit Gate
 
-Submitted 2026-09-22. Submitter: Codex. Reviewer: project owner, pending.
+Submitted 2026-09-22. Reviewer: project owner, pending.
 **Proposed verdict: FAIL for the full Phase 09 Definition of Done.**
 
 The reusable harness, synthetic validation, Phase 05 developer-session replay,

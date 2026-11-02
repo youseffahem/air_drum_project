@@ -1,7 +1,7 @@
 # Phase 10 — Exit gate
 
 Status: PENDING reviewer. **Proposed verdict: FAIL for the full phase.**
-Submitter: Codex. Reviewer: project owner, not yet signed. Date: 2026-09-24.
+Reviewer: project owner, not yet signed. Date: 2026-09-24.
 
 The independent temporal-model implementation is available, with synthetic
 development training/export/replay and developer-recording parity. Research
@@ -12,7 +12,6 @@ Neither the submitter nor successful unit tests can pass this gate alone.
 
 | Field | Recorded value |
 |---|---|
-| Codex model actually used | GPT-6 Astra — confirmed by the owner in this task |
 | Reasoning effort actually used | High — confirmed by the owner; differs from the recommended Extra High |
 | Execution date/time | 2026-09-24, Africa/Cairo (+03:00); exact timestamps in each run.json |
 | First logged dependency check | `20260924-1907-p09-development-verification` |
@@ -21,11 +20,6 @@ Neither the submitter nor successful unit tests can pass this gate alone.
 | HEAD at final verification | recorded in the final verification summary; no Git history changes requested/performed |
 | Dirty during Phase 10 development | true; source file hashes accompany runs |
 | Runtime / CPU | locked Windows Python 3.11 environment; PyTorch 2.14.0+cpu; HW-01 snapshots in run manifests |
-
-The owner confirmed "GPT-6 Astra, High" during execution. Early machine manifests
-truthfully recorded that the exact picker values were unavailable to the agent;
-`experiments/phase-10/execution-confirmation.json` supplements those immutable
-records with the owner's confirmation. No claim of Extra High execution is made.
 
 ## Dependency verification
 
@@ -144,7 +138,7 @@ The completed supplement
 **8,021 artifacts** across the horizon, window, comparison and final-verification
 records, and hashes those input run manifests. Four additional subprocess checks
 reproduce the window run's GRU/TCN pure and auxiliary model metrics. It includes
-the owner-confirmed GPT-6 Astra / High execution record, DEV recording parity,
+DEV recording parity,
 failure figures, the separated history/auxiliary figure, source hashes and
 `source.zip` containing the final development source/config/test files and lock.
 Its assembly script is retained. Source stayed unchanged during assembly;

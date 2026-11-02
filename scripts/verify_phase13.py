@@ -100,8 +100,6 @@ def main():
             "source_unchanged_during_verification": initial == final,
             "git_sha_final": git_sha(),
             "git_dirty_final": git_dirty(),
-            "codex_model": "UNVERIFIED",
-            "codex_reasoning_effort": "UNVERIFIED",
             "participant_fold": "PENDING: ds-v1.0 unavailable",
             "shipped_model": "PENDING owner selection",
             "live_strike_timing": "PENDING person-dependent session",
