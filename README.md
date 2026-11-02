@@ -16,7 +16,7 @@
 ![LightGBM](https://img.shields.io/badge/LightGBM-baseline-2980B9?style=flat-square)
 ![Windows 11](https://img.shields.io/badge/platform-Windows%2011-0078D6?style=flat-square&logo=windows&logoColor=white)
 ![Offline](https://img.shields.io/badge/runtime-100%25%20offline-2EA043?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-{{TESTS_BADGE}}%20passing-2EA043?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-2%2C082-2EA043?style=flat-square)
 ![Status](https://img.shields.io/badge/status-final%20release-2EA043?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-proprietary-lightgrey?style=flat-square)
 
@@ -44,7 +44,7 @@ This repository is the **final release** of the project: the playable applicatio
 <tr>
 <td align="center"><h3>20</h3><sub>phases delivered<br>(00 to 19)</sub></td>
 <td align="center"><h3>50</h3><sub>architecture<br>decision records</sub></td>
-<td align="center"><h3>{{TESTS}}</h3><sub>tests passing<br>in 28 suites</sub></td>
+<td align="center"><h3>2,082</h3><sub>automated tests<br>in 28 suites</sub></td>
 <td align="center"><h3>≈ 47 k</h3><sub>lines of Python<br>in <code>src/</code></sub></td>
 <td align="center"><h3>7</h3><sub>enforced import<br>contracts</sub></td>
 <td align="center"><h3>0</h3><sub>sensors or<br>cloud calls</sub></td>
@@ -584,7 +584,7 @@ Three rules do the heavy lifting: **`prediction` may not import `geometry`** (a 
 ├── schemas/                 JSON Schemas for every record type and the experiment log
 ├── assets/                  hash-pinned model manifests and the sample-bank manifests
 ├── scripts/                 tools: fetch assets, measure, verify phases, render figures
-├── tests/                   {{TESTS}} tests in 28 suites
+├── tests/                   2,082 tests in 28 suites
 ├── docs/                    architecture, ADRs, gates, reports, protocols, ethics, user guides
 ├── phases/                  the 20 phase documents (00 to 19)
 ├── data/ experiments/       local recordings and run outputs (git-ignored)
@@ -599,12 +599,12 @@ Three rules do the heavy lifting: **`prediction` may not import `geometry`** (a 
 ## Quality
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest              # {{PYTEST_LINE}}
+.\.venv\Scripts\python.exe -m pytest              # the full suite: 2,082 tests, about 18 minutes
 .\.venv\Scripts\lint-imports                      # 7 import contracts: kept, 0 broken
 .\.venv\Scripts\python.exe -m ruff check src tests scripts
 ```
 
-{{QUALITY_NOTE}}
+Checked on the development laptop on 2026-11-02: 7 import contracts kept, 0 broken; ruff reports one long line in `src/spacedrums/stick/visible.py`. One test needs the webcam and is skipped unless `SPACEDRUMS_HW_TESTS=1`. A few tests check real-time pacing (for example `tests/scripts/test_diagnose_responsiveness.py`), so run the suite on an otherwise idle machine.
 
 - **Tests** cover contracts, causality (future-perturbation invariance), parity between offline replay and the live loop, failure injection, runtime invariants, geometry, audio, calibration, the red-tip tracker, the AR scene solver and the UI renderers.
 - **Decisions are written down.** 50 ADRs record every choice that was not in the requirements, including the ones that went against a pre-declared rule.
